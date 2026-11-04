@@ -72,50 +72,93 @@ jobs:
 
           umask 077
           key_file="app/seali-upload-key.jks"
-          printf '%s' "$SEALI_UPLOAD_KEYSTORE_BASE64" | base64 --decode > "$key_file"
+          normalized_base64="$RUNNER_TEMP/seali-upload-key.base64"
+          check_log="$RUNNER_TEMP/seali-keystore-check.log"
+          csr_file="$RUNNER_TEMP/seali-upload-key-check.csr"
+          validation_succeeded=false
+
+          cleanup_validation_files() {
+            rm -f "$normalized_base64" "$check_log" "$csr_file"
+            if [[ "$validation_succeeded" != true ]]; then
+              rm -f "$key_file"
+            fi
+          }
+          trap cleanup_validation_files EXIT
+
+          # PowerShell and other encoders may wrap Base64 across lines. Remove
+          # whitespace only; never echo or print the secret or decoded bytes.
+          printf '%s' "$SEALI_UPLOAD_KEYSTORE_BASE64" | tr -d '[:space:]' > "$normalized_base64"
+          if ! base64 --decode "$normalized_base64" > "$key_file"; then
+            echo "::error::SEALI_UPLOAD_KEYSTORE_BASE64 is not valid Base64. Encode the original keystore file bytes, not its path or a JSON wrapper."
+            exit 1
+          fi
           if [[ ! -s "$key_file" ]]; then
             echo "::error::The decoded upload keystore is empty."
             exit 1
           fi
           chmod 600 "$key_file"
 
-          check_log="$RUNNER_TEMP/seali-keystore-check.log"
-          if ! keytool -list -v \
-            -keystore "$key_file" \
-            -storetype JKS \
-            -storepass:env SEALI_UPLOAD_STORE_PASSWORD \
-            -alias "$SEALI_UPLOAD_KEY_ALIAS" > "$check_log" 2>&1; then
-            rm -f "$check_log"
-            echo "::error::The decoded upload keystore is not a readable JKS keystore for the configured store password and alias. Replace the keystore secret with base64 of the original .jks file."
+          # Java 9+ keytool defaults to PKCS12 even when the filename ends in
+          # .jks. Detect the actual container format instead of trusting the
+          # extension or hard-coding JKS.
+          store_type=""
+          for candidate in PKCS12 JKS; do
+            if keytool -list \
+              -keystore "$key_file" \
+              -storetype "$candidate" \
+              -storepass:env SEALI_UPLOAD_STORE_PASSWORD \
+              > /dev/null 2>&1; then
+              store_type="$candidate"
+              break
+            fi
+          done
+
+          if [[ -z "$store_type" ]]; then
+            echo "::error::Decoded bytes are not a readable PKCS12 or JKS keystore with the configured store password. Check that the Base64 secret contains the original keystore bytes and that the store password matches. No keystore data was logged."
             exit 1
           fi
 
-          if ! grep -q "Entry type: PrivateKeyEntry" "$check_log"; then
-            rm -f "$check_log"
+          if ! keytool -list -v \
+            -keystore "$key_file" \
+            -storetype "$store_type" \
+            -storepass:env SEALI_UPLOAD_STORE_PASSWORD \
+            -alias "$SEALI_UPLOAD_KEY_ALIAS" > "$check_log" 2>&1; then
+            echo "::error::The keystore opens successfully, but the configured alias was not found or could not be read. Check SEALI_UPLOAD_KEY_ALIAS."
+            exit 1
+          fi
+
+          if ! grep -qi "Entry type: PrivateKeyEntry" "$check_log"; then
             echo "::error::The configured alias is not a private-key entry. A certificate-only keystore cannot sign Seali releases."
             exit 1
           fi
-          rm -f "$check_log"
 
-          # A CSR operation proves the private-key password can unlock the key
-          # without changing the keystore or exposing its contents.
+          # PKCS12 stores use the store password to protect the private key.
+          # JKS supports a separate key password.
+          if [[ "$store_type" == "PKCS12" && "$SEALI_UPLOAD_KEY_PASSWORD" != "$SEALI_UPLOAD_STORE_PASSWORD" ]]; then
+            echo "::error::This keystore is PKCS12, which requires the private-key password and store password to match. Correct the secret values without sharing them."
+            exit 1
+          fi
+
+          # Prove the private key can be unlocked without exporting it or
+          # changing the keystore. The CSR is temporary and immediately erased.
           if ! keytool -certreq \
             -alias "$SEALI_UPLOAD_KEY_ALIAS" \
             -keystore "$key_file" \
-            -storetype JKS \
+            -storetype "$store_type" \
             -storepass:env SEALI_UPLOAD_STORE_PASSWORD \
             -keypass:env SEALI_UPLOAD_KEY_PASSWORD \
-            -file "$RUNNER_TEMP/seali-upload-key-check.csr" \
+            -file "$csr_file" \
             > /dev/null 2>&1; then
-            rm -f "$RUNNER_TEMP/seali-upload-key-check.csr"
             echo "::error::The configured private-key password cannot unlock the selected upload key."
             exit 1
           fi
-          rm -f "$RUNNER_TEMP/seali-upload-key-check.csr"
 
+          echo "SEALI_UPLOAD_KEYSTORE_TYPE=$store_type" >> "$GITHUB_ENV"
+          echo "store_type=$store_type" >> "$GITHUB_OUTPUT"
           echo "available=true" >> "$GITHUB_OUTPUT"
-          echo "Upload keystore format, alias, store password, and private-key password validated."
-
+          validation_succeeded=true
+          echo "Upload keystore validated successfully (format: $store_type; private key and passwords verified)."
+      
       - name: Build generic release APK variants
         if: steps.signing.outputs.available == 'true'
         env:
@@ -123,6 +166,7 @@ jobs:
           SEALI_UPLOAD_KEY_PASSWORD: ${{ secrets.SEALI_UPLOAD_KEY_PASSWORD }}
           SEALI_UPLOAD_STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
           SEALI_UPLOAD_KEYSTORE_FILE: app/seali-upload-key.jks
+          SEALI_UPLOAD_KEYSTORE_TYPE: ${{ env.SEALI_UPLOAD_KEYSTORE_TYPE }}
         run: ./gradlew --no-daemon assembleGenericRelease
 
       # Play App Bundles own ABI delivery; disable APK split outputs for this task.
@@ -133,6 +177,7 @@ jobs:
           SEALI_UPLOAD_KEY_PASSWORD: ${{ secrets.SEALI_UPLOAD_KEY_PASSWORD }}
           SEALI_UPLOAD_STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
           SEALI_UPLOAD_KEYSTORE_FILE: app/seali-upload-key.jks
+          SEALI_UPLOAD_KEYSTORE_TYPE: ${{ env.SEALI_UPLOAD_KEYSTORE_TYPE }}
         run: ./gradlew --no-daemon bundleGenericRelease -PnoSplits
 
       - name: Verify APK and AAB signatures against the upload certificate
@@ -141,6 +186,7 @@ jobs:
         env:
           SEALI_UPLOAD_KEY_ALIAS: ${{ secrets.SEALI_UPLOAD_KEY_ALIAS }}
           SEALI_UPLOAD_STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
+          SEALI_UPLOAD_KEYSTORE_TYPE: ${{ env.SEALI_UPLOAD_KEYSTORE_TYPE }}
         run: |
           set -euo pipefail
 
@@ -153,7 +199,7 @@ jobs:
             keytool -exportcert \
               -alias "$SEALI_UPLOAD_KEY_ALIAS" \
               -keystore "$keystore" \
-              -storetype JKS \
+              -storetype "$SEALI_UPLOAD_KEYSTORE_TYPE" \
               -storepass:env SEALI_UPLOAD_STORE_PASSWORD \
               | openssl dgst -sha256 \
               | awk '{ print tolower($NF) }'
