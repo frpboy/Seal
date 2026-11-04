@@ -37,7 +37,10 @@ jobs:
       - name: Grant execute permission for Gradle wrapper
         run: chmod +x gradlew
 
-      - name: Configure private Play upload signing key
+      # Release artifacts must never be published unsigned. PRs without secrets
+      # still run the debug test suite; main/tag/manual builds require signing.
+      - name: Validate and stage private Play upload key
+        id: signing
         shell: bash
         env:
           SEALI_UPLOAD_KEYSTORE_BASE64: ${{ secrets.SEALI_UPLOAD_KEYSTORE_BASE64 }}
@@ -46,37 +49,160 @@ jobs:
           SEALI_UPLOAD_STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
         run: |
           set -euo pipefail
-          if [ -z "${SEALI_UPLOAD_KEYSTORE_BASE64}" ]; then
-            echo "::warning::Play upload signing secrets are not configured; the AAB will be unsigned."
-            exit 0
+
+          if [[ -z "$SEALI_UPLOAD_KEYSTORE_BASE64" ]]; then
+            if [[ "$GITHUB_EVENT_NAME" == "pull_request" && -z "$SEALI_UPLOAD_KEY_ALIAS$SEALI_UPLOAD_KEY_PASSWORD$SEALI_UPLOAD_STORE_PASSWORD" ]]; then
+              echo "available=false" >> "$GITHUB_OUTPUT"
+              echo "::notice::Signing secrets are unavailable to this pull request; release packaging is safely skipped."
+              exit 0
+            fi
+            echo "::error::Missing SEALI_UPLOAD_KEYSTORE_BASE64. Configure the four Seali upload-signing repository secrets before running a release build."
+            exit 1
           fi
+
           for name in SEALI_UPLOAD_KEY_ALIAS SEALI_UPLOAD_KEY_PASSWORD SEALI_UPLOAD_STORE_PASSWORD; do
-            if [ -z "${!name}" ]; then
-              echo "::error::Missing required secret: $name"
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Missing required signing secret: $name"
               exit 1
             fi
           done
-          printf '%s' "$SEALI_UPLOAD_KEYSTORE_BASE64" | base64 --decode > app/seali-upload-key.jks
-          cat > keystore.properties <<EOF
-          keyAlias=$SEALI_UPLOAD_KEY_ALIAS
-          keyPassword=$SEALI_UPLOAD_KEY_PASSWORD
-          storeFile=app/seali-upload-key.jks
-          storePassword=$SEALI_UPLOAD_STORE_PASSWORD
-          EOF
-          echo "Play upload signing configured."
 
+          umask 077
+          key_file="app/seali-upload-key.jks"
+          printf '%s' "$SEALI_UPLOAD_KEYSTORE_BASE64" | base64 --decode > "$key_file"
+          if [[ ! -s "$key_file" ]]; then
+            echo "::error::The decoded upload keystore is empty."
+            exit 1
+          fi
+          chmod 600 "$key_file"
+
+          check_log="$RUNNER_TEMP/seali-keystore-check.log"
+          if ! keytool -list -v \
+            -keystore "$key_file" \
+            -storetype JKS \
+            -storepass:env SEALI_UPLOAD_STORE_PASSWORD \
+            -alias "$SEALI_UPLOAD_KEY_ALIAS" > "$check_log" 2>&1; then
+            rm -f "$check_log"
+            echo "::error::The decoded upload keystore is not a readable JKS keystore for the configured store password and alias. Replace the keystore secret with base64 of the original .jks file."
+            exit 1
+          fi
+
+          if ! grep -q "Entry type: PrivateKeyEntry" "$check_log"; then
+            rm -f "$check_log"
+            echo "::error::The configured alias is not a private-key entry. A certificate-only keystore cannot sign Seali releases."
+            exit 1
+          fi
+          rm -f "$check_log"
+
+          # A CSR operation proves the private-key password can unlock the key
+          # without changing the keystore or exposing its contents.
+          if ! keytool -certreq \
+            -alias "$SEALI_UPLOAD_KEY_ALIAS" \
+            -keystore "$key_file" \
+            -storetype JKS \
+            -storepass:env SEALI_UPLOAD_STORE_PASSWORD \
+            -keypass:env SEALI_UPLOAD_KEY_PASSWORD \
+            -file "$RUNNER_TEMP/seali-upload-key-check.csr" \
+            > /dev/null 2>&1; then
+            rm -f "$RUNNER_TEMP/seali-upload-key-check.csr"
+            echo "::error::The configured private-key password cannot unlock the selected upload key."
+            exit 1
+          fi
+          rm -f "$RUNNER_TEMP/seali-upload-key-check.csr"
+
+          echo "available=true" >> "$GITHUB_OUTPUT"
+          echo "Upload keystore format, alias, store password, and private-key password validated."
 
       - name: Run generic debug unit tests
         run: ./gradlew testGenericDebugUnitTest
 
       - name: Build generic release APK variants
+        if: steps.signing.outputs.available == 'true'
+        env:
+          SEALI_UPLOAD_KEY_ALIAS: ${{ secrets.SEALI_UPLOAD_KEY_ALIAS }}
+          SEALI_UPLOAD_KEY_PASSWORD: ${{ secrets.SEALI_UPLOAD_KEY_PASSWORD }}
+          SEALI_UPLOAD_STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
+          SEALI_UPLOAD_KEYSTORE_FILE: app/seali-upload-key.jks
         run: ./gradlew assembleGenericRelease
 
       # Play App Bundles own ABI delivery; disable APK split outputs for this task.
       - name: Build Google Play App Bundle
+        if: steps.signing.outputs.available == 'true'
+        env:
+          SEALI_UPLOAD_KEY_ALIAS: ${{ secrets.SEALI_UPLOAD_KEY_ALIAS }}
+          SEALI_UPLOAD_KEY_PASSWORD: ${{ secrets.SEALI_UPLOAD_KEY_PASSWORD }}
+          SEALI_UPLOAD_STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
+          SEALI_UPLOAD_KEYSTORE_FILE: app/seali-upload-key.jks
         run: ./gradlew bundleGenericRelease -PnoSplits
 
+      - name: Verify APK and AAB signatures against the upload certificate
+        if: steps.signing.outputs.available == 'true'
+        shell: bash
+        env:
+          SEALI_UPLOAD_KEY_ALIAS: ${{ secrets.SEALI_UPLOAD_KEY_ALIAS }}
+          SEALI_UPLOAD_STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          keystore="app/seali-upload-key.jks"
+          apksigner="$ANDROID_HOME/build-tools/36.0.0/apksigner"
+          apk_dir="app/build/outputs/apk/generic/release"
+          aab_dir="app/build/outputs/bundle/genericRelease"
+
+          expected_fingerprint="$(
+            keytool -exportcert \
+              -alias "$SEALI_UPLOAD_KEY_ALIAS" \
+              -keystore "$keystore" \
+              -storetype JKS \
+              -storepass:env SEALI_UPLOAD_STORE_PASSWORD \
+              | openssl dgst -sha256 \
+              | awk '{ print tolower($NF) }'
+          )"
+
+          mapfile -t apks < <(find "$apk_dir" -maxdepth 1 -type f -name '*.apk' | sort)
+          if [[ "${#apks[@]}" -ne 5 ]]; then
+            echo "::error::Expected five ABI/universal APKs, found ${#apks[@]}."
+            exit 1
+          fi
+
+          for apk in "${apks[@]}"; do
+            signer_output="$("$apksigner" verify --verbose --print-certs "$apk" 2>&1)"
+            actual_fingerprint="$(
+              printf '%s\n' "$signer_output" \
+                | sed -nE 's/^Signer #1 certificate SHA-256 digest: ([[:xdigit:]:]+)$/\1/p' \
+                | head -n 1 \
+                | tr -d ':' \
+                | tr '[:upper:]' '[:lower:]'
+            )"
+            if [[ -z "$actual_fingerprint" || "$actual_fingerprint" != "$expected_fingerprint" ]]; then
+              echo "::error::APK signature verification failed or the APK was signed with a different certificate: $(basename "$apk")"
+              exit 1
+            fi
+          done
+
+          mapfile -t aabs < <(find "$aab_dir" -maxdepth 1 -type f -name '*.aab' | sort)
+          if [[ "${#aabs[@]}" -ne 1 ]]; then
+            echo "::error::Expected exactly one Google Play AAB, found ${#aabs[@]}."
+            exit 1
+          fi
+
+          jarsigner -verify "${aabs[0]}" > /dev/null
+          aab_fingerprint="$(
+            keytool -printcert -jarfile "${aabs[0]}" 2>/dev/null \
+              | sed -nE 's/^[[:space:]]*SHA256: ([[:xdigit:]:]+).*$/\1/p' \
+              | head -n 1 \
+              | tr -d ':' \
+              | tr '[:upper:]' '[:lower:]'
+          )"
+          if [[ -z "$aab_fingerprint" || "$aab_fingerprint" != "$expected_fingerprint" ]]; then
+            echo "::error::The AAB is unsigned, invalid, or signed with a different certificate."
+            exit 1
+          fi
+
+          echo "Verified all five APKs and the Google Play AAB against the configured upload certificate."
+
       - name: Prepare individually named release APKs
+        if: steps.signing.outputs.available == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -111,6 +237,7 @@ jobs:
           ls -lh "$output_dir"
 
       - name: Upload Google Play App Bundle
+        if: steps.signing.outputs.available == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: seali-google-play-aab
@@ -120,6 +247,7 @@ jobs:
 
       # Keep each ABI downloadable on its own from the Actions run.
       - name: Upload ARM64 APK
+        if: steps.signing.outputs.available == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: seali-arm64-v8a
@@ -128,6 +256,7 @@ jobs:
           retention-days: 14
 
       - name: Upload ARMv7 APK
+        if: steps.signing.outputs.available == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: seali-armeabi-v7a
@@ -136,6 +265,7 @@ jobs:
           retention-days: 14
 
       - name: Upload x86 APK
+        if: steps.signing.outputs.available == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: seali-x86
@@ -144,6 +274,7 @@ jobs:
           retention-days: 14
 
       - name: Upload x86_64 APK
+        if: steps.signing.outputs.available == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: seali-x86_64
@@ -152,6 +283,7 @@ jobs:
           retention-days: 14
 
       - name: Upload universal APK
+        if: steps.signing.outputs.available == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: seali-universal
@@ -160,7 +292,7 @@ jobs:
           retention-days: 14
 
       - name: Publish GitHub Release with separate APK assets
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') && steps.signing.outputs.available == 'true'
         uses: softprops/action-gh-release@v2
         with:
           name: Seali ${{ github.ref_name }}
