@@ -346,3 +346,11 @@ jobs:
           files: release-assets/*.apk
           fail_on_unmatched_files: true
           make_latest: true
+
+      # The signing key is needed only until packaging and verification finish.
+      # Always remove it from the ephemeral runner, including failed builds.
+      - name: Remove private signing material
+        if: always()
+        shell: bash
+        run: |
+          rm -f app/seali-upload-key.jks "$RUNNER_TEMP/seali-upload-key.base64" "$RUNNER_TEMP/seali-keystore-check.log" "$RUNNER_TEMP/seali-upload-key-check.csr"
