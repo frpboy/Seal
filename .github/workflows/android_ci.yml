@@ -98,23 +98,26 @@ jobs:
           fi
           chmod 600 "$key_file"
 
-          # Java 9+ keytool defaults to PKCS12 even when the filename ends in
-          # .jks. Detect the actual container format instead of trusting the
-          # extension or hard-coding JKS.
-          store_type=""
-          for candidate in PKCS12 JKS; do
-            if keytool -list \
-              -keystore "$key_file" \
-              -storetype "$candidate" \
-              -storepass:env SEALI_UPLOAD_STORE_PASSWORD \
-              > /dev/null 2>&1; then
-              store_type="$candidate"
-              break
-            fi
-          done
+          # Detect the real container from its file signature. keytool on
+          # modern JDKs can transparently read legacy keystores through more
+          # than one requested type, so a successful -list alone is not a
+          # reliable format detector.
+          magic="$(od -An -tx1 -N4 "$key_file" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')"
+          case "$magic" in
+            feedfeed) store_type="JKS" ;;
+            30*) store_type="PKCS12" ;;
+            *)
+              echo "::error::The decoded file is neither a recognized JKS nor PKCS12 keystore. Verify that the secret is Base64 of the original binary keystore file."
+              exit 1
+              ;;
+          esac
 
-          if [[ -z "$store_type" ]]; then
-            echo "::error::Decoded bytes are not a readable PKCS12 or JKS keystore with the configured store password. Check that the Base64 secret contains the original keystore bytes and that the store password matches. No keystore data was logged."
+          if ! keytool -list \
+            -keystore "$key_file" \
+            -storetype "$store_type" \
+            -storepass:env SEALI_UPLOAD_STORE_PASSWORD \
+            > /dev/null 2>&1; then
+            echo "::error::The decoded $store_type keystore could not be opened with the configured store password. Verify the Base64 file and store-password secret; no keystore data was logged."
             exit 1
           fi
 
