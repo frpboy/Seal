@@ -17,3 +17,5 @@
 local.properties
 /keystore.properties
 .kotlin
+# Private Seali Play upload keystore (never commit)
+/app/seali-upload-key.jks
