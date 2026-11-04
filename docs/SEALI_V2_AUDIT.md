@@ -85,11 +85,13 @@ The v2 downloader uses a long-lived coroutine scope, snapshot-driven scheduling,
 
 **Action:** test that no more than the configured number of tasks run, that cancellation releases a slot, that failed tasks do not block the queue, that process death restores a safe restartable state, and that simultaneous state changes cannot start the same task twice. Keep scheduler policy separate from Compose UI state.
 
-### P2 — Android identity and inherited branding are still upstream
+### P2 — Android identity migration started; internal namespace remains upstream
 
-The Android application ID and namespace remain `com.junkfood.seal`; the manifest references Seal themes and upstream resources. The original launcher artwork and Seal labels are also still present.
+The Android application ID is now `com.frpboy.seali`, the launcher label is `Seali`, debug/preview labels are branded, and generated APK filenames use the Seali name. The internal Kotlin namespace remains `com.junkfood.seal` deliberately: Android `applicationId` controls the installed package identity, while `namespace` controls generated `R` and `BuildConfig` classes. Keeping these separate avoids a risky mass package rename during the first identity migration.
 
-**Action:** complete the Seali identity migration only after the baseline build and queue tests are stable. Give Seali a distinct application ID before distributing it as a separate app. Do not change the original package namespace everywhere in one blind replacement; separate the public application ID from internal Kotlin package migration. Verify Room data, MMKV preferences, backup/restore, FileProvider authorities, deep links, notifications, and upgrade behavior.
+The manifest uses `${applicationId}.provider` for its FileProvider authority, so the provider authority follows the new installed application ID automatically.
+
+**Important migration consequence:** Android treats `com.frpboy.seali` as a different app from `com.junkfood.seal`. Existing Seal installations will not update in place to Seali, and their private app data will not automatically transfer. Users should export a supported in-app backup from Seal and import it into Seali after installation. A future Kotlin namespace/package rename can be done separately after the app builds and tests cleanly.
 
 ### P2 — CI/release workflow needs hardening
 
