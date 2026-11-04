@@ -37,6 +37,35 @@ jobs:
       - name: Grant execute permission for Gradle wrapper
         run: chmod +x gradlew
 
+      - name: Configure private Play upload signing key
+        shell: bash
+        env:
+          SEALI_UPLOAD_KEYSTORE_BASE64: ${{ secrets.SEALI_UPLOAD_KEYSTORE_BASE64 }}
+          SEALI_UPLOAD_KEY_ALIAS: ${{ secrets.SEALI_UPLOAD_KEY_ALIAS }}
+          SEALI_UPLOAD_KEY_PASSWORD: ${{ secrets.SEALI_UPLOAD_KEY_PASSWORD }}
+          SEALI_UPLOAD_STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SEALI_UPLOAD_KEYSTORE_BASE64}" ]; then
+            echo "::warning::Play upload signing secrets are not configured; the AAB will be unsigned."
+            exit 0
+          fi
+          for name in SEALI_UPLOAD_KEY_ALIAS SEALI_UPLOAD_KEY_PASSWORD SEALI_UPLOAD_STORE_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing required secret: $name"
+              exit 1
+            fi
+          done
+          printf '%s' "$SEALI_UPLOAD_KEYSTORE_BASE64" | base64 --decode > app/seali-upload-key.jks
+          cat > keystore.properties <<EOF
+          keyAlias=$SEALI_UPLOAD_KEY_ALIAS
+          keyPassword=$SEALI_UPLOAD_KEY_PASSWORD
+          storeFile=app/seali-upload-key.jks
+          storePassword=$SEALI_UPLOAD_STORE_PASSWORD
+          EOF
+          echo "Play upload signing configured."
+
+
       - name: Run generic debug unit tests
         run: ./gradlew testGenericDebugUnitTest
 
