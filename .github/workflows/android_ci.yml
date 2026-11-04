@@ -123,7 +123,7 @@ jobs:
           SEALI_UPLOAD_KEY_PASSWORD: ${{ secrets.SEALI_UPLOAD_KEY_PASSWORD }}
           SEALI_UPLOAD_STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
           SEALI_UPLOAD_KEYSTORE_FILE: app/seali-upload-key.jks
-        run: ./gradlew assembleGenericRelease
+        run: ./gradlew --no-daemon assembleGenericRelease
 
       # Play App Bundles own ABI delivery; disable APK split outputs for this task.
       - name: Build Google Play App Bundle
@@ -133,7 +133,7 @@ jobs:
           SEALI_UPLOAD_KEY_PASSWORD: ${{ secrets.SEALI_UPLOAD_KEY_PASSWORD }}
           SEALI_UPLOAD_STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
           SEALI_UPLOAD_KEYSTORE_FILE: app/seali-upload-key.jks
-        run: ./gradlew bundleGenericRelease -PnoSplits
+        run: ./gradlew --no-daemon bundleGenericRelease -PnoSplits
 
       - name: Verify APK and AAB signatures against the upload certificate
         if: steps.signing.outputs.available == 'true'
@@ -216,7 +216,7 @@ jobs:
             mapfile -t matches < <(find "$source_dir" -maxdepth 1 -type f -name "$pattern" | sort)
             if [ "${#matches[@]}" -ne 1 ]; then
               echo "::error::Expected exactly one $label APK matching $pattern; found ${#matches[@]}"
-              find "$source_dir" -maxdepth 1 -type f -name '*.apk' -printf '%f\\n'
+              find "$source_dir" -maxdepth 1 -type f -name '*.apk' -printf '%f\n'
               exit 1
             fi
             cp "${matches[0]}" "$output_dir/Seali-${GITHUB_REF_NAME}-$label.apk"
@@ -230,7 +230,7 @@ jobs:
           mapfile -t universal < <(find "$source_dir" -maxdepth 1 -type f -name '*.apk' ! -name '*-arm64-v8a-release.apk' ! -name '*-armeabi-v7a-release.apk' ! -name '*-x86-release.apk' ! -name '*-x86_64-release.apk' | sort)
           if [ "${#universal[@]}" -ne 1 ]; then
             echo "::error::Expected exactly one universal APK; found ${#universal[@]}"
-            find "$source_dir" -maxdepth 1 -type f -name '*.apk' -printf '%f\\n'
+            find "$source_dir" -maxdepth 1 -type f -name '*.apk' -printf '%f\n'
             exit 1
           fi
           cp "${universal[0]}" "$output_dir/Seali-${GITHUB_REF_NAME}-universal.apk"
