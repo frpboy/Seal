@@ -31,6 +31,7 @@ val uploadKeyAlias = signingValue("SEALI_UPLOAD_KEY_ALIAS", "keyAlias")
 val uploadKeyPassword = signingValue("SEALI_UPLOAD_KEY_PASSWORD", "keyPassword")
 val uploadStorePassword = signingValue("SEALI_UPLOAD_STORE_PASSWORD", "storePassword")
 val uploadStoreFilePath = signingValue("SEALI_UPLOAD_KEYSTORE_FILE", "storeFile")
+val uploadStoreType = signingValue("SEALI_UPLOAD_KEYSTORE_TYPE", "storeType") ?: "JKS"
 val signingValues = listOf(uploadKeyAlias, uploadKeyPassword, uploadStorePassword, uploadStoreFilePath)
 val hasAnySigningValue = signingValues.any { !it.isNullOrBlank() }
 val signingConfigured = signingValues.all { !it.isNullOrBlank() }
@@ -61,6 +62,7 @@ android {
                 keyPassword = uploadKeyPassword!!
                 storeFile = uploadKeystoreFile!!
                 storePassword = uploadStorePassword!!
+                storeType = uploadStoreType
             }
         }
     }
