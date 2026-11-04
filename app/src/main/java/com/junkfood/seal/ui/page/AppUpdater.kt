@@ -16,6 +16,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import com.junkfood.seal.BuildConfig
 import com.junkfood.seal.R
 import com.junkfood.seal.util.PreferenceUtil
 import com.junkfood.seal.util.ToastUtil
@@ -27,6 +28,8 @@ import kotlinx.coroutines.withContext
 
 @Composable
 fun AppUpdater() {
+    // Google Play distribution must be updated through Play Store, never by sideloading APKs.
+    if (BuildConfig.APPLICATION_ID == "com.frpboy.seali") return
 
     val context = LocalContext.current
 
