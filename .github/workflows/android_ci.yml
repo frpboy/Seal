@@ -39,13 +39,47 @@ jobs:
       - name: Run generic debug unit tests
         run: ./gradlew testGenericDebugUnitTest
 
-      - name: Build generic release APK
+      - name: Build generic release APK variants
         run: ./gradlew assembleGenericRelease
 
-      - name: Upload release APK
+      # Keep each ABI downloadable on its own. The universal APK is provided
+      # separately for users who do not know which device architecture to pick.
+      - name: Upload ARM64 APK
         uses: actions/upload-artifact@v4
         with:
-          name: seali-generic-release
-          path: app/build/outputs/apk/generic/release/*.apk
+          name: seali-arm64-v8a
+          path: app/build/outputs/apk/generic/release/*arm64-v8a*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload ARMv7 APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: seali-armeabi-v7a
+          path: app/build/outputs/apk/generic/release/*armeabi-v7a*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload x86 APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: seali-x86
+          path: app/build/outputs/apk/generic/release/*x86-release.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload x86_64 APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: seali-x86_64
+          path: app/build/outputs/apk/generic/release/*x86_64*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload universal APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: seali-universal
+          path: app/build/outputs/apk/generic/release/*universal*.apk
           if-no-files-found: error
           retention-days: 14
