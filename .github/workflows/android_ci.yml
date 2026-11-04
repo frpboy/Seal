@@ -153,7 +153,6 @@ jobs:
             exit 1
           fi
 
-          echo "SEALI_UPLOAD_KEYSTORE_TYPE=$store_type" >> "$GITHUB_ENV"
           echo "store_type=$store_type" >> "$GITHUB_OUTPUT"
           echo "available=true" >> "$GITHUB_OUTPUT"
           validation_succeeded=true
@@ -166,7 +165,7 @@ jobs:
           SEALI_UPLOAD_KEY_PASSWORD: ${{ secrets.SEALI_UPLOAD_KEY_PASSWORD }}
           SEALI_UPLOAD_STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
           SEALI_UPLOAD_KEYSTORE_FILE: app/seali-upload-key.jks
-          SEALI_UPLOAD_KEYSTORE_TYPE: ${{ env.SEALI_UPLOAD_KEYSTORE_TYPE }}
+          SEALI_UPLOAD_KEYSTORE_TYPE: ${{ steps.signing.outputs.store_type }}
         run: ./gradlew --no-daemon assembleGenericRelease
 
       # Play App Bundles own ABI delivery; disable APK split outputs for this task.
@@ -177,7 +176,7 @@ jobs:
           SEALI_UPLOAD_KEY_PASSWORD: ${{ secrets.SEALI_UPLOAD_KEY_PASSWORD }}
           SEALI_UPLOAD_STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
           SEALI_UPLOAD_KEYSTORE_FILE: app/seali-upload-key.jks
-          SEALI_UPLOAD_KEYSTORE_TYPE: ${{ env.SEALI_UPLOAD_KEYSTORE_TYPE }}
+          SEALI_UPLOAD_KEYSTORE_TYPE: ${{ steps.signing.outputs.store_type }}
         run: ./gradlew --no-daemon bundleGenericRelease -PnoSplits
 
       - name: Verify APK and AAB signatures against the upload certificate
@@ -186,7 +185,7 @@ jobs:
         env:
           SEALI_UPLOAD_KEY_ALIAS: ${{ secrets.SEALI_UPLOAD_KEY_ALIAS }}
           SEALI_UPLOAD_STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
-          SEALI_UPLOAD_KEYSTORE_TYPE: ${{ env.SEALI_UPLOAD_KEYSTORE_TYPE }}
+          SEALI_UPLOAD_KEYSTORE_TYPE: ${{ steps.signing.outputs.store_type }}
         run: |
           set -euo pipefail
 
