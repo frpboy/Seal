@@ -37,6 +37,9 @@ jobs:
       - name: Grant execute permission for Gradle wrapper
         run: chmod +x gradlew
 
+      - name: Run generic debug unit tests
+        run: ./gradlew testGenericDebugUnitTest
+
       # Release artifacts must never be published unsigned. PRs without secrets
       # still run the debug test suite; main/tag/manual builds require signing.
       - name: Validate and stage private Play upload key
@@ -112,9 +115,6 @@ jobs:
 
           echo "available=true" >> "$GITHUB_OUTPUT"
           echo "Upload keystore format, alias, store password, and private-key password validated."
-
-      - name: Run generic debug unit tests
-        run: ./gradlew testGenericDebugUnitTest
 
       - name: Build generic release APK variants
         if: steps.signing.outputs.available == 'true'
