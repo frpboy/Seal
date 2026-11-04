@@ -3,6 +3,7 @@
 import com.android.build.api.variant.FilterConfiguration
 import java.io.FileInputStream
 import java.util.Properties
+import org.gradle.api.GradleException
 
 plugins {
     alias(libs.plugins.android.application)
@@ -15,6 +16,30 @@ plugins {
 }
 
 val keystorePropertiesFile: File = rootProject.file("keystore.properties")
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) {
+        FileInputStream(keystorePropertiesFile).use(::load)
+    }
+}
+
+fun signingValue(environmentName: String, propertyName: String): String? =
+    System.getenv(environmentName)?.takeIf { it.isNotBlank() }
+        ?: keystoreProperties.getProperty(propertyName)?.takeIf { it.isNotBlank() }
+
+val uploadKeyAlias = signingValue("SEALI_UPLOAD_KEY_ALIAS", "keyAlias")
+val uploadKeyPassword = signingValue("SEALI_UPLOAD_KEY_PASSWORD", "keyPassword")
+val uploadStorePassword = signingValue("SEALI_UPLOAD_STORE_PASSWORD", "storePassword")
+val uploadStoreFilePath = signingValue("SEALI_UPLOAD_KEYSTORE_FILE", "storeFile")
+val signingValues = listOf(uploadKeyAlias, uploadKeyPassword, uploadStorePassword, uploadStoreFilePath)
+val hasAnySigningValue = signingValues.any { !it.isNullOrBlank() }
+val signingConfigured = signingValues.all { !it.isNullOrBlank() }
+val uploadKeystoreFile = uploadStoreFilePath?.let { rootProject.file(it) }
+
+if (hasAnySigningValue && !signingConfigured) {
+    throw GradleException(
+        "Seali upload signing configuration is incomplete. Provide the alias, key password, store password, and keystore file."
+    )
+}
 
 val splitApks = !project.hasProperty("noSplits")
 
@@ -28,15 +53,13 @@ val currentVersionCode = currentVersion.code.toInt()
 android {
     compileSdk = 36
 
-    if (keystorePropertiesFile.exists()) {
-        val keystoreProperties = Properties()
-        keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+    if (signingConfigured) {
         signingConfigs {
             create("githubPublish") {
-                keyAlias = keystoreProperties["keyAlias"].toString()
-                keyPassword = keystoreProperties["keyPassword"].toString()
-                storeFile = rootProject.file(keystoreProperties["storeFile"]!!)
-                storePassword = keystoreProperties["storePassword"].toString()
+                keyAlias = uploadKeyAlias!!
+                keyPassword = uploadKeyPassword!!
+                storeFile = uploadKeystoreFile!!
+                storePassword = uploadStorePassword!!
             }
         }
     }
@@ -100,14 +123,11 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            if (keystorePropertiesFile.exists()) {
+            if (signingConfigured) {
                 signingConfig = signingConfigs.getByName("githubPublish")
             }
         }
         debug {
-            if (keystorePropertiesFile.exists()) {
-                signingConfig = signingConfigs.getByName("githubPublish")
-            }
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
             resValue("string", "app_name", "Seali Debug")
@@ -152,6 +172,18 @@ android {
     androidResources { generateLocaleConfig = true }
 
     namespace = "com.junkfood.seal"
+}
+
+tasks.configureEach {
+    if (name in setOf("packageGenericRelease", "signGenericReleaseBundle", "bundleGenericRelease")) {
+        doFirst {
+            if (!signingConfigured || uploadKeystoreFile?.isFile != true) {
+                throw GradleException(
+                    "Generic release artifacts must be signed. Configure a valid Seali upload keystore before building."
+                )
+            }
+        }
+    }
 }
 
 ktfmt { kotlinLangStyle() }
