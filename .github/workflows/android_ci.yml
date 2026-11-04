@@ -30,7 +30,7 @@ jobs:
         uses: android-actions/setup-android@v3
         with:
           # The legacy "tools" SDK package is no longer published.
-          packages: platform-tools
+          packages: platform-tools platforms;android-36 build-tools;36.0.0
 
       - uses: gradle/actions/setup-gradle@v3
 
@@ -40,8 +40,8 @@ jobs:
       - name: Run generic debug unit tests
         run: ./gradlew testGenericDebugUnitTest
 
-      - name: Build generic release APK variants
-        run: ./gradlew assembleGenericRelease
+      - name: Build generic release APK variants and Play App Bundle
+        run: ./gradlew assembleGenericRelease bundleGenericRelease
 
       - name: Prepare individually named release APKs
         shell: bash
@@ -76,6 +76,14 @@ jobs:
           fi
           cp "${universal[0]}" "$output_dir/Seali-${GITHUB_REF_NAME}-universal.apk"
           ls -lh "$output_dir"
+
+      - name: Upload Google Play App Bundle (unsigned until upload signing is configured)
+        uses: actions/upload-artifact@v4
+        with:
+          name: seali-google-play-aab
+          path: app/build/outputs/bundle/genericRelease/*.aab
+          if-no-files-found: error
+          retention-days: 14
 
       # Keep each ABI downloadable on its own from the Actions run.
       - name: Upload ARM64 APK
