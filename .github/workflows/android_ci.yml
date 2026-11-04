@@ -5,10 +5,11 @@ on:
     branches: [ "main" ]
   push:
     branches: [ "main" ]
+    tags: [ "v*" ]
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -42,13 +43,47 @@ jobs:
       - name: Build generic release APK variants
         run: ./gradlew assembleGenericRelease
 
-      # Keep each ABI downloadable on its own. The universal APK is provided
-      # separately for users who do not know which device architecture to pick.
+      - name: Prepare individually named release APKs
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_dir="app/build/outputs/apk/generic/release"
+          output_dir="release-assets"
+          mkdir -p "$output_dir"
+
+          find_one() {
+            local label="$1"
+            local pattern="$2"
+            mapfile -t matches < <(find "$source_dir" -maxdepth 1 -type f -name "$pattern" | sort)
+            if [ "${#matches[@]}" -ne 1 ]; then
+              echo "::error::Expected exactly one $label APK matching $pattern; found ${#matches[@]}"
+              find "$source_dir" -maxdepth 1 -type f -name '*.apk' -printf '%f\\n'
+              exit 1
+            fi
+            cp "${matches[0]}" "$output_dir/Seali-${GITHUB_REF_NAME}-$label.apk"
+          }
+
+          find_one arm64-v8a '*-arm64-v8a.apk'
+          find_one armeabi-v7a '*-armeabi-v7a.apk'
+          find_one x86_64 '*-x86_64.apk'
+          find_one x86 '*-x86.apk'
+
+          mapfile -t universal < <(find "$source_dir" -maxdepth 1 -type f -name '*.apk' ! -name '*-arm64-v8a.apk' ! -name '*-armeabi-v7a.apk' ! -name '*-x86.apk' ! -name '*-x86_64.apk' | sort)
+          if [ "${#universal[@]}" -ne 1 ]; then
+            echo "::error::Expected exactly one universal APK; found ${#universal[@]}"
+            find "$source_dir" -maxdepth 1 -type f -name '*.apk' -printf '%f\\n'
+            exit 1
+          fi
+          cp "${universal[0]}" "$output_dir/Seali-${GITHUB_REF_NAME}-universal.apk"
+          ls -lh "$output_dir"
+
+      # Keep each ABI downloadable on its own from the Actions run.
       - name: Upload ARM64 APK
         uses: actions/upload-artifact@v4
         with:
           name: seali-arm64-v8a
-          path: app/build/outputs/apk/generic/release/*arm64-v8a*.apk
+          path: app/build/outputs/apk/generic/release/*-arm64-v8a.apk
           if-no-files-found: error
           retention-days: 14
 
@@ -56,7 +91,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: seali-armeabi-v7a
-          path: app/build/outputs/apk/generic/release/*armeabi-v7a*.apk
+          path: app/build/outputs/apk/generic/release/*-armeabi-v7a.apk
           if-no-files-found: error
           retention-days: 14
 
@@ -64,7 +99,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: seali-x86
-          path: app/build/outputs/apk/generic/release/*x86-release.apk
+          path: app/build/outputs/apk/generic/release/*-x86.apk
           if-no-files-found: error
           retention-days: 14
 
@@ -72,7 +107,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: seali-x86_64
-          path: app/build/outputs/apk/generic/release/*x86_64*.apk
+          path: app/build/outputs/apk/generic/release/*-x86_64.apk
           if-no-files-found: error
           retention-days: 14
 
@@ -80,6 +115,16 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: seali-universal
-          path: app/build/outputs/apk/generic/release/*universal*.apk
+          path: app/build/outputs/apk/generic/release/*genericRelease.apk
           if-no-files-found: error
           retention-days: 14
+
+      - name: Publish GitHub Release with separate APK assets
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Seali ${{ github.ref_name }}
+          generate_release_notes: true
+          files: release-assets/*.apk
+          fail_on_unmatched_files: true
+          make_latest: true
