@@ -69,8 +69,12 @@ jobs:
       - name: Run generic debug unit tests
         run: ./gradlew testGenericDebugUnitTest
 
-      - name: Build generic release APK variants and Play App Bundle
-        run: ./gradlew assembleGenericRelease bundleGenericRelease
+      - name: Build generic release APK variants
+        run: ./gradlew assembleGenericRelease
+
+      # Play App Bundles own ABI delivery; disable APK split outputs for this task.
+      - name: Build Google Play App Bundle
+        run: ./gradlew bundleGenericRelease -PnoSplits
 
       - name: Prepare individually named release APKs
         shell: bash
@@ -106,7 +110,7 @@ jobs:
           cp "${universal[0]}" "$output_dir/Seali-${GITHUB_REF_NAME}-universal.apk"
           ls -lh "$output_dir"
 
-      - name: Upload Google Play App Bundle (unsigned until upload signing is configured)
+      - name: Upload Google Play App Bundle
         uses: actions/upload-artifact@v4
         with:
           name: seali-google-play-aab
