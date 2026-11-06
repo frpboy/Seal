@@ -179,8 +179,13 @@ android {
 
 tasks.configureEach {
     if (name in setOf("packageGenericRelease", "signGenericReleaseBundle", "bundleGenericRelease")) {
+        // Capture the signing preconditions as lambda-local values. A task
+        // action that references build-script members captures the Gradle
+        // script object, which the configuration cache cannot serialize.
+        val releaseSigningConfigured = signingConfigured
+        val releaseKeystorePresent = uploadKeystoreFile?.isFile == true
         doFirst {
-            if (!signingConfigured || uploadKeystoreFile?.isFile != true) {
+            if (!releaseSigningConfigured || !releaseKeystorePresent) {
                 throw GradleException(
                     "Generic release artifacts must be signed. Configure a valid Seali upload keystore before building."
                 )
