@@ -6,13 +6,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.ContactSupport
 import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Link
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.NewReleases
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Update
 import androidx.compose.material.icons.outlined.UpdateDisabled
 import androidx.compose.material.icons.outlined.VolunteerActivism
@@ -37,7 +37,6 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.ExperimentalTextApi
@@ -65,9 +64,7 @@ private const val developerName = "Rahul Muraleedharan"
 private const val portfolioUrl = "https://www.frpboy.in/"
 private const val githubProfileUrl = "https://github.com/frpboy"
 private const val linkedinUrl = "https://www.linkedin.com/in/rahul-muraleedharan-it"
-private const val emailAddress = "frpboy12@gmail.com"
-private const val buyMeACoffeeUrl = "https://buymeacoffee.com/frpboy"
-private const val patreonUrl = "https://www.patreon.com/c/FrpBoy"
+private const val supportGroupUrl = "https://t.me/FRPboy_Projects"
 const val weblate = "https://hosted.weblate.org/engage/seal/"
 const val YtdlpRepository = "https://github.com/yt-dlp/yt-dlp"
 private const val githubIssueUrl = "https://github.com/JunkFood02/Seal/issues"
@@ -150,28 +147,10 @@ fun AboutPage(
                 item {
                     PreferenceItem(
                         title = "Support requests",
-                        description = emailAddress,
-                        icon = Icons.Outlined.Email,
+                        description = supportGroupUrl,
+                        icon = Icons.Outlined.ContactSupport,
                     ) {
-                        openUrl("mailto:$emailAddress")
-                    }
-                }
-                item {
-                    PreferenceItem(
-                        title = "Support Seali",
-                        description = "Buy Me a Coffee - $buyMeACoffeeUrl",
-                        icon = Icons.Outlined.VolunteerActivism,
-                    ) {
-                        openUrl(buyMeACoffeeUrl)
-                    }
-                }
-                item {
-                    PreferenceItem(
-                        title = "Support Seali on Patreon",
-                        description = "Patreon - $patreonUrl",
-                        icon = Icons.Outlined.VolunteerActivism,
-                    ) {
-                        openUrl(patreonUrl)
+                        openUrl(supportGroupUrl)
                     }
                 }
                 item {
