@@ -58,6 +58,7 @@ import com.junkfood.seal.util.DownloadUtil
 import com.junkfood.seal.util.FileUtil
 import com.junkfood.seal.util.getErrorReport
 import com.junkfood.seal.util.makeToast
+import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 private const val TAG = "ClassicHomePage"
