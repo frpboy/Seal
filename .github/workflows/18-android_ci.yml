@@ -1,0 +1,374 @@
+name: Android CI
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  push:
+    branches: [ "main" ]
+    tags: [ "v*" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          # The legacy "tools" SDK package is no longer published.
+          packages: platform-tools platforms;android-36 build-tools;36.0.0
+
+      - uses: gradle/actions/setup-gradle@v3
+
+      - name: Grant execute permission for Gradle wrapper
+        run: chmod +x gradlew
+
+      - name: Run generic debug unit tests
+        run: ./gradlew testGenericDebugUnitTest
+
+      - name: Run buildSrc unit tests
+        run: ./gradlew -p buildSrc test --console=plain
+
+      # Release artifacts must never be published unsigned. PRs without secrets
+      # still run the debug test suite; main/tag/manual builds require signing.
+      - name: Validate and stage private Play upload key
+        id: signing
+        shell: bash
+        env:
+          SEALI_UPLOAD_KEYSTORE_BASE64: ${{ secrets.SEALI_UPLOAD_KEYSTORE_BASE64 }}
+          SEALI_UPLOAD_KEY_ALIAS: ${{ secrets.SEALI_UPLOAD_KEY_ALIAS }}
+          SEALI_UPLOAD_KEY_PASSWORD: ${{ secrets.SEALI_UPLOAD_KEY_PASSWORD }}
+          SEALI_UPLOAD_STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "$SEALI_UPLOAD_KEYSTORE_BASE64" ]]; then
+            if [[ "$GITHUB_EVENT_NAME" == "pull_request" && -z "$SEALI_UPLOAD_KEY_ALIAS$SEALI_UPLOAD_KEY_PASSWORD$SEALI_UPLOAD_STORE_PASSWORD" ]]; then
+              echo "available=false" >> "$GITHUB_OUTPUT"
+              echo "::notice::Signing secrets are unavailable to this pull request; release packaging is safely skipped."
+              exit 0
+            fi
+            echo "::error::Missing SEALI_UPLOAD_KEYSTORE_BASE64. Configure the four Seali upload-signing repository secrets before running a release build."
+            exit 1
+          fi
+
+          for name in SEALI_UPLOAD_KEY_ALIAS SEALI_UPLOAD_KEY_PASSWORD SEALI_UPLOAD_STORE_PASSWORD; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Missing required signing secret: $name"
+              exit 1
+            fi
+          done
+
+          umask 077
+          key_file="app/seali-upload-key.jks"
+          normalized_base64="$RUNNER_TEMP/seali-upload-key.base64"
+          check_log="$RUNNER_TEMP/seali-keystore-check.log"
+          csr_file="$RUNNER_TEMP/seali-upload-key-check.csr"
+          nested_base64="$RUNNER_TEMP/seali-upload-key-nested.base64"
+          nested_file="$RUNNER_TEMP/seali-upload-key-nested.bin"
+          validation_succeeded=false
+
+          cleanup_validation_files() {
+            rm -f "$normalized_base64" "$check_log" "$csr_file" "$nested_base64" "$nested_file"
+            if [[ "$validation_succeeded" != true ]]; then
+              rm -f "$key_file"
+            fi
+          }
+          trap cleanup_validation_files EXIT
+
+          # PowerShell and other encoders may wrap Base64 across lines. Remove
+          # whitespace only; never echo or print the secret or decoded bytes.
+          printf '%s' "$SEALI_UPLOAD_KEYSTORE_BASE64" | tr -d '[:space:]' > "$normalized_base64"
+          if ! base64 --decode "$normalized_base64" > "$key_file"; then
+            echo "::error::SEALI_UPLOAD_KEYSTORE_BASE64 is not valid Base64. Encode the original keystore file bytes, not its path or a JSON wrapper."
+            exit 1
+          fi
+          if [[ ! -s "$key_file" ]]; then
+            echo "::error::The decoded upload keystore is empty."
+            exit 1
+          fi
+          chmod 600 "$key_file"
+
+          # Detect the real container from its file signature. keytool on
+          # modern JDKs can transparently read legacy keystores through more
+          # than one requested type, so a successful -list alone is not a
+          # reliable format detector.
+          magic="$(od -An -tx1 -N4 "$key_file" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')"
+          store_type=""
+          case "$magic" in
+            feedfeed) store_type="JKS" ;;
+            30*) store_type="PKCS12" ;;
+          esac
+
+          # Recover safely if the repository secret was accidentally made by
+          # Base64-encoding an already-Base64 text file. This never prints the
+          # decoded data and accepts the nested result only if its binary
+          # signature is a recognized JKS or PKCS12 container.
+          if [[ -z "$store_type" ]]; then
+            tr -d '[:space:]' < "$key_file" > "$nested_base64"
+            if LC_ALL=C grep -Eq '^[A-Za-z0-9+/=]+$' "$nested_base64" &&
+              base64 --decode "$nested_base64" > "$nested_file" 2>/dev/null; then
+              nested_magic="$(od -An -tx1 -N4 "$nested_file" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')"
+              case "$nested_magic" in
+                feedfeed) store_type="JKS" ;;
+                30*) store_type="PKCS12" ;;
+              esac
+              if [[ -n "$store_type" ]]; then
+                mv "$nested_file" "$key_file"
+                chmod 600 "$key_file"
+                echo "::notice::The upload keystore secret contained an extra Base64 layer; the workflow normalized it in memory."
+              fi
+            fi
+          fi
+
+          if [[ -z "$store_type" ]]; then
+            echo "::error::The decoded secret is not a JKS or PKCS12 keystore, even after checking for accidental double-Base64 encoding. Update the secret using one Base64 encoding of the original binary keystore file."
+            exit 1
+          fi
+
+          if ! keytool -list \
+            -keystore "$key_file" \
+            -storetype "$store_type" \
+            -storepass:env SEALI_UPLOAD_STORE_PASSWORD \
+            > /dev/null 2>&1; then
+            echo "::error::The decoded $store_type keystore could not be opened with the configured store password. Verify the Base64 file and store-password secret; no keystore data was logged."
+            exit 1
+          fi
+
+          if ! keytool -list -v \
+            -keystore "$key_file" \
+            -storetype "$store_type" \
+            -storepass:env SEALI_UPLOAD_STORE_PASSWORD \
+            -alias "$SEALI_UPLOAD_KEY_ALIAS" > "$check_log" 2>&1; then
+            echo "::error::The keystore opens successfully, but the configured alias was not found or could not be read. Check SEALI_UPLOAD_KEY_ALIAS."
+            exit 1
+          fi
+
+          if ! grep -qi "Entry type: PrivateKeyEntry" "$check_log"; then
+            echo "::error::The configured alias is not a private-key entry. A certificate-only keystore cannot sign Seali releases."
+            exit 1
+          fi
+
+          # PKCS12 stores use the store password to protect the private key.
+          # JKS supports a separate key password.
+          if [[ "$store_type" == "PKCS12" && "$SEALI_UPLOAD_KEY_PASSWORD" != "$SEALI_UPLOAD_STORE_PASSWORD" ]]; then
+            echo "::error::This keystore is PKCS12, which requires the private-key password and store password to match. Correct the secret values without sharing them."
+            exit 1
+          fi
+
+          # Prove the private key can be unlocked without exporting it or
+          # changing the keystore. The CSR is temporary and immediately erased.
+          if ! keytool -certreq \
+            -alias "$SEALI_UPLOAD_KEY_ALIAS" \
+            -keystore "$key_file" \
+            -storetype "$store_type" \
+            -storepass:env SEALI_UPLOAD_STORE_PASSWORD \
+            -keypass:env SEALI_UPLOAD_KEY_PASSWORD \
+            -file "$csr_file" \
+            > /dev/null 2>&1; then
+            echo "::error::The configured private-key password cannot unlock the selected upload key."
+            exit 1
+          fi
+
+          echo "store_type=$store_type" >> "$GITHUB_OUTPUT"
+          echo "available=true" >> "$GITHUB_OUTPUT"
+          validation_succeeded=true
+          echo "Upload keystore validated successfully (format: $store_type; private key and passwords verified)."
+      
+      - name: Build generic release APK variants
+        if: steps.signing.outputs.available == 'true'
+        env:
+          SEALI_UPLOAD_KEY_ALIAS: ${{ secrets.SEALI_UPLOAD_KEY_ALIAS }}
+          SEALI_UPLOAD_KEY_PASSWORD: ${{ secrets.SEALI_UPLOAD_KEY_PASSWORD }}
+          SEALI_UPLOAD_STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
+          SEALI_UPLOAD_KEYSTORE_FILE: app/seali-upload-key.jks
+          SEALI_UPLOAD_KEYSTORE_TYPE: ${{ steps.signing.outputs.store_type }}
+        run: ./gradlew --no-daemon assembleGenericRelease
+
+      # Play App Bundles own ABI delivery; disable APK split outputs for this task.
+      - name: Build Google Play App Bundle
+        if: steps.signing.outputs.available == 'true'
+        env:
+          SEALI_UPLOAD_KEY_ALIAS: ${{ secrets.SEALI_UPLOAD_KEY_ALIAS }}
+          SEALI_UPLOAD_KEY_PASSWORD: ${{ secrets.SEALI_UPLOAD_KEY_PASSWORD }}
+          SEALI_UPLOAD_STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
+          SEALI_UPLOAD_KEYSTORE_FILE: app/seali-upload-key.jks
+          SEALI_UPLOAD_KEYSTORE_TYPE: ${{ steps.signing.outputs.store_type }}
+        run: ./gradlew --no-daemon bundlePlayRelease -PnoSplits
+
+      - name: Verify APK and AAB signatures against the upload certificate
+        if: steps.signing.outputs.available == 'true'
+        shell: bash
+        env:
+          SEALI_UPLOAD_KEY_ALIAS: ${{ secrets.SEALI_UPLOAD_KEY_ALIAS }}
+          SEALI_UPLOAD_STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
+          SEALI_UPLOAD_KEYSTORE_TYPE: ${{ steps.signing.outputs.store_type }}
+        run: |
+          set -euo pipefail
+
+          keystore="app/seali-upload-key.jks"
+          apksigner="$ANDROID_HOME/build-tools/36.0.0/apksigner"
+          apk_dir="app/build/outputs/apk/generic/release"
+          aab_dir="app/build/outputs/bundle/playRelease"
+
+          expected_fingerprint="$(
+            keytool -exportcert \
+              -alias "$SEALI_UPLOAD_KEY_ALIAS" \
+              -keystore "$keystore" \
+              -storetype "$SEALI_UPLOAD_KEYSTORE_TYPE" \
+              -storepass:env SEALI_UPLOAD_STORE_PASSWORD \
+              | openssl dgst -sha256 \
+              | awk '{ print tolower($NF) }'
+          )"
+
+          mapfile -t apks < <(find "$apk_dir" -maxdepth 1 -type f -name '*.apk' | sort)
+          if [[ "${#apks[@]}" -ne 5 ]]; then
+            echo "::error::Expected five ABI/universal APKs, found ${#apks[@]}."
+            exit 1
+          fi
+
+          for apk in "${apks[@]}"; do
+            signer_output="$("$apksigner" verify --verbose --print-certs "$apk" 2>&1)"
+            actual_fingerprint="$(
+              printf '%s\n' "$signer_output" \
+                | sed -nE 's/^Signer #1 certificate SHA-256 digest: ([[:xdigit:]:]+)$/\1/p' \
+                | head -n 1 \
+                | tr -d ':' \
+                | tr '[:upper:]' '[:lower:]'
+            )"
+            if [[ -z "$actual_fingerprint" || "$actual_fingerprint" != "$expected_fingerprint" ]]; then
+              echo "::error::APK signature verification failed or the APK was signed with a different certificate: $(basename "$apk")"
+              exit 1
+            fi
+          done
+
+          mapfile -t aabs < <(find "$aab_dir" -maxdepth 1 -type f -name '*.aab' | sort)
+          if [[ "${#aabs[@]}" -ne 1 ]]; then
+            echo "::error::Expected exactly one Google Play AAB, found ${#aabs[@]}."
+            exit 1
+          fi
+
+          jarsigner -verify "${aabs[0]}" > /dev/null
+          aab_fingerprint="$(
+            keytool -printcert -jarfile "${aabs[0]}" 2>/dev/null \
+              | sed -nE 's/^[[:space:]]*SHA256: ([[:xdigit:]:]+).*$/\1/p' \
+              | head -n 1 \
+              | tr -d ':' \
+              | tr '[:upper:]' '[:lower:]'
+          )"
+          if [[ -z "$aab_fingerprint" || "$aab_fingerprint" != "$expected_fingerprint" ]]; then
+            echo "::error::The AAB is unsigned, invalid, or signed with a different certificate."
+            exit 1
+          fi
+
+          echo "Verified all five APKs and the Google Play AAB against the configured upload certificate."
+
+      - name: Prepare individually named release APKs
+        if: steps.signing.outputs.available == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_dir="app/build/outputs/apk/generic/release"
+          output_dir="release-assets"
+          mkdir -p "$output_dir"
+          ref_slug="${GITHUB_REF_NAME//\//-}"
+
+          find_one() {
+            local label="$1"
+            local pattern="$2"
+            mapfile -t matches < <(find "$source_dir" -maxdepth 1 -type f -name "$pattern" | sort)
+            if [ "${#matches[@]}" -ne 1 ]; then
+              echo "::error::Expected exactly one $label APK matching $pattern; found ${#matches[@]}"
+              find "$source_dir" -maxdepth 1 -type f -name '*.apk' -printf '%f\n'
+              exit 1
+            fi
+            cp "${matches[0]}" "$output_dir/Seali-${ref_slug}-$label.apk"
+          }
+
+          find_one arm64-v8a '*-arm64-v8a-release.apk'
+          find_one armeabi-v7a '*-armeabi-v7a-release.apk'
+          find_one x86_64 '*-x86_64-release.apk'
+          find_one x86 '*-x86-release.apk'
+
+          mapfile -t universal < <(find "$source_dir" -maxdepth 1 -type f -name '*.apk' ! -name '*-arm64-v8a-release.apk' ! -name '*-armeabi-v7a-release.apk' ! -name '*-x86-release.apk' ! -name '*-x86_64-release.apk' | sort)
+          if [ "${#universal[@]}" -ne 1 ]; then
+            echo "::error::Expected exactly one universal APK; found ${#universal[@]}"
+            find "$source_dir" -maxdepth 1 -type f -name '*.apk' -printf '%f\n'
+            exit 1
+          fi
+          cp "${universal[0]}" "$output_dir/Seali-${ref_slug}-universal.apk"
+          ls -lh "$output_dir"
+
+      # Play builds are validated but never distributed as GitHub artifacts.
+      # Upload to Google Play only through its separately approved process.
+
+      # Keep each ABI downloadable on its own from the Actions run.
+      - name: Upload ARM64 APK
+        if: steps.signing.outputs.available == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: seali-arm64-v8a
+          path: release-assets/*-arm64-v8a.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload ARMv7 APK
+        if: steps.signing.outputs.available == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: seali-armeabi-v7a
+          path: release-assets/*-armeabi-v7a.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload x86 APK
+        if: steps.signing.outputs.available == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: seali-x86
+          path: release-assets/*-x86.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload x86_64 APK
+        if: steps.signing.outputs.available == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: seali-x86_64
+          path: release-assets/*-x86_64.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload universal APK
+        if: steps.signing.outputs.available == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: seali-universal
+          path: release-assets/*-universal.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      # Public GitHub APK publication is handled only by the guarded draft
+      # staging workflow. A tag build must not mutate an existing release.
+
+      # The signing key is needed only until packaging and verification finish.
+      # Always remove it from the ephemeral runner, including failed builds.
+      - name: Remove private signing material
+        if: always()
+        shell: bash
+        run: |
+          rm -f app/seali-upload-key.jks "$RUNNER_TEMP/seali-upload-key.base64" "$RUNNER_TEMP/seali-keystore-check.log" "$RUNNER_TEMP/seali-upload-key-check.csr" "$RUNNER_TEMP/seali-upload-key-nested.base64" "$RUNNER_TEMP/seali-upload-key-nested.bin"
