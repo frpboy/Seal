@@ -8,6 +8,9 @@ repositories {
 dependencies {
     implementation(gradleApi())
     implementation(localGroovy())
+    testImplementation(kotlin("test"))
 }
 
 kotlin { jvmToolchain(21) }
+
+tasks.test { useJUnitPlatform() }
