@@ -4,7 +4,15 @@
 
 This repository is maintained by [Rahul Muraleedharan (@frpboy)](https://github.com/frpboy). Seali builds on the original project's work; it does not claim authorship of the upstream code.
 
-> **Project status:** Rebranding and maintenance handover are in progress. The existing application code, package identifier, resources, and build/release configuration still contain upstream Seal identity in places. Those will be reviewed and migrated deliberately in follow-up changes rather than being changed blindly in a documentation-only commit.
+> **Project status:** [Seali 2.0.0-alpha.5](https://github.com/frpboy/Seal/releases/tag/v2.0.0-alpha.5) is available as an alpha prerelease. The app uses the Seali identity and `com.frpboy.seali` package. The final cleanup build still needs device testing; it is not a stable or Play-qualified release. Later changes on main are not automatically included in those published APKs.
+
+## Download and use
+
+Download an APK from the [alpha release page](https://github.com/frpboy/Seal/releases/tag/v2.0.0-alpha.5). It provides universal, ARM64, ARMv7, x86 and x86_64 builds. Choose universal if unsure. Android 7.0 (API 24) or newer is required by the current build configuration. Seali installs separately from upstream Seal; upstream app data does not migrate automatically.
+
+Paste a supported video link and tap Download, then choose the desired options. The interface can be switched between Classic and v2 in Settings > Appearance > Interface. Finish or cancel active downloads before switching.
+
+Read [BUILDING.md](BUILDING.md) for the JDK 21/SDK 36 setup, real test commands, flavors and signing requirements. [SEALI_STATUS.md](SEALI_STATUS.md) distinguishes published checks from remaining device, storage and review gates.
 
 ## About
 
@@ -38,7 +46,7 @@ Seali is an independent community continuation and is not an official release of
 
 ## Development
 
-The project is an Android application written primarily in Kotlin and Jetpack Compose. The original project structure and build configuration are being retained while the continuation is audited.
+The project uses Kotlin, Jetpack Compose and Gradle. Internal source packages retain `com.junkfood.seal`; that is not the installed application identifier. See [BUILDING.md](BUILDING.md) before changing build or signing configuration.
 
 Before submitting changes:
 
@@ -54,6 +62,12 @@ Seali's inherited source code is distributed under the GNU General Public Licens
 
 When distributing modified builds, comply with GPL-3.0, including the requirements to provide the corresponding source code and preserve required notices. Modified versions should be clearly identified as modified so problems are not attributed to the original authors.
 
+## Support
+
+For Seali and the maintainer's other projects, use the [FrpBoy Projects Telegram group](https://t.me/FRPboy_Projects). Search existing repository issues before reporting a reproducible bug. Do not send private links, cookies, credentials or logs containing secrets to a public group.
+
+Optional financial support is separate from help requests: [Buy Me a Coffee](https://buymeacoffee.com/frpboy) or [Patreon](https://www.patreon.com/c/FrpBoy). On main, PR16 keeps these options under the single Sponsor entry. The published alpha predates that cleanup and still has the duplicate About donation rows.
+
 ---
 
-**Seali** — continued independently by Rahul Muraleedharan, with respect for the original work by JunkFood02.
+**Seali** - continued independently by Rahul Muraleedharan, with respect for the original work by JunkFood02.
