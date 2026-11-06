@@ -177,10 +177,16 @@ android {
     namespace = "com.junkfood.seal"
 }
 
+// Evaluate the signing preconditions at configuration time so the task action
+// captures only plain values. Capturing Gradle script objects in a task action
+// is not supported by the configuration cache.
+val releaseSigningConfigured = signingConfigured
+val releaseKeystorePresent = uploadKeystoreFile?.isFile == true
+
 tasks.configureEach {
     if (name in setOf("packageGenericRelease", "signGenericReleaseBundle", "bundleGenericRelease")) {
         doFirst {
-            if (!signingConfigured || uploadKeystoreFile?.isFile != true) {
+            if (!releaseSigningConfigured || !releaseKeystorePresent) {
                 throw GradleException(
                     "Generic release artifacts must be signed. Configure a valid Seali upload keystore before building."
                 )
