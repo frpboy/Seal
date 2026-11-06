@@ -55,6 +55,9 @@ object UpdateUtil {
 
     suspend fun updateYtDlp(): YoutubeDL.UpdateStatus? =
         withContext(Dispatchers.IO) {
+            // Google Play builds ship yt-dlp updates with app updates instead of
+            // downloading executable code at runtime.
+            if (App.isPlayBuild()) return@withContext null
             val channel =
                 when (YT_DLP_UPDATE_CHANNEL.getInt()) {
                     YT_DLP_NIGHTLY -> YoutubeDL.UpdateChannel.NIGHTLY
