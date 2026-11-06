@@ -2,7 +2,6 @@ package com.junkfood.seal.ui.page.settings.appearance
 
 import android.app.Activity
 import android.widget.Toast
-
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -47,6 +46,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -236,13 +236,16 @@ fun AppearancePreferences(onNavigateBack: () -> Unit, onNavigateTo: (String) -> 
                 }
                 val context = LocalContext.current
                 val downloader: DownloaderV2 = koinInject()
-                var showInterfaceDialog by remember { mutableStateOf(false) }
+                var showInterfaceDialog by rememberSaveable { mutableStateOf(false) }
                 val currentUiStyle = remember { PreferenceUtil.getUiStyle() }
                 PreferenceItem(
-                    title = "Interface",
+                    title = stringResource(R.string.interface_style),
                     icon = Icons.Outlined.ViewQuilt,
                     description =
-                        if (currentUiStyle == UI_STYLE_CLASSIC) "Classic" else "v2 (new design)",
+                        stringResource(
+                            if (currentUiStyle == UI_STYLE_CLASSIC) R.string.interface_classic
+                            else R.string.interface_v2
+                        ),
                 ) {
                     showInterfaceDialog = true
                 }
@@ -258,7 +261,7 @@ fun AppearancePreferences(onNavigateBack: () -> Unit, onNavigateTo: (String) -> 
                             if (active) {
                                 Toast.makeText(
                                         context,
-                                        "Finish or cancel active downloads before switching the interface",
+                                        R.string.interface_switch_active,
                                         Toast.LENGTH_LONG,
                                     )
                                     .show()
@@ -371,10 +374,10 @@ private fun InterfaceStyleDialog(
     onDismiss: () -> Unit,
     onSelect: (Int) -> Unit,
 ) {
-    var selected by remember { mutableIntStateOf(current) }
+    var selected by rememberSaveable(current) { mutableIntStateOf(current) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Interface") },
+        title = { Text(stringResource(R.string.interface_style)) },
         text = {
             Column {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -382,24 +385,29 @@ private fun InterfaceStyleDialog(
                         selected = selected == UI_STYLE_V2,
                         onClick = { selected = UI_STYLE_V2 }
                     )
-                    Text("v2 (new design)")
+                    Text(stringResource(R.string.interface_v2))
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(
                         selected = selected == UI_STYLE_CLASSIC,
                         onClick = { selected = UI_STYLE_CLASSIC },
                     )
-                    Text("Classic (simpler design)")
+                    Text(stringResource(R.string.interface_classic_description))
                 }
                 Text(
-                    text =
-                        "Seali will close and reopen to apply the new interface. Your downloads and settings are kept.",
+                    text = stringResource(R.string.interface_switch_explanation),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         },
-        confirmButton = { TextButton(onClick = { onSelect(selected) }) { Text("Switch") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        confirmButton = {
+            TextButton(onClick = { onSelect(selected) }) {
+                Text(stringResource(R.string.interface_switch))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+        },
     )
 }

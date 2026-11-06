@@ -32,6 +32,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
@@ -40,6 +41,7 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -58,6 +60,7 @@ import com.junkfood.seal.util.DownloadUtil
 import com.junkfood.seal.util.FileUtil
 import com.junkfood.seal.util.getErrorReport
 import com.junkfood.seal.util.makeToast
+import com.junkfood.seal.util.matchUrlFromClipboard
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
@@ -90,7 +93,11 @@ fun ClassicHomePage(
         view.slightHapticFeedback()
         when (action) {
             UiAction.Cancel -> downloader.cancel(task)
-            UiAction.Delete -> downloader.remove(task)
+            UiAction.Delete -> {
+                // Recheck current state: a stale terminal card may have been restarted.
+                val state = downloader.getTaskStateMap()[task]?.downloadState
+                if (canRemoveClassicTask(state)) downloader.remove(task)
+            }
             UiAction.Resume -> downloader.restart(task)
             is UiAction.CopyErrorReport -> {
                 clipboardManager.setText(
@@ -176,18 +183,21 @@ fun ClassicHomePageImpl(
     onDownload: (String) -> Unit = {},
     onActionPost: (Task, UiAction) -> Unit = { _, _ -> },
 ) {
-    var urlInput by remember { mutableStateOf("") }
+    var urlInput by rememberSaveable { mutableStateOf("") }
     val clipboardManager = LocalClipboardManager.current
-    val tasks = remember(taskDownloadStateMap.size) { taskDownloadStateMap.keys.sortedDescending() }
+    val tasks = taskDownloadStateMap.keys.sortedDescending()
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text("Seali") },
+                title = { Text(stringResource(R.string.app_name)) },
                 navigationIcon = {
                     IconButton(onClick = onMenuOpen) {
-                        Icon(Icons.Outlined.Menu, contentDescription = null)
+                        Icon(
+                            Icons.Outlined.Menu,
+                            contentDescription = stringResource(R.string.classic_open_menu)
+                        )
                     }
                 },
             )
@@ -199,12 +209,19 @@ fun ClassicHomePageImpl(
                 onValueChange = { urlInput = it },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                placeholder = { Text("Paste or type a video link") },
+                placeholder = { Text(stringResource(R.string.classic_link_hint)) },
                 trailingIcon = {
                     IconButton(
-                        onClick = { clipboardManager.getText()?.text?.let { urlInput = it.trim() } }
+                        onClick = {
+                            clipboardManager.getText()?.text?.let {
+                                urlInput = matchUrlFromClipboard(it)
+                            }
+                        }
                     ) {
-                        Icon(Icons.Outlined.ContentPaste, contentDescription = "Paste")
+                        Icon(
+                            Icons.Outlined.ContentPaste,
+                            contentDescription = stringResource(R.string.paste)
+                        )
                     }
                 },
             )
@@ -212,10 +229,10 @@ fun ClassicHomePageImpl(
                 onClick = { onDownload(urlInput) },
                 modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
             ) {
-                Text("Download")
+                Text(stringResource(R.string.download))
             }
             Text(
-                text = "Downloads",
+                text = stringResource(R.string.downloads_history),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(vertical = 8.dp),
             )
@@ -245,7 +262,7 @@ private fun ClassicTaskCard(
     OutlinedCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = state?.videoInfo?.title ?: task.url,
+                text = classicTaskTitle(state?.videoInfo?.title, state?.viewState?.title, task.url),
                 style = MaterialTheme.typography.titleSmall,
                 maxLines = 2,
             )
@@ -271,14 +288,22 @@ private fun ClassicTaskCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 when (downloadState) {
+                    Task.DownloadState.Idle,
+                    Task.DownloadState.ReadyWithInfo,
                     is Task.DownloadState.Cancelable -> {
                         IconButton(onClick = { onActionPost(UiAction.Cancel) }) {
-                            Icon(Icons.Outlined.Cancel, contentDescription = "Cancel")
+                            Icon(
+                                Icons.Outlined.Cancel,
+                                contentDescription = stringResource(R.string.cancel)
+                            )
                         }
                     }
                     is Task.DownloadState.Restartable -> {
                         IconButton(onClick = { onActionPost(UiAction.Resume) }) {
-                            Icon(Icons.Outlined.RestartAlt, contentDescription = "Restart")
+                            Icon(
+                                Icons.Outlined.RestartAlt,
+                                contentDescription = stringResource(R.string.restart)
+                            )
                         }
                     }
                     else -> {}
@@ -289,35 +314,46 @@ private fun ClassicTaskCard(
                             onActionPost(UiAction.CopyErrorReport(downloadState.throwable))
                         }
                     ) {
-                        Icon(Icons.Outlined.ContentPaste, contentDescription = "Copy error")
+                        Icon(
+                            Icons.Outlined.ContentPaste,
+                            contentDescription = stringResource(R.string.copy_error_report)
+                        )
                     }
                 }
                 if (downloadState is Task.DownloadState.Completed) {
                     IconButton(
                         onClick = { onActionPost(UiAction.OpenFile(downloadState.filePath)) }
                     ) {
-                        Icon(Icons.Outlined.FileOpen, contentDescription = "Open")
+                        Icon(
+                            Icons.Outlined.FileOpen,
+                            contentDescription = stringResource(R.string.open_file)
+                        )
                     }
                 }
-                IconButton(onClick = { onActionPost(UiAction.Delete) }) {
-                    Icon(Icons.Outlined.Delete, contentDescription = "Delete")
+                if (canRemoveClassicTask(downloadState)) {
+                    IconButton(onClick = { onActionPost(UiAction.Delete) }) {
+                        Icon(
+                            Icons.Outlined.Delete,
+                            contentDescription = stringResource(R.string.delete)
+                        )
+                    }
                 }
             }
         }
     }
 }
 
+@Composable
 private fun statusTextOf(downloadState: Task.DownloadState?): String =
     when (downloadState) {
-        is Task.DownloadState.FetchingInfo -> "Fetching video info..."
+        is Task.DownloadState.FetchingInfo -> stringResource(R.string.fetching_info)
         is Task.DownloadState.Running ->
             if (downloadState.progressText.isNotBlank()) downloadState.progressText
-            else "Downloading..."
+            else stringResource(R.string.status_downloading)
         Task.DownloadState.Idle,
-        Task.DownloadState.ReadyWithInfo -> "Queued"
-        is Task.DownloadState.Completed -> "Completed"
-        is Task.DownloadState.Canceled -> "Canceled"
-        is Task.DownloadState.Error ->
-            "Failed - ${downloadState.throwable.message ?: "unknown error"}"
-        null -> "Pending"
+        Task.DownloadState.ReadyWithInfo,
+        null -> stringResource(R.string.status_enqueued)
+        is Task.DownloadState.Completed -> stringResource(R.string.status_completed)
+        is Task.DownloadState.Canceled -> stringResource(R.string.status_canceled)
+        is Task.DownloadState.Error -> stringResource(R.string.status_error)
     }

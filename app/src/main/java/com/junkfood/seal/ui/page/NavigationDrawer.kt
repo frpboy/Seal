@@ -66,6 +66,8 @@ import com.junkfood.seal.R
 import com.junkfood.seal.ui.common.LocalWindowWidthState
 import com.junkfood.seal.ui.common.Route
 import com.junkfood.seal.ui.page.downloadv2.DownloadPageImplV2
+import com.junkfood.seal.util.PreferenceUtil
+import com.junkfood.seal.util.UI_STYLE_CLASSIC
 import kotlinx.coroutines.launch
 
 @Composable
@@ -165,6 +167,7 @@ fun NavigationDrawerSheetContent(
     footer: @Composable (() -> Unit)? = null,
 ) {
     val scope = rememberCoroutineScope()
+    val uiStyle = remember { PreferenceUtil.getUiStyle() }
     Column(
         modifier =
             modifier
@@ -176,7 +179,14 @@ fun NavigationDrawerSheetContent(
         Spacer(Modifier.height(72.dp))
         ProvideTextStyle(MaterialTheme.typography.labelLarge) {
             NavigationDrawerItem(
-                label = { Text(stringResource(R.string.download_queue)) },
+                label = {
+                    Text(
+                        stringResource(
+                            if (uiStyle == UI_STYLE_CLASSIC) R.string.classic_home
+                            else R.string.download_queue
+                        )
+                    )
+                },
                 icon = { Icon(Icons.Filled.Download, null) },
                 onClick = {
                     scope
@@ -346,12 +356,15 @@ fun NavigationRailContent(
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         val scope = rememberCoroutineScope()
+        val uiStyle = remember { PreferenceUtil.getUiStyle() }
         NavigationRailItemVariant(
             icon = {
                 Icon(
                     if (currentTopDestination == Route.HOME) Icons.Filled.Download
                     else Icons.Outlined.Download,
-                    stringResource(R.string.download_queue),
+                    stringResource(
+                        if (uiStyle == UI_STYLE_CLASSIC) R.string.classic_home else R.string.download_queue
+                    ),
                 )
             },
             modifier = Modifier,
