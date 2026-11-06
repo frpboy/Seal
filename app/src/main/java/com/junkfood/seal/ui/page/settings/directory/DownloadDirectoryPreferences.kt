@@ -262,7 +262,11 @@ fun DownloadDirectoryPreferences(onNavigateBack: () -> Unit) {
                         description = stringResource(R.string.permission_issue_desc),
                         icon = Icons.Filled.SdCardAlert,
                     ) {
-                        if (
+                        if (App.isPlayBuild()) {
+                            // Play builds do not hold all-files access; let the
+                            // user pick a directory through SAF instead.
+                            openDirectoryChooser(Directory.VIDEO)
+                        } else if (
                             Build.VERSION.SDK_INT >= 30 && !Environment.isExternalStorageManager()
                         ) {
                             Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
