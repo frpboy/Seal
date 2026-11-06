@@ -43,6 +43,8 @@ The CI secret `SEALI_UPLOAD_KEYSTORE_BASE64` supplies the keystore bytes to the 
 
 ## Distribution and verification
 
+GitHub distributes generic APKs only. Play APKs and AABs must not be uploaded to GitHub releases or Actions artifacts; Play distribution requires its separately approved Google Play process. Local/CI validation of the Play flavor is not publication permission.
+
 The first Seali alpha is [v2.0.0-alpha.5](https://github.com/frpboy/Seal/releases/tag/v2.0.0-alpha.5). It provides separate universal, ARM64, ARMv7, x86 and x86_64 APKs. Use the universal APK when unsure which architecture your device uses. This is an alpha, not a stable or Play-qualified release.
 
 The published APKs use the Seali package and signer, not upstream Seal's. Upstream app data does not migrate automatically across the package-name change. ABI-specific version codes have intentional offsets from the universal version code.
