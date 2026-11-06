@@ -233,8 +233,6 @@
     <string name="how_does_it_work">How does it work?</string>
     <string name="cookies_usage_msg">Downloading from some sites requires account authentication information. Click \"Generate new cookies\", enter the URL of the website and then log in with your account in the browser page, the app will generate it for you.</string>
     <string name="custom_command_usage_msg">yt-dlp is a powerful command-line tool for downloading videos. Seal makes it easier to use yt-dlp by providing an intuitive GUI, presets for common commands, and other additional features.\n\nFor advanced usage of yt-dlp, Seal allows you to create, save and execute custom command templates directly, just like in a terminal.\n\nWhen using custom commands, most of the GUI options and features would be disabled.</string>
-    <string name="telegram_channel">Telegram channel</string>
-    <string name="matrix_space">Matrix space</string>
     <string name="sdcard_directory">SD card folder</string>
     <string name="auto_subtitle">Automatic captions</string>
     <string name="auto_subtitle_desc">Download auto-generated captions</string>
@@ -287,10 +285,11 @@
     <string name="clear_all_cookies_desc">Delete all the cookies stored in the app for good?</string>
     <string name="temporary_directory_desc">Store temporary files in the internal directory</string>
     <string name="sponsor">Sponsor</string>
-    <string name="sponsor_desc">Support this app by sponsoring on GitHub</string>
-    <string name="sponsor_msg">Seal will be always free and open source for everyone. If you like it, please consider sponsoring me on GitHub!</string>
+    <string name="sponsor_desc">Support Seali&#8217;s development</string>
     <string name="feedback">Feedback</string>
     <string name="sponsors">Sponsors</string>
+    <string name="support_seali">Support Seali</string>
+    <string name="support_seali_msg">Seali is free and open source. If you find it useful, you can support its continued development here.</string>
     <string name="audio_format">Audio format</string>
     <string name="no_downloaded_media">No downloaded media</string>
     <string name="beta_features">Beta</string>
@@ -305,8 +304,6 @@
     <string name="got_it">Got it</string>
     <string name="feature_unavailable">Feature not available</string>
     <string name="no_custom_command_tasks">No custom command tasks</string>
-    <string name="msg_from_developer">Message from developer</string>
-    <string name="sponsor_msg2">Thank you very much!</string>
     <string name="download_video_desc">Download videos from the URL</string>
     <string name="convert_subtitle">Convert subtitles</string>
     <string name="convert_subtitle_desc">Convert the subtitles to another format</string>

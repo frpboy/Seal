@@ -71,8 +71,6 @@ private const val patreonUrl = "https://www.patreon.com/c/FrpBoy"
 const val weblate = "https://hosted.weblate.org/engage/seal/"
 const val YtdlpRepository = "https://github.com/yt-dlp/yt-dlp"
 private const val githubIssueUrl = "https://github.com/JunkFood02/Seal/issues"
-private const val telegramChannelUrl = "https://t.me/seal_app"
-private const val matrixSpaceUrl = "https://matrix.to/#/#seal-space:matrix.org"
 private const val githubSponsor = "https://github.com/sponsors/JunkFood02"
 private const val TAG = "AboutPage"
 
@@ -209,24 +207,6 @@ fun AboutPage(
                     ) {
                         //                    openUrl(githubSponsor)
                         onNavigateToDonatePage()
-                    }
-                }
-                item {
-                    PreferenceItem(
-                        title = stringResource(R.string.telegram_channel),
-                        description = telegramChannelUrl,
-                        icon = painterResource(id = R.drawable.icons8_telegram_app),
-                    ) {
-                        openUrl(telegramChannelUrl)
-                    }
-                }
-                item {
-                    PreferenceItem(
-                        title = stringResource(R.string.matrix_space),
-                        description = matrixSpaceUrl,
-                        icon = painterResource(id = R.drawable.icons8_matrix),
-                    ) {
-                        openUrl(matrixSpaceUrl)
                     }
                 }
                 item {
