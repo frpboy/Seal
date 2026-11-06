@@ -67,6 +67,7 @@ private const val githubProfileUrl = "https://github.com/frpboy"
 private const val linkedinUrl = "https://www.linkedin.com/in/rahul-muraleedharan-it"
 private const val emailAddress = "frpboy12@gmail.com"
 private const val buyMeACoffeeUrl = "https://buymeacoffee.com/frpboy"
+private const val patreonUrl = "https://www.patreon.com/c/FrpBoy"
 const val weblate = "https://hosted.weblate.org/engage/seal/"
 const val YtdlpRepository = "https://github.com/yt-dlp/yt-dlp"
 private const val githubIssueUrl = "https://github.com/JunkFood02/Seal/issues"
@@ -164,6 +165,15 @@ fun AboutPage(
                         icon = Icons.Outlined.VolunteerActivism,
                     ) {
                         openUrl(buyMeACoffeeUrl)
+                    }
+                }
+                item {
+                    PreferenceItem(
+                        title = "Support Seali on Patreon",
+                        description = "Patreon - $patreonUrl",
+                        icon = Icons.Outlined.VolunteerActivism,
+                    ) {
+                        openUrl(patreonUrl)
                     }
                 }
                 item {
