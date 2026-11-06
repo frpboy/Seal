@@ -12,8 +12,8 @@ The final cleanup APK has not yet been device-tested. Earlier user recordings de
 
 - Classic correctness follow-up [PR14](https://github.com/frpboy/Seal/pull/14) is merged on main after exact-head CI passed. It is not included in the published alpha.
 - The approved compact Classic header is proposed in [PR15](https://github.com/frpboy/Seal/pull/15), now targeting main after PR14 merged. Device layout/accessibility qualification remains open. Recreate-preserving transition polish is separate unfinished work.
-- Play storage and manual-update UI paths remain open. No Play publication or policy-compliance claim.
-- About localization/mail-handler fallback, translated sponsorship wording and content-URI file-size lookup still need follow-up.
+- Play storage and manual-update UI paths remain open. Play variants are for Google Play distribution only, never GitHub downloads or Actions artifacts. No Play publication or policy-compliance claim.
+- About cleanup [PR16](https://github.com/frpboy/Seal/pull/16) is merged on main: duplicate donation rows are removed and Support requests opens the maintainer-provided Telegram group. This is not in the published alpha. About localization, translated sponsorship wording and content-URI file-size lookup still need follow-up.
 - Historical review feedback is being revalidated against source. A passing build does not resolve every review thread.
 
 Preserve the upstream GPL license, credits and meaningful history. Report fork-specific problems to this repository. The original project and its community do not operate this fork's support channels.
