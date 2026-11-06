@@ -1,0 +1,96 @@
+name: Stage alpha prerelease
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Actions run ID whose artifacts become the release assets"
+        required: true
+      tag:
+        description: "Release tag (created only if and when the draft is published)"
+        required: true
+        default: "v2.0.0-alpha.5"
+      title:
+        description: "Draft release title"
+        required: true
+        default: "Seali 2.0.0-alpha.5 (alpha prerelease)"
+      target:
+        description: "Commit the release targets"
+        required: true
+      notes:
+        description: "Draft release notes (reviewed before publishing)"
+        required: true
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  stage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Validate source run matches target commit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_ID: ${{ inputs.run_id }}
+          TARGET: ${{ inputs.target }}
+          REPOSITORY: ${{ github.repository }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          [[ "$RUN_ID" =~ ^[0-9]+$ ]] || { echo "ERROR: invalid run ID"; exit 1; }
+          [[ "$TARGET" =~ ^[0-9a-f]{40}$ ]] || { echo "ERROR: target must be a full commit SHA"; exit 1; }
+          [[ "$TAG" =~ ^v[0-9A-Za-z._-]+$ ]] || { echo "ERROR: invalid version tag"; exit 1; }
+          MAIN_SHA=$(gh api "repos/$REPOSITORY/commits/main" --jq .sha)
+          [ "$TARGET" = "$MAIN_SHA" ] || { echo "ERROR: target must be current main to avoid workflow-permission tag failures"; exit 1; }
+          TAGS=$(gh api "repos/$REPOSITORY/git/matching-refs/tags/$TAG")
+          [ "$(echo "$TAGS" | jq --arg tag "refs/tags/$TAG" '[.[] | select(.ref == $tag)] | length')" -eq 0 ] || { echo "ERROR: tag already exists; refusing ambiguous release target"; exit 1; }
+          RUN_JSON=$(gh api "repos/$REPOSITORY/actions/runs/$RUN_ID")
+          HEAD_SHA=$(echo "$RUN_JSON" | jq -r .head_sha)
+          CONCLUSION=$(echo "$RUN_JSON" | jq -r .conclusion)
+          HEAD_REPO=$(echo "$RUN_JSON" | jq -r .head_repository.full_name)
+          EVENT=$(echo "$RUN_JSON" | jq -r .event)
+          WORKFLOW=$(echo "$RUN_JSON" | jq -r .path)
+          [ "$WORKFLOW" = ".github/workflows/android_ci.yml" ] || { echo "ERROR: unsupported artifact workflow"; exit 1; }
+          echo "run head_sha=$HEAD_SHA conclusion=$CONCLUSION repo=$HEAD_REPO event=$EVENT target=$TARGET"
+          [ "$CONCLUSION" = "success" ] || { echo "ERROR: source run did not succeed"; exit 1; }
+          [ "$HEAD_SHA" = "$TARGET" ] || { echo "ERROR: run head SHA does not match target commit"; exit 1; }
+          [ "$HEAD_REPO" = "$REPOSITORY" ] || { echo "ERROR: run comes from another repository (untrusted fork run)"; exit 1; }
+          case "$EVENT" in push|workflow_dispatch) ;; *) echo "ERROR: unexpected run event $EVENT"; exit 1 ;; esac
+
+      - name: Download built APK artifacts
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ inputs.run_id }}
+          pattern: "seali-*"
+          path: artifacts
+
+      - name: Create draft prerelease with APK assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.tag }}
+          TITLE: ${{ inputs.title }}
+          NOTES: ${{ inputs.notes }}
+          TARGET: ${{ inputs.target }}
+        run: |
+          set -euo pipefail
+          find artifacts -name '*.apk' -print
+          APK_COUNT=$(find artifacts -name '*.apk' | wc -l)
+          [ "$APK_COUNT" -eq 5 ] || { echo "ERROR: expected 5 APKs, found $APK_COUNT"; exit 1; }
+          for abi in universal arm64-v8a armeabi-v7a x86 x86_64; do
+            mapfile -t apks < <(find "artifacts/seali-$abi" -maxdepth 1 -type f -name "*-$abi.apk")
+            [ "${#apks[@]}" -eq 1 ] || { echo "ERROR: expected one APK per ABI"; exit 1; }
+          done
+          gh release create "$TAG" \
+            --draft \
+            --prerelease \
+            --title "$TITLE" \
+            --notes "$NOTES" \
+            --target "$TARGET" \
+            artifacts/seali-universal/*.apk \
+            artifacts/seali-arm64-v8a/*.apk \
+            artifacts/seali-armeabi-v7a/*.apk \
+            artifacts/seali-x86/*.apk \
+            artifacts/seali-x86_64/*.apk
