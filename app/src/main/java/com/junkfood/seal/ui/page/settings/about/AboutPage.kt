@@ -255,7 +255,7 @@ fun AboutPage(
                             if (isAutoUpdateEnabled) Icons.Outlined.Update
                             else Icons.Outlined.UpdateDisabled,
                         isChecked = isAutoUpdateEnabled,
-                        isSwitchEnabled = !App.isFDroidBuild(),
+                        isSwitchEnabled = !App.isFDroidBuild() && !App.isPlayBuild(),
                         onClick = onNavigateToUpdatePage,
                         onChecked = {
                             isAutoUpdateEnabled = !isAutoUpdateEnabled

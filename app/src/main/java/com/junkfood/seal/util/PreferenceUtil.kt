@@ -11,6 +11,7 @@ import com.junkfood.seal.App.Companion.applicationScope
 import com.junkfood.seal.App.Companion.context
 import com.junkfood.seal.App.Companion.isDebugBuild
 import com.junkfood.seal.App.Companion.isFDroidBuild
+import com.junkfood.seal.App.Companion.isPlayBuild
 import com.junkfood.seal.R
 import com.junkfood.seal.database.objects.CommandTemplate
 import com.junkfood.seal.download.Task
@@ -316,6 +317,7 @@ object PreferenceUtil {
     fun isAutoUpdateEnabled(): Boolean {
         return when {
             isFDroidBuild() -> false
+            isPlayBuild() -> false
             isDebugBuild() -> false
             else -> AUTO_UPDATE.getBoolean()
         }
