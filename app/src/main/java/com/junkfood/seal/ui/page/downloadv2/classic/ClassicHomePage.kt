@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Cancel
@@ -25,7 +26,6 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,6 +43,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.junkfood.seal.R
@@ -187,44 +188,51 @@ fun ClassicHomePageImpl(
     val clipboardManager = LocalClipboardManager.current
     val tasks = taskDownloadStateMap.keys.sortedDescending()
 
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.app_name)) },
-                navigationIcon = {
-                    IconButton(onClick = onMenuOpen) {
-                        Icon(
-                            Icons.Outlined.Menu,
-                            contentDescription = stringResource(R.string.classic_open_menu)
-                        )
-                    }
-                },
-            )
-        },
-    ) { paddingValues ->
+    // Without a separate top app bar, Scaffold supplies the system-bar insets
+    // once. Keep the menu and input in the same row, with a full touch target.
+    Scaffold(modifier = modifier.fillMaxSize()) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues).padding(horizontal = 16.dp)) {
-            OutlinedTextField(
-                value = urlInput,
-                onValueChange = { urlInput = it },
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                placeholder = { Text(stringResource(R.string.classic_link_hint)) },
-                trailingIcon = {
-                    IconButton(
-                        onClick = {
-                            clipboardManager.getText()?.text?.let {
-                                urlInput = matchUrlFromClipboard(it)
-                            }
-                        }
-                    ) {
-                        Icon(
-                            Icons.Outlined.ContentPaste,
-                            contentDescription = stringResource(R.string.paste)
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                IconButton(onClick = onMenuOpen, modifier = Modifier.size(48.dp)) {
+                    Icon(
+                        Icons.Outlined.Menu,
+                        contentDescription = stringResource(R.string.classic_open_menu),
+                    )
+                }
+                OutlinedTextField(
+                    value = urlInput,
+                    onValueChange = { urlInput = it },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    placeholder = {
+                        Text(
+                            stringResource(R.string.classic_link_hint),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
-                    }
-                },
-            )
+                    },
+                    trailingIcon = {
+                        IconButton(
+                            onClick = {
+                                clipboardManager.getText()?.text?.let {
+                                    matchUrlFromClipboard(it)
+                                        .takeIf { url -> url.isNotEmpty() }
+                                        ?.let { urlInput = it }
+                                }
+                            }
+                        ) {
+                            Icon(
+                                Icons.Outlined.ContentPaste,
+                                contentDescription = stringResource(R.string.paste),
+                            )
+                        }
+                    },
+                )
+            }
             Button(
                 onClick = { onDownload(urlInput) },
                 modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
