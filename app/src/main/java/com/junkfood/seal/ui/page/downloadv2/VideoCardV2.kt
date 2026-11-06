@@ -363,16 +363,22 @@ private fun TitleText(
 
 @Composable
 private fun VideoInfoLabel(modifier: Modifier = Modifier, duration: Int, fileSizeApprox: Double) {
+    val infoText =
+        buildList {
+                if (fileSizeApprox > 0) add(fileSizeApprox.toFileSizeText())
+                if (duration > 0) add(duration.toDurationText())
+            }
+            .joinToString(separator = "  ")
+    // Unknown metadata must not render as a measured zero (0.00 MB / 00:00).
+    if (infoText.isEmpty()) return
     Surface(
         modifier = modifier.padding(4.dp),
         color = LabelContainerColor,
         shape = MaterialTheme.shapes.extraSmall,
     ) {
-        val fileSizeText = fileSizeApprox.toFileSizeText()
-        val durationText = duration.toDurationText()
         Text(
             modifier = Modifier.padding(horizontal = 4.dp),
-            text = "$fileSizeText  $durationText",
+            text = infoText,
             style = MaterialTheme.typography.labelSmall,
             color = Color.White,
         )
