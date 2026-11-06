@@ -155,6 +155,12 @@ android {
             dimension = "publishChannel"
             versionName = "$baseVersionName-(F-Droid)"
         }
+
+        create("play") {
+            dimension = "publishChannel"
+            // Google Play build: no sideload updater, no runtime yt-dlp
+            // downloads, no all-files-access permission.
+        }
     }
 
     lint { disable.addAll(listOf("MissingTranslation", "ExtraTranslation", "MissingQuantity")) }
@@ -178,7 +184,17 @@ android {
 }
 
 tasks.configureEach {
-    if (name in setOf("packageGenericRelease", "signGenericReleaseBundle", "bundleGenericRelease")) {
+    if (
+            name in
+                setOf(
+                    "packageGenericRelease",
+                    "signGenericReleaseBundle",
+                    "bundleGenericRelease",
+                    "packagePlayRelease",
+                    "signPlayReleaseBundle",
+                    "bundlePlayRelease",
+                )
+        ) {
         // Capture the signing preconditions as lambda-local values. A task
         // action that references build-script members captures the Gradle
         // script object, which the configuration cache cannot serialize.
