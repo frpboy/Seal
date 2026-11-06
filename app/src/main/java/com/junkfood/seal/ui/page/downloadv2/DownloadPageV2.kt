@@ -118,9 +118,9 @@ import com.junkfood.seal.ui.svg.drawablevectors.download
 import com.junkfood.seal.ui.theme.SealTheme
 import com.junkfood.seal.util.DownloadUtil
 import com.junkfood.seal.util.FileUtil
+import com.junkfood.seal.util.FileUtil.getFileSize
 import com.junkfood.seal.util.getErrorReport
 import com.junkfood.seal.util.makeToast
-import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -842,9 +842,11 @@ internal fun Task.State.isAudioTask(): Boolean =
 
 // When yt-dlp reported no size but the download completed, show the saved
 // file's actual size instead of 0.00 MB.
-internal fun Task.State.withActualFileSize(): Task.ViewState {
+internal fun Task.State.withActualFileSize(
+    sizeLookup: (String) -> Long = { it.getFileSize() }
+): Task.ViewState {
     if (viewState.fileSizeApprox > 0) return viewState
     val path = (downloadState as? Completed)?.filePath ?: return viewState
-    val size = runCatching { File(path).length() }.getOrDefault(0L)
+    val size = runCatching { sizeLookup(path) }.getOrDefault(0L)
     return if (size > 0) viewState.copy(fileSizeApprox = size.toDouble()) else viewState
 }
