@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -45,6 +46,7 @@ import com.junkfood.seal.ui.page.command.TaskListPage
 import com.junkfood.seal.ui.page.command.TaskLogPage
 import com.junkfood.seal.ui.page.downloadv2.configure.DownloadDialogViewModel
 import com.junkfood.seal.ui.page.downloadv2.DownloadPageV2
+import com.junkfood.seal.ui.page.downloadv2.classic.ClassicHomePage
 import com.junkfood.seal.ui.page.settings.SettingsPage
 import com.junkfood.seal.ui.page.settings.about.AboutPage
 import com.junkfood.seal.ui.page.settings.about.CreditsPage
@@ -66,6 +68,8 @@ import com.junkfood.seal.ui.page.settings.network.NetworkPreferences
 import com.junkfood.seal.ui.page.settings.network.WebViewPage
 import com.junkfood.seal.ui.page.settings.troubleshooting.TroubleShootingPage
 import com.junkfood.seal.ui.page.videolist.VideoListPage
+import com.junkfood.seal.util.PreferenceUtil
+import com.junkfood.seal.util.UI_STYLE_CLASSIC
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -144,13 +148,24 @@ fun AppEntry(dialogViewModel: DownloadDialogViewModel) {
                 startDestination = Route.HOME,
             ) {
                 animatedComposable(Route.HOME) {
-                    DownloadPageV2(
-                        dialogViewModel = dialogViewModel,
-                        onMenuOpen = {
-                            view.slightHapticFeedback()
-                            scope.launch { drawerState.open() }
-                        },
-                    )
+                    val uiStyle = remember { PreferenceUtil.getUiStyle() }
+                    if (uiStyle == UI_STYLE_CLASSIC) {
+                        ClassicHomePage(
+                            dialogViewModel = dialogViewModel,
+                            onMenuOpen = {
+                                view.slightHapticFeedback()
+                                scope.launch { drawerState.open() }
+                            },
+                        )
+                    } else {
+                        DownloadPageV2(
+                            dialogViewModel = dialogViewModel,
+                            onMenuOpen = {
+                                view.slightHapticFeedback()
+                                scope.launch { drawerState.open() }
+                            },
+                        )
+                    }
                 }
                 animatedComposable(Route.DOWNLOADS) { VideoListPage { onNavigateBack() } }
                 animatedComposableVariant(Route.TASK_LIST) {
