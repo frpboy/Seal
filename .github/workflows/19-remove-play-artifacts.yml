@@ -1,0 +1,39 @@
+name: Remove GitHub-hosted Play artifacts
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  remove-play-artifacts:
+    if: github.repository == 'frpboy/Seal'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Remove only Play bundle artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Collect IDs before deleting, so pagination cannot skip shifted rows.
+          ids="$(gh api --paginate "repos/$GH_REPO/actions/artifacts?per_page=100" \
+            --jq '.artifacts[] | select(.name == "seali-google-play-aab") | .id')"
+          count=0
+          while IFS= read -r id; do
+            [[ -z "$id" ]] && continue
+            [[ "$id" =~ ^[0-9]+$ ]] || exit 1
+            # Re-read each object to prevent deleting an unrelated artifact.
+            name="$(gh api "repos/$GH_REPO/actions/artifacts/$id" --jq '.name')"
+            [[ "$name" == 'seali-google-play-aab' ]] || exit 1
+            gh api --method DELETE "repos/$GH_REPO/actions/artifacts/$id"
+            echo "Removed Play artifact $id"
+            count=$((count + 1))
+          done <<< "$ids"
+          remaining="$(gh api --paginate "repos/$GH_REPO/actions/artifacts?per_page=100" \
+            --jq '.artifacts[] | select(.name == "seali-google-play-aab") | .id')"
+          [[ -z "$remaining" ]] || { echo 'Play artifacts remain; rerun after in-flight builds finish.'; exit 1; }
+          echo "Removed $count Play artifacts. Generic APK artifacts and logs were not touched."
