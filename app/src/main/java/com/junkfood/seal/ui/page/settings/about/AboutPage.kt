@@ -7,6 +7,10 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.Link
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.NewReleases
 import androidx.compose.material.icons.outlined.Update
@@ -54,8 +58,15 @@ import com.junkfood.seal.util.AUTO_UPDATE
 import com.junkfood.seal.util.PreferenceUtil
 import com.junkfood.seal.util.ToastUtil
 
-private const val releaseURL = "https://github.com/JunkFood02/Seal/releases"
-private const val repoUrl = "https://github.com/JunkFood02/Seal"
+private const val releaseURL = "https://github.com/frpboy/Seal/releases"
+private const val repoUrl = "https://github.com/frpboy/Seal"
+private const val upstreamRepoUrl = "https://github.com/JunkFood02/Seal"
+private const val developerName = "Rahul Muraleedharan"
+private const val portfolioUrl = "https://www.frpboy.in/"
+private const val githubProfileUrl = "https://github.com/frpboy"
+private const val linkedinUrl = "https://www.linkedin.com/in/rahul-muraleedharan-it"
+private const val emailAddress = "frpboy12@gmail.com"
+private const val buyMeACoffeeUrl = "https://buymeacoffee.com/frpboy"
 const val weblate = "https://hosted.weblate.org/engage/seal/"
 const val YtdlpRepository = "https://github.com/yt-dlp/yt-dlp"
 private const val githubIssueUrl = "https://github.com/JunkFood02/Seal/issues"
@@ -112,6 +123,51 @@ fun AboutPage(
             LazyColumn(modifier = Modifier.padding(it)) {
                 item {
                     PreferenceItem(
+                        title = "Developer",
+                        description = "${developerName} - ${portfolioUrl}",
+                        icon = Icons.Outlined.Person,
+                    ) {
+                        openUrl(portfolioUrl)
+                    }
+                }
+                item {
+                    PreferenceItem(
+                        title = "GitHub",
+                        description = githubProfileUrl,
+                        icon = Icons.Outlined.Link,
+                    ) {
+                        openUrl(githubProfileUrl)
+                    }
+                }
+                item {
+                    PreferenceItem(
+                        title = "LinkedIn",
+                        description = linkedinUrl,
+                        icon = Icons.Outlined.Link,
+                    ) {
+                        openUrl(linkedinUrl)
+                    }
+                }
+                item {
+                    PreferenceItem(
+                        title = "Support requests",
+                        description = emailAddress,
+                        icon = Icons.Outlined.Email,
+                    ) {
+                        openUrl("mailto:$emailAddress")
+                    }
+                }
+                item {
+                    PreferenceItem(
+                        title = "Support Seali",
+                        description = "Buy Me a Coffee - $buyMeACoffeeUrl",
+                        icon = Icons.Outlined.VolunteerActivism,
+                    ) {
+                        openUrl(buyMeACoffeeUrl)
+                    }
+                }
+                item {
+                    PreferenceItem(
                         title = stringResource(R.string.readme),
                         description = stringResource(R.string.readme_desc),
                         icon = Icons.Outlined.Description,
@@ -161,6 +217,15 @@ fun AboutPage(
                         icon = painterResource(id = R.drawable.icons8_matrix),
                     ) {
                         openUrl(matrixSpaceUrl)
+                    }
+                }
+                item {
+                    PreferenceItem(
+                        title = "Based on Seal by JunkFood02",
+                        description = upstreamRepoUrl,
+                        icon = Icons.Outlined.Language,
+                    ) {
+                        openUrl(upstreamRepoUrl)
                     }
                 }
                 item {
