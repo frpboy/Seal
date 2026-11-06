@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   remove-play-artifacts:
-    if: github.repository == 'frpboy/Seal'
+    if: github.repository == 'frpboy/Seal' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
