@@ -177,6 +177,7 @@ fun GeneralDownloadPreferences(onNavigateBack: () -> Unit, navigateToTemplate: (
                             text = stringResource(id = R.string.custom_command_enabled_hint)
                         )
                     }
+                if (!App.isPlayBuild())
                 item {
                     var ytdlpVersion by remember {
                         mutableStateOf(
