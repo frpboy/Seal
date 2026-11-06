@@ -177,14 +177,13 @@ android {
     namespace = "com.junkfood.seal"
 }
 
-// Evaluate the signing preconditions at configuration time so the task action
-// captures only plain values. Capturing Gradle script objects in a task action
-// is not supported by the configuration cache.
-val releaseSigningConfigured = signingConfigured
-val releaseKeystorePresent = uploadKeystoreFile?.isFile == true
-
 tasks.configureEach {
     if (name in setOf("packageGenericRelease", "signGenericReleaseBundle", "bundleGenericRelease")) {
+        // Capture the signing preconditions as lambda-local values. A task
+        // action that references build-script members captures the Gradle
+        // script object, which the configuration cache cannot serialize.
+        val releaseSigningConfigured = signingConfigured
+        val releaseKeystorePresent = uploadKeystoreFile?.isFile == true
         doFirst {
             if (!releaseSigningConfigured || !releaseKeystorePresent) {
                 throw GradleException(
