@@ -444,10 +444,18 @@ fun ActionSheetInfo(modifier: Modifier = Modifier, task: Task, viewState: ViewSt
                         task.timeCreated.toLocalizedString(),
                         style = MaterialTheme.typography.titleSmall,
                     )
-                    Text(
-                        "${duration.toDurationText()} · ${fileSizeApprox.toFileSizeText()}",
-                        style = MaterialTheme.typography.bodySmall,
-                    )
+                    val infoText =
+                        buildList {
+                                if (duration > 0) add(duration.toDurationText())
+                                if (fileSizeApprox > 0) add(fileSizeApprox.toFileSizeText())
+                            }
+                            .joinToString(separator = " · ")
+                    if (infoText.isNotEmpty()) {
+                        Text(
+                            infoText,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
                 },
                 leadingIcon = {
                     Icon(imageVector = Icons.Outlined.FileDownload, contentDescription = null)
@@ -510,7 +518,9 @@ fun ActionSheetInfo(modifier: Modifier = Modifier, task: Task, viewState: ViewSt
                     Text(text = extractorKey, style = MaterialTheme.typography.titleSmall)
                     Text(text = url, style = MaterialTheme.typography.bodySmall)
                 },
-                leadingIcon = { Icon(imageVector = Icons.Outlined.Link, contentDescription = null) },
+                leadingIcon = {
+                    Icon(imageVector = Icons.Outlined.Link, contentDescription = null)
+                },
             )
         }
     }
