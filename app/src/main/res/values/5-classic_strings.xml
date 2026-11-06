@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="classic_open_menu">Open navigation menu</string>
+    <string name="classic_link_hint">Paste or type a video link</string>
+    <string name="interface_style">Interface</string>
+    <string name="interface_classic">Classic</string>
+    <string name="interface_v2">v2 (new design)</string>
+    <string name="interface_classic_description">Classic (simpler design)</string>
+    <string name="interface_switch_active">Finish or cancel active downloads before switching the interface</string>
+    <string name="interface_switch_explanation">Seali will restart this screen to apply the new interface. Your downloads and settings are kept.</string>
+    <string name="interface_switch">Switch</string>
+</resources>
