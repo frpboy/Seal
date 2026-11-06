@@ -106,10 +106,10 @@ import com.junkfood.seal.ui.component.SealModalBottomSheet
 import com.junkfood.seal.ui.component.SelectionGroupDefaults
 import com.junkfood.seal.ui.component.SelectionGroupItem
 import com.junkfood.seal.ui.component.SelectionGroupRow
-import com.junkfood.seal.ui.page.downloadv2.configure.DownloadDialogViewModel.Action
 import com.junkfood.seal.ui.page.downloadv2.configure.Config
 import com.junkfood.seal.ui.page.downloadv2.configure.DownloadDialog
 import com.junkfood.seal.ui.page.downloadv2.configure.DownloadDialogViewModel
+import com.junkfood.seal.ui.page.downloadv2.configure.DownloadDialogViewModel.Action
 import com.junkfood.seal.ui.page.downloadv2.configure.FormatPage
 import com.junkfood.seal.ui.page.downloadv2.configure.PlaylistSelectionPage
 import com.junkfood.seal.ui.page.downloadv2.configure.PreferencesMock
@@ -120,6 +120,7 @@ import com.junkfood.seal.util.DownloadUtil
 import com.junkfood.seal.util.FileUtil
 import com.junkfood.seal.util.getErrorReport
 import com.junkfood.seal.util.makeToast
+import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -286,14 +287,12 @@ fun DownloadPageV2(
                 state = selectionState,
                 onDismissRequest = { dialogViewModel.postAction(Action.Reset) },
             )
-
         is DownloadDialogViewModel.SelectionState.PlaylistSelection -> {
             PlaylistSelectionPage(
                 state = selectionState,
                 onDismissRequest = { dialogViewModel.postAction(Action.Reset) },
             )
         }
-
         DownloadDialogViewModel.SelectionState.Idle -> {}
     }
 }
@@ -436,14 +435,12 @@ fun DownloadPageImplV2(
                 ) {
                     if (filteredMap.isNotEmpty()) {
                         item(span = { GridItemSpan(maxLineSpan) }) {
-                            val videoCount =
-                                filteredMap.count {
-                                    !it.value.viewState.videoFormats.isNullOrEmpty()
-                                }
+                            val videoCount = filteredMap.count { it.value.isVideoTask() }
+                            val audioCount = filteredMap.count { it.value.isAudioTask() }
                             SubHeader(
                                 modifier = Modifier,
                                 videoCount = videoCount,
-                                audioCount = filteredMap.size - videoCount,
+                                audioCount = audioCount,
                                 isGridView = isGridView,
                                 onToggleView = { isGridView = !isGridView },
                                 onShowMenu = { context.makeToast("Not implemented yet!") },
@@ -457,7 +454,9 @@ fun DownloadPageImplV2(
                                 filteredMap.toList().sortedBy { (_, state) -> state.downloadState },
                             key = { (task, _) -> task.id },
                         ) { (task, state) ->
-                            with(state.viewState) {
+                            val displayViewState =
+                                remember(state.downloadState) { state.withActualFileSize() }
+                            with(displayViewState) {
                                 VideoCardV2(
                                     modifier = Modifier.padding(bottom = 20.dp).padding(),
                                     viewState = this,
@@ -486,9 +485,11 @@ fun DownloadPageImplV2(
                             key = { (task, _) -> task.id },
                             span = { GridItemSpan(maxLineSpan) },
                         ) { (task, state) ->
+                            val displayViewState =
+                                remember(state.downloadState) { state.withActualFileSize() }
                             VideoListItem(
                                 modifier = Modifier.padding(bottom = 16.dp),
-                                viewState = state.viewState,
+                                viewState = displayViewState,
                                 stateIndicator = {
                                     ListItemStateText(
                                         modifier = Modifier.padding(top = 3.dp),
@@ -513,7 +514,9 @@ fun DownloadPageImplV2(
     }
     if (selectedTask != null) {
         val task = selectedTask!!
-        val (downloadState, _, viewState) = taskDownloadStateMap[task] ?: return
+        val taskState = taskDownloadStateMap[task] ?: return
+        val downloadState = taskState.downloadState
+        val viewState = remember(downloadState) { taskState.withActualFileSize() }
         SealModalBottomSheet(
             sheetState = sheetState,
             contentPadding = PaddingValues(),
@@ -812,4 +815,36 @@ internal class DownloadPageV2Test {
             }
         }
     }
+}
+
+private val VIDEO_FILE_EXTENSIONS =
+    setOf("mp4", "mkv", "webm", "mov", "avi", "flv", "3gp", "ts", "m4v")
+private val AUDIO_FILE_EXTENSIONS = setOf("mp3", "m4a", "aac", "ogg", "opus", "flac", "wav")
+
+internal fun Task.State.completedFileExtension(): String? =
+    (downloadState as? Completed)
+        ?.filePath
+        ?.substringAfterLast(delimiter = '.', missingDelimiterValue = "")
+        ?.lowercase()
+        ?.takeIf { it.isNotEmpty() }
+
+// A task counts as video when its fetched formats contain video, or when the
+// completed download is a video file. Tasks with no format info and no
+// recognizable file are counted as neither rather than mislabeled as audio.
+internal fun Task.State.isVideoTask(): Boolean =
+    !viewState.videoFormats.isNullOrEmpty() ||
+        completedFileExtension()?.let { it in VIDEO_FILE_EXTENSIONS } == true
+
+internal fun Task.State.isAudioTask(): Boolean =
+    viewState.videoFormats.isNullOrEmpty() &&
+        (!viewState.audioOnlyFormats.isNullOrEmpty() ||
+            completedFileExtension()?.let { it in AUDIO_FILE_EXTENSIONS } == true)
+
+// When yt-dlp reported no size but the download completed, show the saved
+// file's actual size instead of 0.00 MB.
+internal fun Task.State.withActualFileSize(): Task.ViewState {
+    if (viewState.fileSizeApprox > 0) return viewState
+    val path = (downloadState as? Completed)?.filePath ?: return viewState
+    val size = runCatching { File(path).length() }.getOrDefault(0L)
+    return if (size > 0) viewState.copy(fileSizeApprox = size.toDouble()) else viewState
 }
