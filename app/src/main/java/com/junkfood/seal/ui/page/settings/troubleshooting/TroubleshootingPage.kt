@@ -89,7 +89,8 @@ fun TroubleShootingPage(
                     Spacer(Modifier.height(8.dp))
                 }
             }
-            item { PreferenceSubtitle(text = stringResource(R.string.update)) }
+            if (!App.isPlayBuild()) item { PreferenceSubtitle(text = stringResource(R.string.update)) }
+            if (!App.isPlayBuild())
             item {
                 var isUpdating by remember { mutableStateOf(false) }
                 var showYtdlpDialog by remember { mutableStateOf(false) }

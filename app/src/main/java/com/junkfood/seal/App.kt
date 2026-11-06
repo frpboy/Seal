@@ -221,6 +221,8 @@ class App : Application() {
 
         fun isFDroidBuild(): Boolean = BuildConfig.FLAVOR == "fdroid"
 
+        fun isPlayBuild(): Boolean = BuildConfig.FLAVOR == "play"
+
         fun isDebugBuild(): Boolean = BuildConfig.DEBUG
 
         @SuppressLint("StaticFieldLeak") lateinit var context: Context

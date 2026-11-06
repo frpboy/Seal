@@ -205,7 +205,7 @@ jobs:
           SEALI_UPLOAD_STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
           SEALI_UPLOAD_KEYSTORE_FILE: app/seali-upload-key.jks
           SEALI_UPLOAD_KEYSTORE_TYPE: ${{ steps.signing.outputs.store_type }}
-        run: ./gradlew --no-daemon bundleGenericRelease -PnoSplits
+        run: ./gradlew --no-daemon bundlePlayRelease -PnoSplits
 
       - name: Verify APK and AAB signatures against the upload certificate
         if: steps.signing.outputs.available == 'true'
@@ -220,7 +220,7 @@ jobs:
           keystore="app/seali-upload-key.jks"
           apksigner="$ANDROID_HOME/build-tools/36.0.0/apksigner"
           apk_dir="app/build/outputs/apk/generic/release"
-          aab_dir="app/build/outputs/bundle/genericRelease"
+          aab_dir="app/build/outputs/bundle/playRelease"
 
           expected_fingerprint="$(
             keytool -exportcert \
@@ -315,7 +315,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: seali-google-play-aab
-          path: app/build/outputs/bundle/genericRelease/*.aab
+          path: app/build/outputs/bundle/playRelease/*.aab
           if-no-files-found: error
           retention-days: 14
 
