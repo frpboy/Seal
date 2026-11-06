@@ -52,6 +52,9 @@ const val FORMAT_SORTING = "format_sorting"
 const val SORTING_FIELDS = "sorting_fields"
 
 const val WELCOME_DIALOG = "welcome_dialog"
+const val UI_STYLE = "ui_style"
+const val UI_STYLE_V2 = 0
+const val UI_STYLE_CLASSIC = 1
 const val VIDEO_DIRECTORY = "download_dir"
 const val AUDIO_DIRECTORY = "audio_dir"
 const val COMMAND_DIRECTORY = "command_directory"
@@ -273,6 +276,10 @@ object PreferenceUtil {
     fun String.updateBoolean(newValue: Boolean) = kv.encode(this, newValue)
 
     fun updateValue(key: String, b: Boolean) = key.updateBoolean(b)
+
+    fun getUiStyle(): Int = UI_STYLE.getInt()
+
+    fun updateUiStyle(style: Int) = UI_STYLE.updateInt(style)
 
     fun encodeInt(key: String, int: Int) = key.updateInt(int)
 

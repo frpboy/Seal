@@ -1,5 +1,8 @@
 package com.junkfood.seal.ui.page.settings.appearance
 
+import android.app.Activity
+import android.widget.Toast
+
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,13 +28,17 @@ import androidx.compose.material.icons.outlined.Colorize
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.LightMode
+import androidx.compose.material.icons.outlined.ViewQuilt
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -40,6 +47,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,12 +55,14 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.android.material.color.DynamicColors
 import com.junkfood.seal.R
+import com.junkfood.seal.download.DownloaderV2
 import com.junkfood.seal.download.Task
 import com.junkfood.seal.ui.common.LocalDarkTheme
 import com.junkfood.seal.ui.common.LocalDynamicColorSwitch
@@ -68,9 +78,12 @@ import com.junkfood.seal.ui.page.downloadv2.CardStateIndicator
 import com.junkfood.seal.ui.page.downloadv2.VideoCardV2
 import com.junkfood.seal.util.DarkThemePreference.Companion.OFF
 import com.junkfood.seal.util.DarkThemePreference.Companion.ON
+import com.junkfood.seal.util.InterfaceSwitchGuard
 import com.junkfood.seal.util.PreferenceUtil
 import com.junkfood.seal.util.STYLE_MONOCHROME
 import com.junkfood.seal.util.STYLE_TONAL_SPOT
+import com.junkfood.seal.util.UI_STYLE_CLASSIC
+import com.junkfood.seal.util.UI_STYLE_V2
 import com.junkfood.seal.util.paletteStyles
 import com.junkfood.seal.util.toDisplayName
 import com.kyant.monet.LocalTonalPalettes
@@ -83,6 +96,7 @@ import com.kyant.monet.a3
 import io.material.hct.Hct
 import java.util.Locale
 import kotlinx.coroutines.Job
+import org.koin.compose.koinInject
 
 private val ColorList =
     ((4..10) + (1..3)).map { it * 35.0 }.map { Color(Hct.from(it, 40.0, 40.0).toInt()) }
@@ -220,6 +234,42 @@ fun AppearancePreferences(onNavigateBack: () -> Unit, onNavigateTo: (String) -> 
                 ) {
                     onNavigateTo(Route.LANGUAGES)
                 }
+                val context = LocalContext.current
+                val downloader: DownloaderV2 = koinInject()
+                var showInterfaceDialog by remember { mutableStateOf(false) }
+                val currentUiStyle = remember { PreferenceUtil.getUiStyle() }
+                PreferenceItem(
+                    title = "Interface",
+                    icon = Icons.Outlined.ViewQuilt,
+                    description =
+                        if (currentUiStyle == UI_STYLE_CLASSIC) "Classic" else "v2 (new design)",
+                ) {
+                    showInterfaceDialog = true
+                }
+                if (showInterfaceDialog) {
+                    InterfaceStyleDialog(
+                        current = currentUiStyle,
+                        onDismiss = { showInterfaceDialog = false },
+                        onSelect = { selected ->
+                            val active =
+                                InterfaceSwitchGuard.hasActiveDownloads(
+                                    downloader.getTaskStateMap().values.map { it.downloadState }
+                                )
+                            if (active) {
+                                Toast.makeText(
+                                        context,
+                                        "Finish or cancel active downloads before switching the interface",
+                                        Toast.LENGTH_LONG,
+                                    )
+                                    .show()
+                            } else if (selected != currentUiStyle) {
+                                PreferenceUtil.updateUiStyle(selected)
+                                (context as? Activity)?.recreate()
+                            }
+                            showInterfaceDialog = false
+                        },
+                    )
+                }
             }
         },
     )
@@ -313,4 +363,43 @@ fun RowScope.ColorButtonImpl(
             }
         }
     }
+}
+
+@Composable
+private fun InterfaceStyleDialog(
+    current: Int,
+    onDismiss: () -> Unit,
+    onSelect: (Int) -> Unit,
+) {
+    var selected by remember { mutableIntStateOf(current) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Interface") },
+        text = {
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(
+                        selected = selected == UI_STYLE_V2,
+                        onClick = { selected = UI_STYLE_V2 }
+                    )
+                    Text("v2 (new design)")
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(
+                        selected = selected == UI_STYLE_CLASSIC,
+                        onClick = { selected = UI_STYLE_CLASSIC },
+                    )
+                    Text("Classic (simpler design)")
+                }
+                Text(
+                    text =
+                        "Seali will close and reopen to apply the new interface. Your downloads and settings are kept.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+        confirmButton = { TextButton(onClick = { onSelect(selected) }) { Text("Switch") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+    )
 }
