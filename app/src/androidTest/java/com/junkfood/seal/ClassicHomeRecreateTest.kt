@@ -32,12 +32,12 @@ class ClassicHomeRecreateTest {
                 )
             }
         }
-        compose.activityRule.scenario.onActivity { it.setContent(render) }
+        compose.activityRule.scenario.onActivity { it.setContent(content = render) }
         compose.waitForIdle()
         compose.onNode(hasSetTextAction()).performClick().performTextInput("https://example.com/recreated")
         compose.activityRule.scenario.recreate()
         compose.waitForIdle()
-        compose.activityRule.scenario.onActivity { it.setContent(render) }
+        compose.activityRule.scenario.onActivity { it.setContent(content = render) }
         compose.waitForIdle()
         // The in-progress URL input must survive recreation; losing it was the
         // kind of interruption the interface-switch polish set out to avoid.
