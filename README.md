@@ -8,7 +8,7 @@ This repository is maintained by [Rahul Muraleedharan (@frpboy)](https://github.
 
 ## Download and use
 
-Download an APK from the [alpha release page](https://github.com/frpboy/Seal/releases/tag/v2.0.0-alpha.5). It provides universal, ARM64, ARMv7, x86 and x86_64 builds. Choose universal if unsure. Android 7.0 (API 24) or newer is required by the current build configuration. Seali installs separately from upstream Seal; upstream app data does not migrate automatically.
+Download an APK from the [alpha release page](https://github.com/frpboy/Seal/releases/tag/v2.0.0-alpha.5). It provides universal, ARM64, ARMv7, x86 and x86_64 builds. Choose universal if unsure. The published alpha supports Android 7.0 (API 24) or newer. The next build requires Android 8.0 (API 26) or newer; Android 7.0/7.1 support is dropped for the updated downloader dependencies. Seali installs separately from upstream Seal; upstream app data does not migrate automatically.
 
 Paste a supported video link and tap Download, then choose the desired options. The interface can be switched between Classic and v2 in Settings > Appearance > Interface. Finish or cancel active downloads before switching.
 

@@ -2,6 +2,7 @@
 
 import com.android.build.api.variant.FilterConfiguration
 import java.io.FileInputStream
+import java.security.MessageDigest
 import java.util.Properties
 import org.gradle.api.GradleException
 
@@ -43,6 +44,53 @@ if (hasAnySigningValue && !signingConfigured) {
     )
 }
 
+// Seali security baseline: the app module ships its own copy of the official
+// yt-dlp zipapp at app/src/main/res/raw/ytdlp. Android resource merging makes
+// the app resource override the youtubedl-android library's bundled copy
+// (https://developer.android.com/studio/projects/android-library). The file
+// must stay byte-identical to the official yt-dlp release asset whose SHA-256
+// is pinned here; the pinned hash was verified against the GPG-signed
+// SHA2-256SUMS using the key published in the yt-dlp repository (public.key).
+val bundledYtDlpVersion = "2026.10.26"
+val bundledYtDlpSha256 = "e51e69e89489f199530f13d32a4342da3ddb2cf34842f364603a066db05afbf3"
+
+val verifyBundledYtDlp = tasks.register("verifyBundledYtDlp") {
+    // Reads the bundled binary at execution time via script-scope references,
+    // which the configuration cache cannot serialize; opt out explicitly.
+    notCompatibleWithConfigurationCache("captures script objects for the pinned-hash check")
+    val zipapp = layout.projectDirectory.file("src/main/res/raw/ytdlp")
+    inputs.file(zipapp)
+    outputs.upToDateWhen { false }
+    doLast {
+        val file = zipapp.asFile
+        if (!file.isFile) {
+            throw GradleException("Missing app/src/main/res/raw/ytdlp. Place the official yt-dlp " +
+                "$bundledYtDlpVersion zipapp there (asset 'yt-dlp' from the yt-dlp GitHub release).")
+        }
+        val digest = MessageDigest.getInstance("SHA-256")
+        file.inputStream().use { input ->
+            val buffer = ByteArray(1 shl 20)
+            while (true) {
+                val read = input.read(buffer)
+                if (read < 0) break
+                digest.update(buffer, 0, read)
+            }
+        }
+        val actual = digest.digest().joinToString("") { "%02x".format(it) }
+        if (actual != bundledYtDlpSha256) {
+            throw GradleException(
+                "app/src/main/res/raw/ytdlp SHA-256 $actual does not match the pinned official " +
+                    "yt-dlp $bundledYtDlpVersion hash $bundledYtDlpSha256. Refusing to build with an " +
+                    "unverified yt-dlp baseline."
+            )
+        }
+    }
+}
+
+tasks.matching { it.name.startsWith("merge") && it.name.endsWith("Resources") }.configureEach {
+    dependsOn(verifyBundledYtDlp)
+}
+
 val splitApks = !project.hasProperty("noSplits")
 
 val abiFilterList = (properties["ABI_FILTERS"] as String).split(';')
@@ -71,12 +119,14 @@ android {
 
     defaultConfig {
         applicationId = "com.frpboy.seali"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 200_000_160
         check(versionCode == currentVersionCode)
 
         versionName = baseVersionName
+        buildConfigField("String", "BUNDLED_YTDLP_VERSION", "\"$bundledYtDlpVersion\"")
+        buildConfigField("String", "BUNDLED_YTDLP_SHA256", "\"$bundledYtDlpSha256\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
 
@@ -175,7 +225,12 @@ android {
     kotlinOptions { freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn" }
 
     packaging {
-        resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" }
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            // BouncyCastle jars (bcpg/bcutil/bcprov) and jspecify all ship this
+            // multi-release OSGi manifest; merging duplicates fails the build.
+            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+        }
         jniLibs.useLegacyPackaging = true
     }
     androidResources { generateLocaleConfig = true }
@@ -215,6 +270,21 @@ ktfmt { kotlinLangStyle() }
 kotlin { jvmToolchain(21) }
 
 dependencies {
+    testImplementation("com.fasterxml.jackson.core:jackson-databind:2.18.11")
+    testImplementation("io.github.junkfood02.youtubedl-android:common:0.18.1")
+    testImplementation("org.bouncycastle:bcpg-jdk18on:1.78.1")
+    implementation("org.bouncycastle:bcpg-jdk18on:1.78.1")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.78.1")
+    androidTestImplementation("com.fasterxml.jackson.core:jackson-databind:2.18.11")
+    androidTestImplementation("io.github.junkfood02.youtubedl-android:common:0.18.1")
+    // Align Jackson modules and patch transitive parsers used by youtubedl-android.
+    implementation(platform("com.fasterxml.jackson:jackson-bom:2.18.11"))
+    constraints {
+        implementation("commons-io:commons-io:2.14.0")
+        implementation("org.apache.commons:commons-compress:1.26.0")
+        implementation("org.apache.commons:commons-lang3:3.18.0")
+    }
+
     implementation(project(":color"))
 
     implementation(libs.bundles.core)
@@ -248,5 +318,8 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.espresso.core)
+    androidTestImplementation("androidx.test.uiautomator:uiautomator:2.3.0")
+    // Matches the app classpath (consistent resolution pins strictly 1.0.0).
+    androidTestImplementation("androidx.documentfile:documentfile:1.0.0")
     implementation(libs.androidx.compose.ui.tooling)
 }

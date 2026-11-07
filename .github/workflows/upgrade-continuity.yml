@@ -1,0 +1,94 @@
+name: Upgrade Continuity
+
+# A1 gate: proves a newly built signed release installs OVER the published
+# v2.0.0-alpha.5 APK with private app data (MMKV prefs, filesDir, Room
+# download-history row) preserved.
+#
+# Secret boundary: this workflow decodes the upload keystore, so it MUST NOT
+# run untrusted code. No pull_request / pull_request_target triggers - manual
+# dispatch on an approved exact head, or push to main, only. Secrets are never
+# echoed; the keystore file is deleted immediately after signing.
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  install-over:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools platforms;android-36 build-tools;36.0.0
+
+      - uses: gradle/actions/setup-gradle@v3
+      - run: chmod +x gradlew
+
+      - name: Stage upload keystore
+        shell: bash
+        env:
+          SEALI_UPLOAD_KEYSTORE_BASE64: ${{ secrets.SEALI_UPLOAD_KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          umask 077
+          printf '%s' "$SEALI_UPLOAD_KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > app/seali-upload-key.jks
+          chmod 600 app/seali-upload-key.jks
+
+      - name: Build signed universal release and test APK
+        env:
+          SEALI_UPLOAD_KEY_ALIAS: ${{ secrets.SEALI_UPLOAD_KEY_ALIAS }}
+          SEALI_UPLOAD_KEY_PASSWORD: ${{ secrets.SEALI_UPLOAD_KEY_PASSWORD }}
+          SEALI_UPLOAD_STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
+          SEALI_UPLOAD_KEYSTORE_FILE: app/seali-upload-key.jks
+          SEALI_UPLOAD_KEYSTORE_TYPE: ${{ vars.SEALI_UPLOAD_KEYSTORE_TYPE }}
+        run: ./gradlew --no-daemon assembleGenericRelease assembleGenericReleaseAndroidTest
+
+      - name: Download published alpha5 universal APK
+        run: |
+          curl -sL -o alpha5.apk \
+            https://github.com/frpboy/Seal/releases/download/v2.0.0-alpha.5/Seali-main-universal.apk
+          test -s alpha5.apk
+
+      - name: Sign the release test APK with the upload key
+        # The androidTest APK must carry the same signer as both apps or
+        # instrumentation and install-over are refused by the OS.
+        env:
+          SEALI_UPLOAD_KEY_ALIAS: ${{ secrets.SEALI_UPLOAD_KEY_ALIAS }}
+          SEALI_UPLOAD_KEY_PASSWORD: ${{ secrets.SEALI_UPLOAD_KEY_PASSWORD }}
+          SEALI_UPLOAD_STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test_apk="$(ls app/build/outputs/apk/androidTest/generic/release/*.apk | head -1)"
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" sign \
+            --ks app/seali-upload-key.jks \
+            --ks-key-alias "$SEALI_UPLOAD_KEY_ALIAS" \
+            --ks-pass env:SEALI_UPLOAD_STORE_PASSWORD \
+            --key-pass env:SEALI_UPLOAD_KEY_PASSWORD \
+            --out seali-test-signed.apk "$test_apk"
+          rm -f app/seali-upload-key.jks
+
+      - name: Run install-over upgrade test on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 26
+          arch: x86_64
+          disable-animations: true
+          script: |
+            set -euo pipefail
+            adb install alpha5.apk
+            adb install seali-test-signed.apk
+            adb shell am instrument -w -e class com.junkfood.seal.UpgradeContinuityTest#seedUpgradeState \
+              com.frpboy.seali.test/androidx.test.runner.AndroidJUnitRunner
+            adb install -r app/build/outputs/apk/generic/release/*universal*.apk
+            adb shell am instrument -w -e class com.junkfood.seal.UpgradeContinuityTest#verifyUpgradeStatePreserved \
+              com.frpboy.seali.test/androidx.test.runner.AndroidJUnitRunner

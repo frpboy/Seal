@@ -25,6 +25,7 @@ import com.junkfood.seal.util.NotificationUtil
 import com.junkfood.seal.util.PreferenceUtil
 import com.junkfood.seal.util.VideoInfo
 import com.yausername.youtubedl_android.YoutubeDL
+import com.junkfood.seal.util.CancellableYoutubeDL
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
@@ -352,7 +353,7 @@ class DownloaderV2Impl(private val appContext: Context) : DownloaderV2, KoinComp
     private fun Task.cancelImpl(): Boolean {
         when (val preState = downloadState) {
             is DownloadState.Cancelable -> {
-                val res = YoutubeDL.destroyProcessById(preState.taskId)
+                val res = CancellableYoutubeDL.cancel(preState.taskId)
                 if (res) {
                     preState.job.cancel()
                     val progress = if (preState is Running) preState.progress else null
@@ -381,7 +382,8 @@ class DownloaderV2Impl(private val appContext: Context) : DownloaderV2, KoinComp
             is DownloadState.Restartable -> {
                 downloadState =
                     when (preState.action) {
-                        Download -> ReadyWithInfo
+                        // Custom commands have no parsed VideoInfo; prepare executes them from Idle.
+                        Download -> if (type is TypeInfo.CustomCommand) Idle else ReadyWithInfo
                         FetchInfo -> Idle
                     }
             }
