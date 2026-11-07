@@ -31,6 +31,9 @@ chmod +x gradlew
 ./gradlew --console=plain :app:dependencyInsight --configuration genericDebugRuntimeClasspath --dependency androidx.core:core > "$out/core-runtime-resolution.txt"
 head -n 100 "$out/core-runtime-resolution.txt"
 grep -Fx 'androidx.core:core:1.15.0' "$out/core-runtime-resolution.txt"
+./gradlew --console=plain :app:dependencyInsight --configuration genericDebugAndroidTestRuntimeClasspath --dependency androidx.compose.ui:ui-test-android > "$out/compose-runtime-resolution.txt"
+head -n 100 "$out/compose-runtime-resolution.txt"
+grep -Fx 'androidx.compose.ui:ui-test-android:1.8.0-rc02' "$out/compose-runtime-resolution.txt"
 ./gradlew assembleGenericDebug assembleGenericDebugAndroidTest
 find app/build/outputs/apk/generic/debug -name '*x86_64*.apk' -print -quit | xargs adb install
 python3 .github/scripts/check-debug-host-present.py
