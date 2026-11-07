@@ -382,7 +382,8 @@ class DownloaderV2Impl(private val appContext: Context) : DownloaderV2, KoinComp
             is DownloadState.Restartable -> {
                 downloadState =
                     when (preState.action) {
-                        Download -> ReadyWithInfo
+                        // Custom commands have no parsed VideoInfo; prepare executes them from Idle.
+                        Download -> if (type is TypeInfo.CustomCommand) Idle else ReadyWithInfo
                         FetchInfo -> Idle
                     }
             }
