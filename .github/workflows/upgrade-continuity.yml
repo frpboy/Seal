@@ -88,7 +88,7 @@ jobs:
             adb install alpha5.apk
             adb install seali-test-signed.apk
             adb shell am instrument -w -e class com.junkfood.seal.UpgradeContinuityTest#seedUpgradeState \
-              com.junkfood.seal.test/androidx.test.runner.AndroidJUnitRunner
+              com.frpboy.seali.test/androidx.test.runner.AndroidJUnitRunner
             adb install -r app/build/outputs/apk/generic/release/*universal*.apk
             adb shell am instrument -w -e class com.junkfood.seal.UpgradeContinuityTest#verifyUpgradeStatePreserved \
-              com.junkfood.seal.test/androidx.test.runner.AndroidJUnitRunner
+              com.frpboy.seali.test/androidx.test.runner.AndroidJUnitRunner
