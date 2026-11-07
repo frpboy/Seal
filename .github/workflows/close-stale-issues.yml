@@ -5,6 +5,7 @@ on:
 
 jobs:
   stale:
+    if: github.repository == 'JunkFood02/Seal'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/stale@v9
