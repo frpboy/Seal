@@ -55,6 +55,9 @@ val bundledYtDlpVersion = "2026.10.26"
 val bundledYtDlpSha256 = "e51e69e89489f199530f13d32a4342da3ddb2cf34842f364603a066db05afbf3"
 
 val verifyBundledYtDlp = tasks.register("verifyBundledYtDlp") {
+    // Reads the bundled binary at execution time via script-scope references,
+    // which the configuration cache cannot serialize; opt out explicitly.
+    notCompatibleWithConfigurationCache("captures script objects for the pinned-hash check")
     val zipapp = layout.projectDirectory.file("src/main/res/raw/ytdlp")
     inputs.file(zipapp)
     outputs.upToDateWhen { false }
