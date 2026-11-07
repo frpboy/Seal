@@ -36,15 +36,17 @@ class ClassicHomeHistoryTest {
         compose.runOnIdle { assertEquals(1, opened) }
         // Capture real composed UI, with synthetic local-only history and no network download.
         val bitmap = checkNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot())
-        val out = java.io.File(InstrumentationRegistry.getInstrumentation().targetContext.getExternalFilesDir(null), "classic-history.png")
-        out.outputStream().use { check(bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it)) }
-        // connectedAndroidTest removes the test app and its external files after completion.
-        // Preserve only this synthetic screenshot in shell-owned temporary storage first.
-        val descriptor = InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand(
-            "cp ${out.absolutePath} /data/local/tmp/classic-history.png && echo CAPTURE_COPIED"
+        // Stream only this synthetic screenshot to shell-owned storage. The shell cannot
+        // read app-scoped storage on recent Android, and connected-test cleanup removes it.
+        val pipes = InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommandRw(
+            "cat > /data/local/tmp/classic-history.png && echo CAPTURE_WRITTEN"
         )
-        val copied = android.os.ParcelFileDescriptor.AutoCloseInputStream(descriptor).bufferedReader().use { it.readText() }
-        check(copied.contains("CAPTURE_COPIED"))
+        android.os.ParcelFileDescriptor.AutoCloseOutputStream(pipes[1]).use {
+            check(bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it))
+        }
+        val result = android.os.ParcelFileDescriptor.AutoCloseInputStream(pipes[0])
+            .bufferedReader().use { it.readText() }
+        check(result.contains("CAPTURE_WRITTEN"))
 
         compose.runOnIdle { history.clear() }
         compose.onNodeWithText("Saved sample video").assertDoesNotExist()
