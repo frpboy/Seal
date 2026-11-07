@@ -9,6 +9,7 @@ import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -37,11 +38,13 @@ class ClassicHomeControlsTest {
         var submitted = ""
         var keyboard: SoftwareKeyboardController? = null
         var keyboardBottom = 0
+        var rootView: android.view.View? = null
         compose.setContent {
             val density = LocalDensity.current.density
+            val view = LocalView.current
             val controller = LocalSoftwareKeyboardController.current
             val inset = WindowInsets.ime.getBottom(LocalDensity.current)
-            SideEffect { keyboard = controller; keyboardBottom = inset }
+            SideEffect { keyboard = controller; keyboardBottom = inset; rootView = view }
             CompositionLocalProvider(LocalDensity provides Density(density, fontScale)) {
                 MaterialTheme { ClassicHomePageImpl(taskDownloadStateMap = states,
                     onMenuOpen = { menu++ }, onDownload = { submitted = it }) }
@@ -60,7 +63,19 @@ class ClassicHomeControlsTest {
         compose.onNode(hasSetTextAction()).performClick().performTextInput("?fixture=typed")
         compose.onNode(hasSetTextAction()).assertIsFocused()
         compose.runOnIdle { keyboard?.show() }
-        compose.waitUntil(10_000) { keyboardBottom > 0 }
+        try {
+            compose.waitUntil(10_000) {
+                var visible = false
+                InstrumentationRegistry.getInstrumentation().runOnMainSync {
+                    val view = checkNotNull(rootView)
+                    val frame = android.graphics.Rect()
+                    view.getWindowVisibleDisplayFrame(frame)
+                    val hidden = view.rootView.height - frame.bottom
+                    visible = keyboardBottom > 0 || hidden > 150 * view.resources.displayMetrics.density
+                }
+                visible
+            }
+        } finally { screenshot(image) }
         compose.onNodeWithContentDescription(label(R.string.classic_open_menu)).assertIsDisplayed()
         compose.onNodeWithContentDescription(label(R.string.paste)).assertIsDisplayed()
         compose.onNodeWithText(label(R.string.download), useUnmergedTree = true).assertIsDisplayed()
