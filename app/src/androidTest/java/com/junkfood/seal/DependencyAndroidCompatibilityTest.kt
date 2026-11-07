@@ -112,7 +112,7 @@ class DependencyAndroidCompatibilityTest {
             assertTrue("real downloader must write partial data before cancel", partial.length() > 0)
             assertTrue("active process must be canceled", downloader.destroyProcessById(id))
             val error = first.get(15, java.util.concurrent.TimeUnit.SECONDS)
-            assertTrue("cancel must not be a successful transfer", error is com.yausername.youtubedl_android.YoutubeDL.CanceledException)
+            assertTrue("cancel result=${error?.javaClass?.name ?: "success"}; completed=${target.exists()}; partial=${partial.length()}", error is com.yausername.youtubedl_android.YoutubeDL.CanceledException)
             assertFalse("canceled transfer must not appear complete", target.exists())
             slow.set(false)
             assertEquals(0, downloader.execute(request(), id).exitCode)
