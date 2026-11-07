@@ -2,6 +2,7 @@
 
 import com.android.build.api.variant.FilterConfiguration
 import java.io.FileInputStream
+import java.security.MessageDigest
 import java.util.Properties
 import org.gradle.api.GradleException
 
@@ -63,7 +64,7 @@ val verifyBundledYtDlp = tasks.register("verifyBundledYtDlp") {
             throw GradleException("Missing app/src/main/res/raw/ytdlp. Place the official yt-dlp " +
                 "$bundledYtDlpVersion zipapp there (asset 'yt-dlp' from the yt-dlp GitHub release).")
         }
-        val digest = java.security.MessageDigest.getInstance("SHA-256")
+        val digest = MessageDigest.getInstance("SHA-256")
         file.inputStream().use { input ->
             val buffer = ByteArray(1 shl 20)
             while (true) {
