@@ -71,7 +71,7 @@ android {
 
     defaultConfig {
         applicationId = "com.frpboy.seali"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 200_000_160
         check(versionCode == currentVersionCode)
