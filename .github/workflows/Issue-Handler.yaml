@@ -10,7 +10,7 @@ on:
 jobs:
   handle-issues:
     # Run this job only for issues
-    if: github.event_name == 'issues'
+    if: github.repository == 'JunkFood02/Seal' && github.event_name == 'issues'
     # Specify the runner environment
     runs-on: ubuntu-latest
     steps:
@@ -84,4 +84,3 @@ jobs:
             if (context.payload.action === 'opened') {
               await processIssue(context.payload.issue);
             }
-
