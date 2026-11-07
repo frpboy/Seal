@@ -74,6 +74,51 @@ Proposed (b) design:
 - Alternative (a): remove the feature. Noted as a product decision for the user; (b) keeps
   the feature with real authenticity, so (a) is not required to ship the fixed baseline.
 
+### 3.1 Install-state resolution (false-baseline fix)
+
+Defect: the library extracts its bundle only when the on-disk binary is missing
+(YoutubeDL.init_ytdlp) and writes dlpVersion only after a successful update, so an
+existing install that never updated kept its old extracted binary while the updater's
+pref-or-bundled fallback reported the new bundled version and skipped updates
+indefinitely (false baseline).
+
+Resolution (YtDlpInstallResolution + VerifiedYtDlpUpdater.resolveInstall), decided at
+update-check time from the on-disk bytes, never from the pref alone:
+1. Binary SHA-256 == pinned bundle hash (or binary missing; init re-extracts the bundle):
+   BUNDLED. The pref is repaired to the bundled version only then, including the
+   stale-high case after a missing-binary re-extract.
+2. Bytes differ and a parseable pref exists: PREF_RECORDED. Verified updates write the
+   pref only after the atomic rename, so the pref is trusted; a pref-recorded binary
+   newer than the bundle is never downgraded.
+3. Nothing else is trusted: UNKNOWN_LEGACY (includes a CORRUPT/unparseable pref,
+   which previously froze updates because the monotonic compare always answered
+   "not newer"). Only a verified, signature-checked upstream release not older
+   than the shipped bundle may replace the binary; older releases are refused
+   and nothing is deleted. The binary's self-asserted zipapp metadata
+   (yt_dlp/version.py, read from the ZIP without executing anything) is kept
+   only as a clearly marked unverified diagnostic hint (separate pref key,
+   decision-free, not currently surfaced in the UI): a claimed version cannot
+   freeze updates, and it is never written to the verified dlpVersion pref.
+
+Boundary, stated plainly: an unmanaged binary (never updated through the app)
+cannot be distinguished from a legacy runtime - its self-asserted metadata is
+not proof - so it converges to the verified managed release (>= the shipped
+bundle). No-downgrade is guaranteed for bundle bytes and pref-recorded
+installs only, not unconditionally for unmanaged binaries. Detection never
+executes unknown code. Known pre-existing limitation (assessed, unchanged): a
+parseable pref claiming a version newer than upstream's latest (possible for
+channel-switching nightly users, or manual pref tampering) reports
+ALREADY_UP_TO_DATE until upstream passes it; the installed version is visible
+in settings, and the pref's verified-install invariant makes this unreachable
+through the app's own flows.
+
+Ordering/concurrency: library init (startup, @Synchronized) extracts the bundle when
+the binary is missing; resolution runs later at update-check time, so init always wins
+and a missing binary resolves conservatively as BUNDLED. In-process update runs are
+serialized by a mutex (auto update-check and the manual settings actions can race);
+the atomic rename remains the last step, so any failure before it leaves the previous
+binary untouched.
+
 ## 4. A1 upgrade continuity (implemented: UpgradeContinuityTest.kt + upgrade-continuity.yml)
 
 Seeds and verifies ALL THREE state layers across install-over: MMKV preference, filesDir
