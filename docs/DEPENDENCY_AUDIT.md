@@ -35,6 +35,20 @@ XmlStreamReader and FilenameUtils.normalize were not found in that wrapper.
 
 ## Qualification
 
+**Blocked, not merge-ready:** exact head `49567f8` CI run42344698544 passed
+release/R8 packaging and API35, but API24 ran seven tests with five failures.
+Jackson2.18 requires Android SDK26 and fails ObjectMapper initialization on
+API24 (`java.lang.BootstrapMethodError` missing). Compress ZIP paths also fail
+because `java.nio.file.LinkOption` is missing. The version-only upgrade is not
+compatible with this app's minSdk24. Do not merge it or raise the minimum
+silently. The failing test matrix is retained as evidence.
+
+Primary compatibility references:
+- https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.18
+- https://github.com/FasterXML/jackson-databind/issues/4653
+- https://github.com/frpboy/Seal/actions/runs/42344698544
+
+
 Local generic debug JVM tests passed, including four new tests for upstream
 VideoInfo parsing, updater JSON tree shape, both upstream ZIP extraction APIs,
 and the existing traversal guard. Android instrumentation compilation passed.
