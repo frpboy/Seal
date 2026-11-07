@@ -440,5 +440,7 @@ jobs:
             ytdlp-migration-result.txt
             qualification-head.txt
             qualification-summary.txt
+            saf-host-identity.txt
+            saf-picker-hierarchy.xml
             app/build/reports/androidTests/connected/
             app/build/outputs/androidTest-results/connected/
