@@ -34,7 +34,7 @@ jobs:
           script: |
             chmod +x gradlew
             ./gradlew connectedGenericDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.junkfood.seal.ClassicHomeHistoryTest
-            adb pull /sdcard/Android/data/com.frpboy.seali.debug/files/classic-history.png classic-history.png || true
+            adb pull /sdcard/Android/data/com.frpboy.seali.debug/files/classic-history.png classic-history.png
       - uses: actions/upload-artifact@v4
         if: always()
         with:
