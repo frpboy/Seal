@@ -419,6 +419,12 @@ jobs:
             grep -F 'OK (1 test)' uc-seed-result.txt
             adb shell am instrument -w -r -e class com.junkfood.seal.UpgradeContinuityTest#verifyUpgradeStatePreserved com.frpboy.seali.debug.test/androidx.test.runner.AndroidJUnitRunner | tee uc-verify-result.txt
             grep -F 'OK (1 test)' uc-verify-result.txt
+            # yt-dlp install-state migration qualification: seeded pre-baseline
+            # runtime states (legacy extracted binary with pref absent, readable
+            # zipapp metadata, pref-recorded newer binary) resolve honestly at
+            # runtime without destructive replacement or false baselines.
+            adb shell am instrument -w -r -e class com.junkfood.seal.YtDlpLegacyUpgradeEmulatorTest com.frpboy.seali.debug.test/androidx.test.runner.AndroidJUnitRunner | tee ytdlp-migration-result.txt
+            grep -F 'OK (4 tests)' ytdlp-migration-result.txt
             ! grep -E 'FAILURES|INSTRUMENTATION_FAILED|shortMsg=' instrumentation-result.txt
             adb exec-out run-as com.frpboy.seali.debug cat files/classic-history.png > classic-history.png
             test -s classic-history.png
