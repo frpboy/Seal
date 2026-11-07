@@ -22,6 +22,10 @@ class DependencyAndroidCompatibilityTest {
         // Record the actual bundled runtime version as release evidence instead
         // of trusting packaging metadata.
         java.io.File(context.filesDir, "bundled-ytdlp-version.txt").writeText(response.out.trim() + "\n")
+        // The packaged baseline must be the pinned, verified yt-dlp release.
+        // Proves the app-level res/raw/ytdlp override wins over the library's
+        // bundled copy at runtime on device.
+        assertEquals(BuildConfig.BUNDLED_YTDLP_VERSION, response.out.trim())
     }
     @Test fun upstreamVideoInfoDeserializesWithUnknownFields() {
         val result = ObjectMapper().readValue("""{"id":"fixture","title":"Sample","duration":12,"formats":[],"unknown_fixture":{"x":1}}""", VideoInfo::class.java)
