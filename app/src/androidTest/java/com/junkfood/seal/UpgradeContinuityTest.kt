@@ -59,7 +59,13 @@ class UpgradeContinuityTest {
         val file = java.io.File(context.filesDir, SEED_FILE)
         assertEquals("filesDir content lost across upgrade", SEED_VALUE, file.readText())
         // Post-upgrade sanity: version code must exceed alpha5's 200_000_150.
-        val vc = context.packageManager.getPackageInfo(context.packageName, 0).longVersionCode
+        val info = context.packageManager.getPackageInfo(context.packageName, 0)
+        val vc = if (android.os.Build.VERSION.SDK_INT >= 28) {
+            info.longVersionCode
+        } else {
+            @Suppress("DEPRECATION")
+            info.versionCode.toLong()
+        }
         assert(vc > 200_000_150L) { "versionCode $vc not greater than alpha5 baseline" }
         // History row seeded pre-upgrade must survive.
         androidx.room.Room.databaseBuilder(context, AppDatabase::class.java, "app_database")
