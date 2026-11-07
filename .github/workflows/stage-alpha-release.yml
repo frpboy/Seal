@@ -57,6 +57,8 @@ jobs:
               raise SystemExit('ERROR: alpha tag and a parseable release title are required')
           expected_parts = tuple(map(int, expected.groups()))
           actual_parts = tuple(int(actual.group(i)) for i in (1, 2, 3, 6)) if actual.group(5) == 'alpha' else None
+          if any(part > 2_147_483_647 for part in expected_parts):
+              raise SystemExit('ERROR: version components must fit in a Kotlin Int')
           if actual_parts != expected_parts:
               raise SystemExit('ERROR: release title version does not match alpha tag')
           PYVERSION
@@ -84,6 +86,30 @@ jobs:
           run-id: ${{ inputs.run_id }}
           pattern: "seali-*"
           path: artifacts
+
+      - name: Set up APK metadata tools
+        uses: android-actions/setup-android@v3
+        with:
+          packages: build-tools;36.0.0
+
+      - name: Verify every APK version matches the proposed tag
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          export AAPT="$ANDROID_HOME/build-tools/36.0.0/aapt"
+          python3 - <<'PYAPK'
+          import os, pathlib, re, subprocess
+          apks = list(pathlib.Path('artifacts').rglob('*.apk'))
+          if len(apks) != 5:
+              raise SystemExit('ERROR: expected exactly five APKs')
+          expected = os.environ['TAG'].removeprefix('v')
+          for apk in apks:
+              output = subprocess.check_output([os.environ['AAPT'], 'dump', 'badging', str(apk)], text=True)
+              version = re.search(r"^package:.*?versionName='([^']+)'", output, re.MULTILINE)
+              if not version or version.group(1) != expected:
+                  raise SystemExit(f'ERROR: {apk.name} version does not match tag')
+          PYAPK
 
       - name: Create draft prerelease with APK assets
         env:
