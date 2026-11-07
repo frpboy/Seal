@@ -21,5 +21,12 @@ condition = ("    if: >-\n"
 b = b.replace('    if: ${{ false }}', condition, 1)
 b = b.replace('          persist-credentials: false',
               f'          persist-credentials: false\n          ref: {sha}', 1)
+# Skip unrelated build/signing/history ONLY on this exact single transition.
+# Future PR synchronizes resume their normal jobs. Settings remains one-shot.
+skip = "    if: >-\n      ${{ !(" + condition.split("    if: >-\n", 1)[1].strip() + ") }}\n"
+for job in ['build', 'history-ui']:
+    marker = f'  {job}:\n'
+    assert a.count(marker) == 1
+    a = a.replace(marker, marker + skip, 1)
 Path(sys.argv[2]).write_text(a+'  settings-saf:\n'+b)
 print('Created local phase2 proposal only. Missing before fails comparison; no dispatch. Review exact diff before write.')
