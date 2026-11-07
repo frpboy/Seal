@@ -435,6 +435,7 @@ jobs:
             classic-recreate.png
             bundled-ytdlp-version.txt
             instrumentation-result.txt
+            uc-oracle-result.txt
             uc-seed-result.txt
             uc-verify-result.txt
             ytdlp-migration-result.txt
