@@ -59,6 +59,22 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UpdatePage(onNavigateBack: () -> Unit) {
+    if (App.isDebugBuild()) {
+        Scaffold(
+            topBar = {
+                LargeTopAppBar(
+                    title = { Text(stringResource(R.string.auto_update)) },
+                    navigationIcon = { BackButton { onNavigateBack() } },
+                )
+            },
+        ) { paddings ->
+            PreferenceInfo(
+                modifier = Modifier.padding(paddings),
+                text = stringResource(R.string.manual_test_build_update),
+            )
+        }
+        return
+    }
     val scrollBehavior =
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
             rememberTopAppBarState(),
@@ -156,7 +172,11 @@ fun UpdatePage(onNavigateBack: () -> Unit) {
                                         .onFailure {
                                             it.printStackTrace()
                                             ToastUtil.makeToastSuspend(
-                                                context.getString(R.string.app_update_failed)
+                                                context.getString(
+                                                    if (it is UpdateUtil.NoReleaseAvailableException)
+                                                        R.string.no_release_for_channel
+                                                    else R.string.app_update_failed
+                                                )
                                             )
                                             isLoading = false
                                         }
