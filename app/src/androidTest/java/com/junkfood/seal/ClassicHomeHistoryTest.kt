@@ -4,6 +4,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.performClick
@@ -42,4 +44,45 @@ class ClassicHomeHistoryTest {
         compose.runOnIdle { history.clear() }
         compose.onNodeWithText("Saved sample video").assertDoesNotExist()
     }
+
+    @Test fun roomHistorySurvivesReopenAndDrivesHome() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        // A separate test database, never the user's app_database.
+        val name = "classic-history-test-${java.util.UUID.randomUUID()}"
+        fun open() = androidx.room.Room.databaseBuilder(
+            context, com.junkfood.seal.database.AppDatabase::class.java, name
+        ).build()
+        var db = open()
+        try {
+            val saved = DownloadedVideoInfo(77, "Reopened saved video", "Test author", "https://example.com/reopened", "", "/reopened.mp4")
+            kotlinx.coroutines.runBlocking(kotlinx.coroutines.Dispatchers.IO) {
+                db.videoInfoDao().insert(saved)
+            }
+            db.close()
+            db = open()
+            val flow = db.videoInfoDao().getDownloadHistoryFlow()
+            val states = mutableStateMapOf<Task, Task.State>()
+            compose.setContent {
+                val history = flow.collectAsState(initial = emptyList()).value
+                MaterialTheme {
+                    ClassicHomePageImpl(taskDownloadStateMap = states, completedDownloads = history)
+                }
+            }
+            compose.waitUntil(10_000) {
+                compose.onAllNodesWithText("Reopened saved video").fetchSemanticsNodes().size == 1
+            }
+            compose.onNodeWithText("Reopened saved video").assertIsDisplayed()
+            kotlinx.coroutines.runBlocking(kotlinx.coroutines.Dispatchers.IO) {
+                db.videoInfoDao().deleteInfoById(77)
+            }
+            compose.waitUntil(10_000) {
+                compose.onAllNodesWithText("Reopened saved video").fetchSemanticsNodes().isEmpty()
+            }
+            compose.onNodeWithText("Reopened saved video").assertDoesNotExist()
+        } finally {
+            db.close()
+            context.deleteDatabase(name)
+        }
+    }
+
 }
