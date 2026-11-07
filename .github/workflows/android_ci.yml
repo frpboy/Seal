@@ -38,7 +38,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run generic debug unit tests
-        run: ./gradlew testGenericDebugUnitTest
+        run: ./gradlew :downloader-compat:testDebugUnitTest testGenericDebugUnitTest
 
       - name: Run buildSrc unit tests
         run: ./gradlew -p buildSrc test --console=plain
