@@ -103,6 +103,16 @@ val currentVersionCode = currentVersion.code.toInt()
 android {
     compileSdk = 36
 
+    // Opt-in for the privileged, separately reviewed install-over harness.
+    // Release instrumentation must not compile debug-only SAF/UI fixtures.
+    val releaseContinuityTests = providers.gradleProperty("sealiContinuityReleaseTests")
+        .map { it.toBooleanStrict() }.getOrElse(false)
+    testBuildType = if (releaseContinuityTests) "release" else "debug"
+    sourceSets.getByName("androidTest").java.setSrcDirs(
+        if (releaseContinuityTests) listOf("src/continuityTest/java")
+        else listOf("src/androidTest/java", "src/continuityTest/java"),
+    )
+
     if (signingConfigured) {
         signingConfigs {
             create("githubPublish") {
