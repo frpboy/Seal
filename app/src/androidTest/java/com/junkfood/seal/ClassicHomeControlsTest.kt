@@ -1,6 +1,11 @@
 package com.junkfood.seal
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.platform.LocalDensity
@@ -30,8 +35,13 @@ class ClassicHomeControlsTest {
         val states = mutableStateMapOf<Task, Task.State>()
         var menu = 0
         var submitted = ""
+        var keyboard: SoftwareKeyboardController? = null
+        var keyboardBottom = 0
         compose.setContent {
             val density = LocalDensity.current.density
+            val controller = LocalSoftwareKeyboardController.current
+            val inset = WindowInsets.ime.getBottom(LocalDensity.current)
+            SideEffect { keyboard = controller; keyboardBottom = inset }
             CompositionLocalProvider(LocalDensity provides Density(density, fontScale)) {
                 MaterialTheme { ClassicHomePageImpl(taskDownloadStateMap = states,
                     onMenuOpen = { menu++ }, onDownload = { submitted = it }) }
@@ -49,6 +59,8 @@ class ClassicHomeControlsTest {
         compose.runOnIdle { assertEquals("https://example.com/local-fixture", submitted) }
         compose.onNode(hasSetTextAction()).performClick().performTextInput("?fixture=typed")
         compose.onNode(hasSetTextAction()).assertIsFocused()
+        compose.runOnIdle { keyboard?.show() }
+        compose.waitUntil(10_000) { keyboardBottom > 0 }
         compose.onNodeWithContentDescription(label(R.string.classic_open_menu)).assertIsDisplayed()
         compose.onNodeWithContentDescription(label(R.string.paste)).assertIsDisplayed()
         compose.onNodeWithText(label(R.string.download), useUnmergedTree = true).assertIsDisplayed()
