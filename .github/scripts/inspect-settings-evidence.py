@@ -34,7 +34,7 @@ for label, method in [('fresh', 'actualSdcardSettingsPersistsFreshGrant'),
                 required += [f'settings-{label}-{name}' for name in [
                     'picker.png', 'picker.xml', 'outcome.txt', 'after.png', 'after.xml',
                     'before-root-selection-windows.txt', 'before-folder-confirmation-windows.txt',
-                    'return-windows.txt']]
+                    'return-windows.txt', 'render-capture.txt', 'capture-windows.txt', 'pre-render.png']]
                 if label == 'recreated':
                     required += [f'settings-{label}-pending.png', f'settings-{label}-recreated-before-selection-windows.txt']
             else:
