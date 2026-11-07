@@ -445,3 +445,56 @@ jobs:
             saf-picker-hierarchy.xml
             app/build/reports/androidTests/connected/
             app/build/outputs/androidTest-results/connected/
+
+  # Separate fresh hosted VM per API, one disposable AVD, one test process at a
+  # time. Not a phone, shared device, existing profile or signed release test.
+  settings-saf:
+    # Phase1 source proposal stays disabled. Phase2 reviewed workflow-only
+    # commit pins PR synchronize.before + checkout ref to exact staged SHA.
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        api-level: [26, 35]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools platforms;android-36 build-tools;36.0.0
+      - uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-read-only: true
+      - name: Enable isolated runner KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          arch: x86_64
+          profile: pixel_2
+          avd-name: seali_settings_${{ github.run_id }}_${{ matrix.api-level }}
+          force-avd-creation: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -wipe-data -no-snapshot
+          disable-animations: true
+          script: bash .github/scripts/qualify-settings-saf.sh
+      - name: Bound settings evidence even after early failure
+        id: bound-settings
+        if: always()
+        run: python3 .github/scripts/bound-settings-upload.py
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.bound-settings.outcome == 'success'
+        with:
+          name: settings-saf-evidence-api${{ matrix.api-level }}
+          path: settings-upload/
+          if-no-files-found: error
+          retention-days: 1
