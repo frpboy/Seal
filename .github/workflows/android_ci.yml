@@ -410,7 +410,7 @@ jobs:
             find app/build/outputs/apk/generic/debug -name '*x86_64*.apk' -print -quit | xargs adb install -r
             find app/build/outputs/apk/androidTest/generic/debug -name '*.apk' -print -quit | xargs adb install -r
             adb shell am instrument -w -r -e class com.junkfood.seal.ClassicHomeHistoryTest,com.junkfood.seal.DependencyAndroidCompatibilityTest,com.junkfood.seal.ClassicHomeControlsTest com.frpboy.seali.debug.test/androidx.test.runner.AndroidJUnitRunner | tee instrumentation-result.txt
-            grep -F 'OK (10 tests)' instrumentation-result.txt
+            grep -F 'OK (11 tests)' instrumentation-result.txt
             ! grep -E 'FAILURES|INSTRUMENTATION_FAILED|shortMsg=' instrumentation-result.txt
             adb exec-out run-as com.frpboy.seali.debug cat files/classic-history.png > classic-history.png
             test -s classic-history.png
