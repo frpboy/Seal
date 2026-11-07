@@ -5,14 +5,12 @@ import android.content.pm.ActivityInfo
 import androidx.test.uiautomator.UiDevice
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performScrollTo
-import androidx.compose.ui.test.onNode
 import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsNotEnabled
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModelProvider
 import com.junkfood.seal.ui.page.downloadv2.configure.DownloadDialogViewModel
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithText
