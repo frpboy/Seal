@@ -447,4 +447,18 @@
         <item quantity="one">%d audio</item>
         <item quantity="other">%d audios</item>
     </plurals>
+    <string name="manual_test_build_update">Test builds are shared as APK files for manual installation. Release updates cannot update this separate Seali Debug install.</string>
+    <string name="no_release_for_channel">No release is available for this update channel yet.</string>
+    <string name="onboarding_title">Welcome to Seali</string>
+    <string name="onboarding_step">%1$d of %2$d</string>
+    <string name="onboarding_start_title">A link is all you need</string>
+    <string name="onboarding_start_body">Copy a supported video link, then paste it on the home screen. You can also share a link directly to Seali. Only download content you have permission to save.</string>
+    <string name="onboarding_folder_title">Your downloads, your folder</string>
+    <string name="onboarding_folder_body">Choose a folder in Settings → Download directory when you need one. Seali asks for access to the folder you select. Your download queue and saved files are separate.</string>
+    <string name="onboarding_permission_title">Permissions when they matter</string>
+    <string name="onboarding_permission_body">Notifications can show download progress. You can decide when Seali asks. Nothing on this introduction grants storage, notification or battery access.</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_back">Back</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_finish">Start using Seali</string>
 </resources>
