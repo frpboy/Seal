@@ -54,11 +54,15 @@ callback dispatch, JSON shapes, stream/file ZIP extraction, traversal rejection,
 and bundled downloader `--version` offline. Evidence:
 https://github.com/frpboy/Seal/actions/runs/42352192460
 
-Actual screenshots show normal and 2x-font keyboard controls readable on API35
-and 2x-font keyboard controls readable on API26. The API26 normal-font final
-screenshot has no keyboard despite a native visibility signal; that specific
-keyboard-visible case is NOT closed by the green test. Focus and geometry are
-not substitutes for final pixel inspection.
+Screenshot review after the earlier thirteen-test runs found the API26
+normal-font final capture without a rendered keyboard despite a native
+visibility signal. The controls tests now request the IME, assert the
+window-insets IME visibility signal, and capture both the IME-state and final
+frames at normal and 2x font. Final captures show the keyboard rendered with
+the typed URL on API26 at both font scales and on API35; one intermediate API26
+IME-state frame omitted the keyboard surface while insets reported it visible,
+an emulator capture quirk, and the final capture shows it. The
+keyboard-visible case is now closed by final pixels on both APIs.
 
 The minSdk26 configuration and integrated cancellation fixes passed release/R8
 packaging and twelve actual tests on API26/API35 at exact head
@@ -80,12 +84,23 @@ ReadyWithInfo. The app task test now passes Canceled -> restart -> Completed.
 This does not establish cancellation of every ffmpeg/aria2 child process.
 
 A thirteenth fixture checks FileProvider cache-file read bytes, opening/sharing
-intent MIME and read-grant flags, and missing-file rejection. Fresh exact-head
-CI is required for that fixture and any further changes.
+intent MIME and read-grant flags, and missing-file rejection. A fourteenth
+test recreates the classic home Activity and requires the in-progress URL
+input and menu/download controls to survive. A fifteenth test requires
+interactive controls to expose screen-reader labels and actions. The bundled
+yt-dlp version reported by the packaged binary (2024.09.27 at this head) is
+recorded as CI evidence.
+
+The integrated branch at exact head 1a7b6e7d9fc5f2e72aee393cc032d4fa0148f400
+passed release/R8 packaging and all fifteen actual instrumentation tests on
+both API26 and API35, with the screenshot set above reviewed as pixels.
+Evidence: https://github.com/frpboy/Seal/actions/runs/42362967431
+
 These tests do not prove real network download cancellation/retry, provider or
-storage permissions, network updater behavior, recreation, TalkBack, reduced
-motion, native/Python security, or overall release readiness. Those release
-gates remain separate. Do not publish merely because this matrix is green.
+storage permissions, network updater behavior, TalkBack itself (only the
+semantics labels it consumes), reduced motion, native/Python security, or
+overall release readiness. Those release gates remain separate. Do not publish
+merely because this matrix is green.
 
 Primary compatibility references:
 - https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.18
