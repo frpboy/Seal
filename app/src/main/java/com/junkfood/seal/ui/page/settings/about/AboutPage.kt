@@ -90,7 +90,9 @@ fun AboutPage(
     //    val screenDensity = configuration.densityDpi / 160f
     //    val screenHeight = (configuration.screenHeightDp.toFloat() * screenDensity).roundToInt()
     //    val screenWidth = (configuration.screenWidthDp.toFloat() * screenDensity).roundToInt()
-    var isAutoUpdateEnabled by remember { mutableStateOf(PreferenceUtil.isAutoUpdateEnabled()) }
+    var isAutoUpdateEnabled by remember {
+        mutableStateOf(!App.isDebugBuild() && PreferenceUtil.isAutoUpdateEnabled())
+    }
 
     val info = App.getVersionReport()
     val versionName = packageInfo.versionName
@@ -209,12 +211,15 @@ fun AboutPage(
                 item {
                     PreferenceSwitchWithDivider(
                         title = stringResource(R.string.auto_update),
-                        description = stringResource(R.string.check_for_updates_desc),
+                        description = stringResource(
+                            if (App.isDebugBuild()) R.string.manual_test_build_update
+                            else R.string.check_for_updates_desc
+                        ),
                         icon =
                             if (isAutoUpdateEnabled) Icons.Outlined.Update
                             else Icons.Outlined.UpdateDisabled,
                         isChecked = isAutoUpdateEnabled,
-                        isSwitchEnabled = !App.isFDroidBuild() && !App.isPlayBuild(),
+                        isSwitchEnabled = !App.isDebugBuild() && !App.isFDroidBuild() && !App.isPlayBuild(),
                         onClick = onNavigateToUpdatePage,
                         onChecked = {
                             isAutoUpdateEnabled = !isAutoUpdateEnabled
