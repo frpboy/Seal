@@ -2,6 +2,8 @@
 
 Seali is an independent GPL-3.0 continuation of [JunkFood02/Seal](https://github.com/JunkFood02/Seal). This guide describes this fork, not upstream release support.
 
+The next build requires Android 8.0 (API 26). The previously published alpha is unchanged. Android 7.0 and 7.1 are no longer supported by current source.
+
 ## Prerequisites
 
 - JDK 21. Both app and buildSrc request this toolchain.

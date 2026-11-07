@@ -117,7 +117,7 @@ object DownloadUtil {
                     }
                 }
             }
-            execute(request, playlistURL).out.run {
+            CancellableYoutubeDL.execute(request, playlistURL).out.run {
                 val playlistInfo = jsonFormat.decodeFromString<PlaylistResult>(this)
                 if (playlistInfo.type != "playlist") {
                     jsonFormat.decodeFromString<VideoInfo>(this)
@@ -132,7 +132,7 @@ object DownloadUtil {
     ): Result<VideoInfo> =
         request.runCatching {
             val response: YoutubeDLResponse =
-                YoutubeDL.getInstance().execute(request, taskKey, null)
+                CancellableYoutubeDL.execute(request, taskKey, null)
             jsonFormat.decodeFromString(response.out)
         }
 
@@ -797,7 +797,7 @@ object DownloadUtil {
                     for (s in request.buildCommand()) Log.d(TAG, s)
                 }
                 .runCatching {
-                    YoutubeDL.getInstance()
+                    CancellableYoutubeDL
                         .execute(request = this, processId = taskId, callback = progressCallback)
                 }
                 .onFailure { th ->
@@ -908,7 +908,7 @@ object DownloadUtil {
             }
 
         return runCatching {
-            YoutubeDL.getInstance()
+            CancellableYoutubeDL
                 .execute(request = request, processId = taskId, callback = progressCallback)
         }
     }
@@ -951,7 +951,7 @@ object DownloadUtil {
             withContext(Dispatchers.Main) { onTaskStarted(template, url) }
             runCatching {
                     val response =
-                        YoutubeDL.getInstance().execute(request = request, processId = taskId) {
+                        CancellableYoutubeDL.execute(request = request, processId = taskId) {
                             progress,
                             _,
                             text ->

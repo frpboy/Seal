@@ -24,6 +24,7 @@ import com.junkfood.seal.util.ToastUtil
 import com.junkfood.seal.util.VideoInfo
 import com.junkfood.seal.util.toHttpsUrl
 import com.yausername.youtubedl_android.YoutubeDL
+import com.junkfood.seal.util.CancellableYoutubeDL
 import java.util.concurrent.CancellationException
 import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
@@ -126,7 +127,7 @@ object Downloader {
 
         fun onCancel() {
             toKey().run {
-                YoutubeDL.destroyProcessById(this)
+                CancellableYoutubeDL.cancel(this)
                 onProcessCanceled(this)
             }
         }
@@ -555,7 +556,7 @@ object Downloader {
         updateState(State.Idle)
         clearProgressState(isFinished = false)
         taskState.value.taskId.run {
-            YoutubeDL.destroyProcessById(this)
+            CancellableYoutubeDL.cancel(this)
             NotificationUtil.cancelNotification(this.toNotificationId())
         }
     }
