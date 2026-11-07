@@ -455,7 +455,7 @@ fun DownloadPageImplV2(
                             key = { (task, _) -> task.id },
                         ) { (task, state) ->
                             val displayViewState =
-                                remember(state.downloadState) { state.withActualFileSize() }
+                                state.rememberActualFileSize()
                             with(displayViewState) {
                                 VideoCardV2(
                                     modifier = Modifier.padding(bottom = 20.dp).padding(),
@@ -486,7 +486,7 @@ fun DownloadPageImplV2(
                             span = { GridItemSpan(maxLineSpan) },
                         ) { (task, state) ->
                             val displayViewState =
-                                remember(state.downloadState) { state.withActualFileSize() }
+                                state.rememberActualFileSize()
                             VideoListItem(
                                 modifier = Modifier.padding(bottom = 16.dp),
                                 viewState = displayViewState,
@@ -516,7 +516,7 @@ fun DownloadPageImplV2(
         val task = selectedTask!!
         val taskState = taskDownloadStateMap[task] ?: return
         val downloadState = taskState.downloadState
-        val viewState = remember(downloadState) { taskState.withActualFileSize() }
+        val viewState = taskState.rememberActualFileSize()
         SealModalBottomSheet(
             sheetState = sheetState,
             contentPadding = PaddingValues(),
@@ -849,4 +849,15 @@ internal fun Task.State.withActualFileSize(
     val path = (downloadState as? Completed)?.filePath ?: return viewState
     val size = runCatching { sizeLookup(path) }.getOrDefault(0L)
     return if (size > 0) viewState.copy(fileSizeApprox = size.toDouble()) else viewState
+}
+
+// Document providers can perform IPC or disk work. Never query them in composition.
+@Composable
+private fun Task.State.rememberActualFileSize(): Task.ViewState {
+    val display by androidx.compose.runtime.produceState(viewState, downloadState, viewState) {
+        value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            this@rememberActualFileSize.withActualFileSize()
+        }
+    }
+    return display
 }
