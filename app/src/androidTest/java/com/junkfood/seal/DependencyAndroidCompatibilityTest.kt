@@ -52,7 +52,9 @@ class DependencyAndroidCompatibilityTest {
             catch (expected: IllegalAccessException) { assertFalse(java.io.File(root.parentFile,"escape.txt").exists()) }
         } finally { root.deleteRecursively() }
     }
-    @Test fun realDownloaderCancelsAndRetriesLoopbackTransfer() {
+    @Test fun realDownloaderCancelsAndRetriesLoopbackTransfer() = loopbackTransfer(false)
+    @Test fun appTaskCancelsAndRestartsLoopbackTransfer() = loopbackTransfer(true)
+    private fun loopbackTransfer(appTask: Boolean) {
         // This checks real yt-dlp transport/process cancellation, not media decoding,
         // a third-party provider, or the app's task lifecycle wiring.
         val context = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext
@@ -103,6 +105,41 @@ class DependencyAndroidCompatibilityTest {
             addOption("-o", target.absolutePath)
         }
         try {
+            if (appTask) {
+                val tasks = org.koin.core.context.GlobalContext.get().get<com.junkfood.seal.download.DownloaderV2>()
+                val template = com.junkfood.seal.database.objects.CommandTemplate(
+                    -7001, "Local qualification fixture",
+                    "--force-generic-extractor --no-playlist --socket-timeout 5 --retries 0 -o ${target.absolutePath}")
+                val task = com.junkfood.seal.download.Task(
+                    "http://127.0.0.1:${server.localPort}/fixture.mp4",
+                    com.junkfood.seal.download.Task.TypeInfo.CustomCommand(template),
+                    com.junkfood.seal.util.DownloadUtil.DownloadPreferences.EMPTY)
+                fun waitFor(label: String, condition: () -> Boolean) {
+                    val deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(30)
+                    while (!condition() && System.nanoTime() < deadline) Thread.sleep(50)
+                    assertTrue(label, condition())
+                }
+                try {
+                    tasks.enqueue(task)
+                    val partial = java.io.File(target.absolutePath + ".part")
+                    waitFor("app task writes partial bytes") { partial.length() > 0 }
+                    assertTrue("app task cancel accepted", tasks.cancel(task))
+                    waitFor("app task records cancellation") {
+                        tasks.getTaskStateMap()[task]?.downloadState is com.junkfood.seal.download.Task.DownloadState.Canceled
+                    }
+                    // Allow the interrupted blocking call to unwind before restarting its id.
+                    Thread.sleep(250)
+                    assertFalse("canceled app task must not finish", target.exists())
+                    assertTrue(tasks.getTaskStateMap()[task]?.downloadState is com.junkfood.seal.download.Task.DownloadState.Canceled)
+                    slow.set(false)
+                    tasks.restart(task)
+                    waitFor("app task completes after restart") {
+                        tasks.getTaskStateMap()[task]?.downloadState is com.junkfood.seal.download.Task.DownloadState.Completed
+                    }
+                    assertArrayEquals(bytes, target.readBytes())
+                } finally { tasks.cancel(task); tasks.remove(task) }
+                return
+            }
             val first = pool.submit<Throwable?> {
                 try { com.junkfood.seal.util.CancellableYoutubeDL.execute(request(), id); null } catch (error: Throwable) { error }
             }
