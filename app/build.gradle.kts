@@ -215,6 +215,18 @@ ktfmt { kotlinLangStyle() }
 kotlin { jvmToolchain(21) }
 
 dependencies {
+    testImplementation("com.fasterxml.jackson.core:jackson-databind:2.18.11")
+    testImplementation("io.github.junkfood02.youtubedl-android:common:0.17.3")
+    androidTestImplementation("com.fasterxml.jackson.core:jackson-databind:2.18.11")
+    androidTestImplementation("io.github.junkfood02.youtubedl-android:common:0.17.3")
+    // Align Jackson modules and patch transitive parsers used by youtubedl-android.
+    implementation(platform("com.fasterxml.jackson:jackson-bom:2.18.11"))
+    constraints {
+        implementation("commons-io:commons-io:2.14.0")
+        implementation("org.apache.commons:commons-compress:1.26.0")
+        implementation("org.apache.commons:commons-lang3:3.18.0")
+    }
+
     implementation(project(":color"))
 
     implementation(libs.bundles.core)
