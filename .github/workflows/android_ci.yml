@@ -400,7 +400,7 @@ jobs:
           script: |
             chmod +x gradlew
             ./gradlew assembleGenericDebug assembleGenericDebugAndroidTest
-            find app/build/outputs/apk/generic/debug -name '*.apk' -print -quit | xargs adb install -r
+            find app/build/outputs/apk/generic/debug -name '*x86_64*.apk' -print -quit | xargs adb install -r
             find app/build/outputs/apk/androidTest/generic/debug -name '*.apk' -print -quit | xargs adb install -r
             adb shell am instrument -w -r -e class com.junkfood.seal.ClassicHomeHistoryTest com.frpboy.seali.debug.test/androidx.test.runner.AndroidJUnitRunner | tee instrumentation-result.txt
             grep -F 'OK (1 test)' instrumentation-result.txt
