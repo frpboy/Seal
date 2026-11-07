@@ -104,21 +104,21 @@ class DependencyAndroidCompatibilityTest {
         }
         try {
             val first = pool.submit<Throwable?> {
-                try { downloader.execute(request(), id); null } catch (error: Throwable) { error }
+                try { com.junkfood.seal.util.CancellableYoutubeDL.execute(request(), id); null } catch (error: Throwable) { error }
             }
             val partial = java.io.File(target.absolutePath + ".part")
             val deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(30)
             while (partial.length() == 0L && !first.isDone && System.nanoTime() < deadline) Thread.sleep(50)
             assertTrue("real downloader must write partial data before cancel", partial.length() > 0)
-            assertTrue("active process must be canceled", downloader.destroyProcessById(id))
+            assertTrue("active process must be canceled", com.junkfood.seal.util.CancellableYoutubeDL.cancel(id))
             val error = first.get(15, java.util.concurrent.TimeUnit.SECONDS)
             assertTrue("cancel result=${error?.javaClass?.name ?: "success"}; completed=${target.exists()}; partial=${partial.length()}", error is com.yausername.youtubedl_android.YoutubeDL.CanceledException)
             assertFalse("canceled transfer must not appear complete", target.exists())
             slow.set(false)
-            assertEquals(0, downloader.execute(request(), id).exitCode)
+            assertEquals(0, com.junkfood.seal.util.CancellableYoutubeDL.execute(request(), id).exitCode)
             assertArrayEquals("retry must recover exact served bytes", bytes, target.readBytes())
         } finally {
-            downloader.destroyProcessById(id); pool.shutdownNow()
+            com.junkfood.seal.util.CancellableYoutubeDL.cancel(id); pool.shutdownNow()
             server.close(); worker.join(5000); root.deleteRecursively()
         }
     }
