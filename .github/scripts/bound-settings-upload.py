@@ -13,11 +13,11 @@ OUT = Path('settings-upload')
 CAP = 20 * 1024 * 1024
 TEXT_CAP = 64 * 1024
 # Fixed names, not suffix-only recursion. No APKs/tars/database/unknown files.
-TOP = ['core-runtime-resolution.txt', 'fresh-result.txt', 'recreated-result.txt', 'summary.txt', 'identity.txt',
+TOP = ['compose-runtime-resolution.txt', 'core-runtime-resolution.txt', 'fresh-result.txt', 'recreated-result.txt', 'summary.txt', 'identity.txt',
        'runner-final.txt', 'permission-after-revoke.txt', 'evidence-inspection.json',
        'fresh-lifecycle.txt', 'recreated-lifecycle.txt', 'fresh-activities.txt',
        'recreated-activities.txt', 'fresh-windows.txt', 'recreated-windows.txt', 'runner.log']
-NAMED = ['provenance.txt', 'picker.png', 'picker.xml', 'outcome.txt', 'after.png', 'after.xml',
+NAMED = ['render-capture.txt', 'capture-windows.txt', 'pre-render.png', 'provenance.txt', 'picker.png', 'picker.xml', 'outcome.txt', 'after.png', 'after.xml',
          'picker-open-windows.txt', 'before-root-selection-windows.txt',
          'before-folder-confirmation-windows.txt', 'return-windows.txt', 'pending.png',
          'recreated-before-selection-windows.txt', 'CURRENT-failure.xml',
