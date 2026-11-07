@@ -3,6 +3,7 @@ package com.junkfood.seal
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.view.accessibility.AccessibilityWindowInfo
 import androidx.lifecycle.Lifecycle
+import androidx.core.app.ActivityCompat
 import android.Manifest
 import android.content.Intent
 import android.net.Uri
@@ -218,7 +219,10 @@ class DirectorySettingsSafTest {
                 val before = lifecycle.readLines().size
                 // Do not use ActivityScenario.recreate(): AndroidX first resumes
                 // the host and could remove the picker from the foreground.
-                scenario.onActivity { it.recreate() }
+                // AndroidX Core 1.15.0 works around API26/27 stopped-Activity
+                // recreate deferral. It may fall back to platform recreate;
+                // second-onCreate + focused-picker checks below remain strict.
+                scenario.onActivity { ActivityCompat.recreate(it) }
                 val deadline = SystemClock.elapsedRealtime() + timeout
                 while (lifecycle.readLines().size <= before && SystemClock.elapsedRealtime() < deadline) {
                     SystemClock.sleep(100)
