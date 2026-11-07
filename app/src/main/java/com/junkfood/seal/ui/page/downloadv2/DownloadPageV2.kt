@@ -854,10 +854,12 @@ internal fun Task.State.withActualFileSize(
 // Document providers can perform IPC or disk work. Never query them in composition.
 @Composable
 private fun Task.State.rememberActualFileSize(): Task.ViewState {
-    val display by androidx.compose.runtime.produceState(viewState, downloadState, viewState) {
-        value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            this@rememberActualFileSize.withActualFileSize()
+    return androidx.compose.runtime.key(downloadState, viewState) {
+        val display by androidx.compose.runtime.produceState(viewState) {
+            value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                this@rememberActualFileSize.withActualFileSize()
+            }
         }
+        display
     }
-    return display
 }
