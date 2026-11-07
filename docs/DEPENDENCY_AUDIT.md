@@ -60,7 +60,28 @@ screenshot has no keyboard despite a native visibility signal; that specific
 keyboard-visible case is NOT closed by the green test. Focus and geometry are
 not substitutes for final pixel inspection.
 
-Fresh exact-head CI is required after this minimum/configuration change.
+The minSdk26 configuration and integrated cancellation fixes passed release/R8
+packaging and twelve actual tests on API26/API35 at exact head
+7c017f220daa8f83c67a108cc4df0838070c7861:
+https://github.com/frpboy/Seal/actions/runs/42359320631
+
+A real loopback transfer test exposed upstream cancellation returning true on
+API26 while the download continued successfully. Evidence:
+https://github.com/frpboy/Seal/actions/runs/42355363772
+The app now tracks its execution threads and interrupts the wrapper's blocking
+wait, whose existing InterruptedException handler destroys the Process. No
+reflection, shell command or copied upstream wrapper was added. Metadata,
+legacy/v2 downloads, custom commands, dialog and notification cancellation use
+this boundary. Tests require partial bytes, cancellation without a completed
+file, retry and exact recovered bytes. An app-level custom-command test also
+caught restart incorrectly routing to ReadyWithInfo despite having no parsed
+VideoInfo. Custom-command restart now routes to Idle; regular downloads keep
+ReadyWithInfo. The app task test now passes Canceled -> restart -> Completed.
+This does not establish cancellation of every ffmpeg/aria2 child process.
+
+A thirteenth fixture checks FileProvider cache-file read bytes, opening/sharing
+intent MIME and read-grant flags, and missing-file rejection. Fresh exact-head
+CI is required for that fixture and any further changes.
 These tests do not prove real network download cancellation/retry, provider or
 storage permissions, network updater behavior, recreation, TalkBack, reduced
 motion, native/Python security, or overall release readiness. Those release
