@@ -160,4 +160,26 @@ class DependencyAndroidCompatibilityTest {
         }
     }
 
+    @Test fun fileProviderReadShareAndUnavailablePaths() {
+        val context = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext
+        val file = java.io.File(context.cacheDir, "provider-${java.util.UUID.randomUUID()}.mp4")
+        val bytes = "local-provider-fixture".toByteArray()
+        try {
+            file.writeBytes(bytes)
+            val open = checkNotNull(com.junkfood.seal.util.FileUtil.createIntentForOpeningFile(file.absolutePath))
+            assertEquals(android.content.Intent.ACTION_VIEW, open.action)
+            assertEquals("content", open.data?.scheme)
+            assertEquals("${context.packageName}.provider", open.data?.authority)
+            assertTrue(open.flags and android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION != 0)
+            assertArrayEquals(bytes, context.contentResolver.openInputStream(checkNotNull(open.data))!!.use { it.readBytes() })
+            val share = checkNotNull(com.junkfood.seal.util.FileUtil.createIntentForSharingFile(file.absolutePath))
+            assertEquals(android.content.Intent.ACTION_SEND, share.action)
+            assertEquals(open.data, share.clipData?.getItemAt(0)?.uri)
+            assertEquals("video/mp4", share.type)
+            assertTrue(share.flags and android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION != 0)
+            assertTrue(file.delete())
+            assertNull(com.junkfood.seal.util.FileUtil.createIntentForOpeningFile(file.absolutePath))
+        } finally { file.delete() }
+    }
+
 }
