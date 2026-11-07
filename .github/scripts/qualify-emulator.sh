@@ -32,4 +32,16 @@ for name in classic-history.png classic-controls-normal.png classic-controls-fon
     failed=1
   fi
 done
+# Identity is mandatory even when the picker assertion fails. Full hierarchy
+# is failure-only; absence on a green picker run is expected, not a new failure.
+if ! adb exec-out run-as com.frpboy.seali.debug cat files/saf-host-identity.txt > saf-host-identity.txt || ! test -s saf-host-identity.txt; then
+  echo 'evidence=saf-host-identity FAILED' | tee -a qualification-summary.txt
+  failed=1
+fi
+if adb shell run-as com.frpboy.seali.debug test -s files/saf-picker-hierarchy.xml; then
+  if ! adb exec-out run-as com.frpboy.seali.debug cat files/saf-picker-hierarchy.xml > saf-picker-hierarchy.xml || ! test -s saf-picker-hierarchy.xml; then
+    echo 'evidence=saf-picker-hierarchy FAILED' | tee -a qualification-summary.txt
+    failed=1
+  fi
+fi
 exit "$failed"
