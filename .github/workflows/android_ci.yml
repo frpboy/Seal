@@ -563,10 +563,10 @@ jobs:
           EXPECTED_HEAD: ${{ inputs.expected_head }}
         run: |
           set -euo pipefail
-          source=e5baa08d4911ec1d78863d6710741312fd77b870
+          source=00ce4ea84ed7c9506150f6ec205b8c82e3038815
           [[ "$EXPECTED_HEAD" =~ ^[0-9a-f]{40}$ ]]
           [[ "$(git rev-parse HEAD)" == "$EXPECTED_HEAD" ]]
-          [[ "$(git rev-parse HEAD:app)" == 279b75899d6d712f86fe42c547fd238f1bbb2087 ]]
+          [[ "$(git rev-parse HEAD:app)" == 70860b1597f8a9572b7a8fb85474699c2bf9027b ]]
           [[ "$(git rev-parse HEAD:buildSrc)" == 267f3a56887f0ed75e5d1f62ba695f37865e2557 ]]
           [[ "$(git rev-parse HEAD:gradle)" == c35e51423aac3a48b501cadc3ead445304a48685 ]]
           [[ "$(git rev-parse HEAD:build.gradle.kts)" == e10338ada88cd01f6f7e5954c13d5c58223962d8 ]]
