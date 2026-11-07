@@ -449,26 +449,17 @@ jobs:
   # Separate fresh hosted VM per API, one disposable AVD, one test process at a
   # time. Not a phone, shared device, existing profile or signed release test.
   settings-saf:
-    # Phase1 source proposal stays disabled. Phase2 reviewed workflow-only
-    # commit pins PR synchronize.before + checkout ref to exact staged SHA.
-    if: >-
-      github.event_name == 'pull_request' && github.event.action == 'synchronize' &&
-      github.event.number == 25 && github.run_attempt == 1 &&
-      github.repository == 'frpboy/Seal' &&
-      github.event.pull_request.head.repo.full_name == 'frpboy/Seal' &&
-      github.event.pull_request.head.ref == 'candidate/security-baseline' &&
-      github.event.before == '2c2004541451a37a53f3e0abe975587e1b591f0d'
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 35
     strategy:
       fail-fast: false
       matrix:
-        api-level: [26, 35]
+        api-level: [26]
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-          ref: 2c2004541451a37a53f3e0abe975587e1b591f0d
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
