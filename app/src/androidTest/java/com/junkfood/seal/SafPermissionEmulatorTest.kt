@@ -111,9 +111,15 @@ class SafPermissionEmulatorTest {
             if (root == null) fail("No Documents/Downloads root in picker. Hierarchy:\n" + dumpUiHierarchy())
             root.click()
             device.waitForIdle()
-            // The confirm control differs by API level and stage.
+            // API35 run42387288667 full XML: DocumentsUI's enabled
+            // android:id/button1 reads exactly "USE THIS FOLDER" (uppercase).
+            // Preserve the previously working API26 fallbacks unchanged.
             val confirm =
-                device.wait(Until.findObject(By.textContains("Use this folder")), TIMEOUT)
+                device.wait(
+                    Until.findObject(By.pkg("com.android.documentsui").text("USE THIS FOLDER")),
+                    TIMEOUT,
+                )
+                    ?: device.wait(Until.findObject(By.textContains("Use this folder")), 5_000L)
                     ?: device.wait(Until.findObject(By.textContains("SELECT")), 5_000L)
                     ?: device.wait(Until.findObject(By.textContains("Allow")), 5_000L)
             if (confirm == null) fail("No confirm button in picker. Hierarchy:\n" + dumpUiHierarchy())
