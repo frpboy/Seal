@@ -13,6 +13,7 @@ import androidx.test.uiautomator.Until
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -32,6 +33,20 @@ class SafPermissionEmulatorTest {
     private val context
         get() = instrumentation.targetContext
 
+    /** Dump the current window hierarchy as evidence when a picker assertion
+     *  fails, so selector fixes are grounded in the real DocumentsUI layout
+     *  instead of guessed labels. */
+    private fun dumpUiHierarchy(): String =
+        try {
+            android.os.ParcelFileDescriptor.AutoCloseInputStream(
+                instrumentation.uiAutomation.executeShellCommand(
+                    "uiautomator dump /data/local/tmp/seali-ui.xml && cat /data/local/tmp/seali-ui.xml"
+                )
+            ).use { it.readBytes().decodeToString() }.take(6_000)
+        } catch (e: Exception) {
+            "hierarchy dump failed: ${e.message}"
+        }
+
     @Test
     fun documentTreeGrantAllowsRealWriteAndRead() {
         // Launch the real picker via the same contract the settings page uses.
@@ -44,15 +59,35 @@ class SafPermissionEmulatorTest {
             }
         context.startActivity(intent)
 
-        // DocumentsUI: choose the visible "Documents" root and confirm.
-        assertTrue("DocumentsUI picker did not open", device.wait(Until.hasObject(By.text("Documents")), TIMEOUT))
-        device.findObject(UiSelector().text("Documents")).click()
+        // DocumentsUI varies across API 26-35: the tree picker may open on a
+        // roots list or on the last-used root behind a "Show roots" drawer.
+        // Drive it adaptively instead of assuming one layout.
+        val pickerOpened =
+            device.wait(Until.hasObject(By.pkg("com.android.documentsui")), TIMEOUT) ||
+                device.wait(Until.hasObject(By.pkg("com.google.android.documentsui")), 5_000L)
+        if (!pickerOpened) fail("DocumentsUI picker did not open. Hierarchy:\n" + dumpUiHierarchy())
+        // If no root labels are visible, expand the roots drawer first.
+        if (device.findObject(UiSelector().text("Documents")).exists().not() &&
+            device.findObject(UiSelector().text("Downloads")).exists().not()
+        ) {
+            device.findObject(UiSelector().descriptionContains("Show roots"))
+                .takeIf { it.exists() }?.click()
+            device.waitForIdle()
+        }
+        val root =
+            device.wait(Until.findObject(By.text("Documents")), TIMEOUT)
+                ?: device.wait(Until.findObject(By.text("Downloads")), TIMEOUT)
+        if (root == null) fail("No Documents/Downloads root in picker. Hierarchy:\n" + dumpUiHierarchy())
+        root.click()
+        device.waitForIdle()
+        // The confirm control differs by API level and stage.
         val confirm =
             device.wait(Until.findObject(By.textContains("Use this folder")), TIMEOUT)
-                ?: device.wait(Until.findObject(By.textContains("SELECT")), TIMEOUT)
-        assertNotNull("No confirm button in picker", confirm)
+                ?: device.wait(Until.findObject(By.textContains("SELECT")), 5_000L)
+                ?: device.wait(Until.findObject(By.textContains("Allow")), 5_000L)
+        if (confirm == null) fail("No confirm button in picker. Hierarchy:\n" + dumpUiHierarchy())
         confirm.click()
-        // API 26-29 may show an "Allow" access dialog.
+        // API 26-29 may show a second "Allow" access dialog.
         device.wait(Until.hasObject(By.textContains("Allow")), 3_000L)
         device.findObject(UiSelector().textContains("Allow")).takeIf { it.exists() }?.click()
         device.waitForIdle()
@@ -67,9 +102,9 @@ class SafPermissionEmulatorTest {
         val tree: Uri = grant!!.uri
 
         // Prove real write + read inside the chosen folder via DocumentFile.
-        val root = DocumentFile.fromTreeUri(context, tree)
-        assertNotNull("Could not open granted tree", root)
-        val file = root!!.createFile("text/plain", "seali-saf-qualification")
+        val treeRoot = DocumentFile.fromTreeUri(context, tree)
+        assertNotNull("Could not open granted tree", treeRoot)
+        val file = treeRoot!!.createFile("text/plain", "seali-saf-qualification")
         assertNotNull("Create in granted tree failed", file)
         context.contentResolver.openOutputStream(file!!.uri)!!.use {
             it.write("seali-saf-ok".toByteArray())
@@ -85,11 +120,12 @@ class SafPermissionEmulatorTest {
     @Test
     fun notificationPermissionGrantIsVisibleToApp() {
         if (android.os.Build.VERSION.SDK_INT < 33) return
-        instrumentation.uiAutomation
-            .executeShellCommand(
-                "pm grant ${context.packageName} android.permission.POST_NOTIFICATIONS"
-            )
-            .close()
+        // Synchronous instrumented grant; a shell `pm grant` is not reliably
+        // visible to the already-running app process on API 33+.
+        instrumentation.uiAutomation.grantRuntimePermission(
+            context.packageName,
+            android.Manifest.permission.POST_NOTIFICATIONS,
+        )
         val granted =
             androidx.core.content.ContextCompat.checkSelfPermission(
                 context, android.Manifest.permission.POST_NOTIFICATIONS,
