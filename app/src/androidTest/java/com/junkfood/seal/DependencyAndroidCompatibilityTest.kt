@@ -19,6 +19,9 @@ class DependencyAndroidCompatibilityTest {
         val response = downloader.execute(com.yausername.youtubedl_android.YoutubeDLRequest(listOf("--version")))
         assertEquals(0, response.exitCode)
         assertTrue(response.out.trim().isNotEmpty())
+        // Record the actual bundled runtime version as release evidence instead
+        // of trusting packaging metadata.
+        java.io.File(context.filesDir, "bundled-ytdlp-version.txt").writeText(response.out.trim() + "\n")
     }
     @Test fun upstreamVideoInfoDeserializesWithUnknownFields() {
         val result = ObjectMapper().readValue("""{"id":"fixture","title":"Sample","duration":12,"formats":[],"unknown_fixture":{"x":1}}""", VideoInfo::class.java)
