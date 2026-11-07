@@ -13,7 +13,7 @@ OUT = Path('settings-upload')
 CAP = 20 * 1024 * 1024
 TEXT_CAP = 64 * 1024
 # Fixed names, not suffix-only recursion. No APKs/tars/database/unknown files.
-TOP = ['fresh-result.txt', 'recreated-result.txt', 'summary.txt', 'identity.txt',
+TOP = ['core-runtime-resolution.txt', 'fresh-result.txt', 'recreated-result.txt', 'summary.txt', 'identity.txt',
        'runner-final.txt', 'permission-after-revoke.txt', 'evidence-inspection.json',
        'fresh-lifecycle.txt', 'recreated-lifecycle.txt', 'fresh-activities.txt',
        'recreated-activities.txt', 'fresh-windows.txt', 'recreated-windows.txt', 'runner.log']
