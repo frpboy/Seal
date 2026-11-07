@@ -224,7 +224,12 @@ android {
     kotlinOptions { freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn" }
 
     packaging {
-        resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" }
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            // BouncyCastle jars (bcpg/bcutil/bcprov) and jspecify all ship this
+            // multi-release OSGi manifest; merging duplicates fails the build.
+            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+        }
         jniLibs.useLegacyPackaging = true
     }
     androidResources { generateLocaleConfig = true }
