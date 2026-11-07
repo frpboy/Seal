@@ -399,13 +399,20 @@ jobs:
           disable-animations: true
           script: |
             chmod +x gradlew
-            ./gradlew connectedGenericDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.junkfood.seal.ClassicHomeHistoryTest
-            adb pull /data/local/tmp/classic-history.png classic-history.png
+            ./gradlew assembleGenericDebug assembleGenericDebugAndroidTest
+            find app/build/outputs/apk/generic/debug -name '*.apk' -print -quit | xargs adb install -r
+            find app/build/outputs/apk/androidTest/generic/debug -name '*.apk' -print -quit | xargs adb install -r
+            adb shell am instrument -w -r -e class com.junkfood.seal.ClassicHomeHistoryTest com.frpboy.seali.debug.test/androidx.test.runner.AndroidJUnitRunner | tee instrumentation-result.txt
+            grep -F 'OK (1 test)' instrumentation-result.txt
+            ! grep -E 'FAILURES|INSTRUMENTATION_FAILED|shortMsg=' instrumentation-result.txt
+            adb exec-out run-as com.frpboy.seali.debug cat files/classic-history.png > classic-history.png
+            test -s classic-history.png
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: classic-history-ui-evidence
           path: |
             classic-history.png
+            instrumentation-result.txt
             app/build/reports/androidTests/connected/
             app/build/outputs/androidTest-results/connected/
