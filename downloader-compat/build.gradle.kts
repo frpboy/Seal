@@ -12,6 +12,7 @@ val extractRuntime by tasks.registering(ExtractDownloaderRuntime::class) {
 }
 tasks.named("preBuild") { dependsOn(extractRuntime) }
 android {
+ buildFeatures { buildConfig = true }
  namespace = "com.yausername.youtubedl_android"
  compileSdk = 36
  defaultConfig { minSdk = 24 }
