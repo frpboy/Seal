@@ -318,6 +318,7 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.espresso.core)
     androidTestImplementation("androidx.test.uiautomator:uiautomator:2.3.0")
-    androidTestImplementation("androidx.documentfile:documentfile:1.1.0")
+    // Matches the app classpath (consistent resolution pins strictly 1.0.0).
+    androidTestImplementation("androidx.documentfile:documentfile:1.0.0")
     implementation(libs.androidx.compose.ui.tooling)
 }
