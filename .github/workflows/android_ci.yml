@@ -19,7 +19,7 @@ jobs:
       github.repository == 'frpboy/Seal' &&
       github.event.pull_request.head.repo.full_name == 'frpboy/Seal' &&
       github.event.pull_request.head.ref == 'candidate/security-baseline' &&
-      github.event.before == 'bfc4a0dcd56516dbd2a2e833fcaa3883acc89714') }}
+      github.event.before == '4d23dcc62fd463349a9f73a392720a4fb4dbdf17') }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -404,7 +404,7 @@ jobs:
       github.repository == 'frpboy/Seal' &&
       github.event.pull_request.head.repo.full_name == 'frpboy/Seal' &&
       github.event.pull_request.head.ref == 'candidate/security-baseline' &&
-      github.event.before == 'bfc4a0dcd56516dbd2a2e833fcaa3883acc89714') }}
+      github.event.before == '4d23dcc62fd463349a9f73a392720a4fb4dbdf17') }}
     runs-on: ubuntu-latest
     timeout-minutes: 35
     strategy:
@@ -463,13 +463,7 @@ jobs:
   # Separate fresh hosted VM per API, one disposable AVD, one test process at a
   # time. Not a phone, shared device, existing profile or signed release test.
   settings-saf:
-    if: >-
-      github.event_name == 'pull_request' && github.event.action == 'synchronize' &&
-      github.event.number == 25 && github.run_attempt == 1 &&
-      github.repository == 'frpboy/Seal' &&
-      github.event.pull_request.head.repo.full_name == 'frpboy/Seal' &&
-      github.event.pull_request.head.ref == 'candidate/security-baseline' &&
-      github.event.before == 'bfc4a0dcd56516dbd2a2e833fcaa3883acc89714'
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 35
     strategy:
@@ -515,5 +509,53 @@ jobs:
         with:
           name: settings-saf-evidence-api${{ matrix.api-level }}
           path: settings-upload/
+          if-no-files-found: error
+          retention-days: 1
+
+  test-apk:
+    if: >-
+      github.event_name == 'pull_request' && github.event.action == 'synchronize' &&
+      github.event.number == 25 && github.run_attempt == 1 &&
+      github.repository == 'frpboy/Seal' &&
+      github.event.pull_request.head.repo.full_name == 'frpboy/Seal' &&
+      github.event.pull_request.head.ref == 'candidate/security-baseline' &&
+      github.event.before == '4d23dcc62fd463349a9f73a392720a4fb4dbdf17'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: 4d23dcc62fd463349a9f73a392720a4fb4dbdf17
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools platforms;android-36 build-tools;36.0.0
+      - uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-read-only: true
+      - name: Assemble separate debug test APK only
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleGenericDebug
+          mkdir test-apk
+          mapfile -t apks < <(find app/build/outputs/apk/generic/debug -maxdepth 1 -type f -name '*arm64-v8a*.apk')
+          test "${#apks[@]}" = 1
+          cp "${apks[0]}" test-apk/Seali-test-arm64-v8a.apk
+          test "$(stat -c %s test-apk/Seali-test-arm64-v8a.apk)" -le 157286400
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging test-apk/Seali-test-arm64-v8a.apk > test-apk/package.txt
+          grep -q "package: name='com.frpboy.seali.debug'" test-apk/package.txt
+          grep -Fx "application-debuggable" test-apk/package.txt
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs test-apk/Seali-test-arm64-v8a.apk > test-apk/signature.txt
+          sha256sum test-apk/Seali-test-arm64-v8a.apk > test-apk/SHA256SUMS
+          printf 'source=%s\norchestration=%s\nrun=%s attempt=%s\n' "$(git rev-parse HEAD)" "$GITHUB_SHA" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" > test-apk/provenance.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: seali-separate-debug-arm64-test
+          path: test-apk/
           if-no-files-found: error
           retention-days: 1
