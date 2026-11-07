@@ -22,7 +22,7 @@ The old AAR's JVM classes are not packaged. FFmpeg/aria2/common stay on 0.17.3.
 
 ## Minimal source delta
 
-Seven of the original thirteen Kotlin files remain byte-identical:
+Seven of the original thirteen Kotlin files remain unchanged except for final-newline normalization:
 request/options, response, exceptions, callbacks and process/stream support.
 The modified originals are YoutubeDL.kt, YoutubeDLUpdater.kt, and four mapper
 files. Added DownloaderJson and PrimitiveStringSerializer use the app's existing
