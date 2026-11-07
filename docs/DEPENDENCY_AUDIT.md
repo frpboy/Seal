@@ -35,31 +35,40 @@ XmlStreamReader and FilenameUtils.normalize were not found in that wrapper.
 
 ## Qualification
 
-**Blocked, not merge-ready:** exact head `49567f8` CI run42344698544 passed
-release/R8 packaging and API35, but API24 ran seven tests with five failures.
-Jackson2.18 requires Android SDK26 and fails ObjectMapper initialization on
-API24 (`java.lang.BootstrapMethodError` missing). Compress ZIP paths also fail
-because `java.nio.file.LinkOption` is missing. The version-only upgrade is not
-compatible with this app's minSdk24. Do not merge it or raise the minimum
-silently. The failing test matrix is retained as evidence.
+The owner approved Android 8.0 / API26 as the new minimum on 2026-11-07,
+dropping Android 7.0 and 7.1. This chooses the version-only dependency update;
+the experimental custom wrapper in PR24 is not adopted. The production
+minSdk is now 26 and the supported-device matrix is API26 and API35. This is
+an explicit product support change, not a skipped supported-device failure.
+Published alpha assets remain unchanged.
+
+Earlier API24 qualification failed ObjectMapper initialization because Jackson
+2.18 requires SDK26 (`java.lang.BootstrapMethodError` missing), and Compress
+ZIP paths failed with missing `java.nio.file.LinkOption`. Preserved evidence:
+https://github.com/frpboy/Seal/actions/runs/42344698544
+
+Before the minimum change, exact head b577a9997d892660f2065f09ed03fc080c115e79
+passed release/R8 packaging and ten actual instrumentation tests on both API26
+and API35: persisted/reactive history, header callbacks and cancel/retry
+callback dispatch, JSON shapes, stream/file ZIP extraction, traversal rejection,
+and bundled downloader `--version` offline. Evidence:
+https://github.com/frpboy/Seal/actions/runs/42352192460
+
+Actual screenshots show normal and 2x-font keyboard controls readable on API35
+and 2x-font keyboard controls readable on API26. The API26 normal-font final
+screenshot has no keyboard despite a native visibility signal; that specific
+keyboard-visible case is NOT closed by the green test. Focus and geometry are
+not substitutes for final pixel inspection.
+
+Fresh exact-head CI is required after this minimum/configuration change.
+These tests do not prove real network download cancellation/retry, provider or
+storage permissions, network updater behavior, recreation, TalkBack, reduced
+motion, native/Python security, or overall release readiness. Those release
+gates remain separate. Do not publish merely because this matrix is green.
 
 Primary compatibility references:
 - https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.18
 - https://github.com/FasterXML/jackson-databind/issues/4653
-- https://github.com/frpboy/Seal/actions/runs/42344698544
-
-
-Local generic debug JVM tests passed, including four new tests for upstream
-VideoInfo parsing, updater JSON tree shape, both upstream ZIP extraction APIs,
-and the existing traversal guard. Android instrumentation compilation passed.
-The instrumentation suite also exercises the same APIs on Android and starts
-the bundled downloader with `--version`, offline, on API24 (minimum) and API35.
-The workflow requires all seven instrumentation tests to pass. CI runtime results must be
-checked on the exact PR head before merging. These tests do not substitute for
-provider/storage, updater-network, accessibility or full download testing.
-
-Local release/R8 qualification could not finish within the local resource
-budget. It is pending CI, not a passing local release build.
 
 ## Primary sources
 
