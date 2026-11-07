@@ -38,6 +38,14 @@ class ClassicHomeHistoryTest {
         val bitmap = checkNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot())
         val out = java.io.File(InstrumentationRegistry.getInstrumentation().targetContext.getExternalFilesDir(null), "classic-history.png")
         out.outputStream().use { check(bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it)) }
+        // connectedAndroidTest removes the test app and its external files after completion.
+        // Preserve only this synthetic screenshot in shell-owned temporary storage first.
+        val descriptor = InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand(
+            "cp ${out.absolutePath} /data/local/tmp/classic-history.png && echo CAPTURE_COPIED"
+        )
+        val copied = android.os.ParcelFileDescriptor.AutoCloseInputStream(descriptor).bufferedReader().use { it.readText() }
+        check(copied.contains("CAPTURE_COPIED"))
+
         compose.runOnIdle { history.clear() }
         compose.onNodeWithText("Saved sample video").assertDoesNotExist()
     }
