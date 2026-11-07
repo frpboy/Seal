@@ -21,6 +21,9 @@ run_stage() {
 }
 : > qualification-summary.txt
 run_stage primary com.junkfood.seal.ClassicHomeHistoryTest,com.junkfood.seal.DependencyAndroidCompatibilityTest,com.junkfood.seal.ClassicHomeControlsTest,com.junkfood.seal.ClassicHomeRecreateTest,com.junkfood.seal.SafPermissionEmulatorTest 'OK (17 tests)' instrumentation-result.txt
+# One additional explicit negative-control invocation checks the SAME always-on
+# oracles used by verification. Keep 17+1+1+4 and oracle1 counts separate.
+run_stage oracle 'com.junkfood.seal.UpgradeContinuityTest#negativeControlsRejectMissingState' 'OK (1 test)' uc-oracle-result.txt
 # Ordered same-install persistence, NOT the signed old-to-new upgrade gate.
 run_stage seed 'com.junkfood.seal.UpgradeContinuityTest#seedUpgradeState' 'OK (1 test)' uc-seed-result.txt
 # Fail closed if seed failed; still collect verification as separate evidence.
