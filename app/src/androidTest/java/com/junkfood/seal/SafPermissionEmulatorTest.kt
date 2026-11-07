@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.test.core.app.ActivityScenario
 import java.io.ByteArrayOutputStream
+import java.io.File
 import androidx.documentfile.provider.DocumentFile
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -49,7 +50,13 @@ class SafPermissionEmulatorTest {
         try {
             ByteArrayOutputStream().use { output ->
                 device.dumpWindowHierarchy(output)
-                output.toString("UTF-8").take(6_000).ifEmpty { "hierarchy dump empty" }
+                val bytes = output.toByteArray()
+                val file = File(context.filesDir, "saf-picker-hierarchy.xml")
+                file.writeBytes(bytes)
+                check(bytes.isNotEmpty()) { "hierarchy dump empty" }
+                // The complete XML is a CI artifact. Do not cut off the
+                // controls behind taskbar/outer windows in the assertion.
+                "Full ${bytes.size}-byte hierarchy saved to ${file.name}"
             }
         } catch (e: Exception) {
             "hierarchy dump failed: ${e.message}"
@@ -57,6 +64,10 @@ class SafPermissionEmulatorTest {
 
     @Test
     fun documentTreeGrantAllowsRealWriteAndRead() {
+        for (name in listOf("saf-picker-hierarchy.xml", "saf-host-identity.txt")) {
+            val old = File(context.filesDir, name)
+            check(!old.exists() || old.delete()) { "Could not clear stale SAF evidence: $name" }
+        }
         val priorGrants = context.contentResolver.persistedUriPermissions.map { it.uri }.toSet()
         var createdFile: DocumentFile? = null
         var acquiredTree: Uri? = null
@@ -69,9 +80,13 @@ class SafPermissionEmulatorTest {
             scenario.onActivity { activity ->
                 host = activity
                 cleanupHost = activity
+                File(context.filesDir, "saf-host-identity.txt").writeText(
+                    "target=${context.packageName}\n" +
+                        "host_uid=${activity.hostUid} instrumentation_uid=${android.os.Process.myUid()}\n" +
+                        "host_pid=${activity.hostPid} instrumentation_pid=${android.os.Process.myPid()}\n",
+                )
                 assertEquals(android.os.Process.myUid(), activity.hostUid)
                 assertEquals(android.os.Process.myPid(), activity.hostPid)
-                println("SAF target=${context.packageName} uid=${activity.hostUid} pid=${activity.hostPid}")
                 activity.launchPicker()
             }
 
