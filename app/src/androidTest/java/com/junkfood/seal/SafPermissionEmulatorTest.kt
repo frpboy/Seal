@@ -3,9 +3,8 @@ package com.junkfood.seal
 import android.content.Intent
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
-import androidx.test.core.app.ApplicationProvider
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiSelector
@@ -24,6 +23,12 @@ private const val TIMEOUT = 15_000L
  * API 35 jobs). Unlike the FileProvider fixture, this drives the real system
  * DocumentsUI picker and then proves actual write + read inside the granted
  * tree, not just permission state.
+ *
+ * The picker is launched through SafTestHostActivity (test package): the tree
+ * grant is only conferred via the ActivityResult path, and persistence and
+ * the write/read proof below run against the TEST package's grants. This
+ * qualifies the SAF contract on the device with the same flags the settings
+ * page uses; it does not exercise the app's own updateDownloadDir path.
  */
 @RunWith(AndroidJUnit4::class)
 class SafPermissionEmulatorTest {
@@ -32,32 +37,39 @@ class SafPermissionEmulatorTest {
     private val device: UiDevice = UiDevice.getInstance(instrumentation)
     private val context
         get() = instrumentation.targetContext
+    private val testContext
+        get() = instrumentation.context
 
     /** Dump the current window hierarchy as evidence when a picker assertion
      *  fails, so selector fixes are grounded in the real DocumentsUI layout
-     *  instead of guessed labels. */
+     *  instead of guessed labels. Uses UiDevice's own dump (accessibility
+     *  service), not the shell uiautomator binary, which produced empty
+     *  output on the API 35 CI run. */
     private fun dumpUiHierarchy(): String =
         try {
+            device.dumpWindowHierarchy("/data/local/tmp/seali-ui.xml")
             android.os.ParcelFileDescriptor.AutoCloseInputStream(
                 instrumentation.uiAutomation.executeShellCommand(
-                    "uiautomator dump /data/local/tmp/seali-ui.xml && cat /data/local/tmp/seali-ui.xml"
+                    "cat /data/local/tmp/seali-ui.xml"
                 )
             ).use { it.readBytes().decodeToString() }.take(6_000)
+                .ifEmpty { "hierarchy dump empty" }
         } catch (e: Exception) {
             "hierarchy dump failed: ${e.message}"
         }
 
     @Test
     fun documentTreeGrantAllowsRealWriteAndRead() {
-        // Launch the real picker via the same contract the settings page uses.
-        val intent =
-            Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+        // Launch the picker through a result-receiving host in the test
+        // package; a bare startActivity has no result recipient, so the tree
+        // grant would never be delivered (proven by the API 26 run failing at
+        // the grant assertion after a completed picker flow).
+        SafTestHostActivity.reset()
+        val host =
+            Intent(testContext, SafTestHostActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-                addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
             }
-        context.startActivity(intent)
+        testContext.startActivity(host)
 
         // DocumentsUI varies across API 26-35: the tree picker may open on a
         // roots list or on the last-used root behind a "Show roots" drawer.
@@ -92,25 +104,35 @@ class SafPermissionEmulatorTest {
         device.findObject(UiSelector().textContains("Allow")).takeIf { it.exists() }?.click()
         device.waitForIdle()
 
-        // Recover the granted tree from persisted permissions (the same grant
-        // App.updateDownloadDir takes via takePersistableUriPermission).
+        // The picker confers the grant through the host's ActivityResult
+        // callback; the host persists it like App.updateDownloadDir does.
+        val completed = SafTestHostActivity.await(TIMEOUT)
+        if (!completed) {
+            fail("Picker result never reached host activity. Hierarchy:\n" + dumpUiHierarchy())
+        }
+        if (SafTestHostActivity.persistError != null) {
+            fail("takePersistableUriPermission failed: " + SafTestHostActivity.persistError)
+        }
+        assertNotNull("Picker returned no tree URI", SafTestHostActivity.lastUri)
+        val tree: Uri = SafTestHostActivity.lastUri!!
+
+        // The grant is recorded for the TEST package (the host's package).
         val grant =
-            context.contentResolver.persistedUriPermissions.firstOrNull {
-                it.isReadPermission && it.isWritePermission
+            testContext.contentResolver.persistedUriPermissions.firstOrNull {
+                it.uri == tree && it.isReadPermission && it.isWritePermission
             }
         assertNotNull("No persistable read+write tree grant recorded", grant)
-        val tree: Uri = grant!!.uri
 
         // Prove real write + read inside the chosen folder via DocumentFile.
-        val treeRoot = DocumentFile.fromTreeUri(context, tree)
+        val treeRoot = DocumentFile.fromTreeUri(testContext, tree)
         assertNotNull("Could not open granted tree", treeRoot)
         val file = treeRoot!!.createFile("text/plain", "seali-saf-qualification")
         assertNotNull("Create in granted tree failed", file)
-        context.contentResolver.openOutputStream(file!!.uri)!!.use {
+        testContext.contentResolver.openOutputStream(file!!.uri)!!.use {
             it.write("seali-saf-ok".toByteArray())
         }
         val readBack =
-            context.contentResolver.openInputStream(file.uri)!!.use { input ->
+            testContext.contentResolver.openInputStream(file.uri)!!.use { input ->
                 input.readBytes().decodeToString()
             }
         assertEquals("seali-saf-ok", readBack)
