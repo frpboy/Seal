@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [ "main" ]
   push:
-    branches: [ "main", "fix/classic-persistent-downloads" ]
+    branches: [ "main" ]
     tags: [ "v*" ]
   workflow_dispatch:
 
@@ -378,6 +378,8 @@ jobs:
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
