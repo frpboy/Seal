@@ -189,6 +189,23 @@ class DirectorySettingsSafTest {
                 assertEquals("Host must run under target app UID", context.applicationInfo.uid, it.applicationInfo.uid)
                 assertEquals(android.os.Process.myUid(), it.applicationInfo.uid)
             }
+            if (!recreatePending) {
+                // A canceled AUDIO picker must not write any destination or
+                // block a later independent SDCARD selection.
+                compose.onNodeWithText(context.getString(R.string.audio_directory))
+                    .performScrollTo().performClick()
+                assertTrue("Cancel regression: AUDIO picker did not open",
+                    device.wait(Until.hasObject(By.pkg("com.android.documentsui")), timeout) ||
+                        device.wait(Until.hasObject(By.pkg("com.google.android.documentsui")), 5_000L))
+                requirePickerForeground(suffix, "cancel-before-back")
+                device.pressBack()
+                assertTrue("Harness: canceled picker did not return focused settings", awaitFocusedSettings())
+                compose.waitForIdle()
+                assertEquals(videoBefore, App.videoDownloadDir)
+                assertEquals(audioBefore, App.audioDownloadDir)
+                assertEquals("", kv.decodeString(SDCARD_URI, ""))
+                assertEquals(priorGrants, context.contentResolver.persistedUriPermissions.map { it.uri }.toSet())
+            }
             compose.onNodeWithText(context.getString(R.string.sdcard_directory))
                 .performScrollTo().performClick()
             assertTrue("Actual SDCARD row did not open DocumentsUI",
