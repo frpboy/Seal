@@ -32,6 +32,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
@@ -47,6 +48,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.junkfood.seal.R
+import com.junkfood.seal.database.objects.DownloadedVideoInfo
+import com.junkfood.seal.ui.component.MediaListItem
+import com.junkfood.seal.util.DatabaseUtil
+import com.junkfood.seal.util.FileUtil.getFileSize
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.junkfood.seal.download.DownloaderV2
 import com.junkfood.seal.download.Task
 import com.junkfood.seal.ui.common.HapticFeedback.slightHapticFeedback
@@ -72,6 +79,7 @@ private const val TAG = "ClassicHomePage"
 fun ClassicHomePage(
     modifier: Modifier = Modifier,
     onMenuOpen: (() -> Unit) = {},
+    onShowDownloads: () -> Unit = {},
     dialogViewModel: DownloadDialogViewModel,
     downloader: DownloaderV2 = koinInject(),
 ) {
@@ -80,9 +88,23 @@ fun ClassicHomePage(
     val clipboardManager = LocalClipboardManager.current
     val uriHandler = LocalUriHandler.current
 
+    val history by remember { DatabaseUtil.getDownloadHistoryFlow() }
+        .collectAsStateWithLifecycle(emptyList())
+    val historySizes by produceState<Map<Int, Long>>(emptyMap(), history) {
+        value = withContext(Dispatchers.IO) {
+            history.associate { it.id to it.videoPath.getFileSize() }
+        }
+    }
+
     ClassicHomePageImpl(
         modifier = modifier,
         taskDownloadStateMap = downloader.getTaskStateMap(),
+        completedDownloads = history,
+        completedFileSizes = historySizes,
+        onShowDownloads = onShowDownloads,
+        onOpenCompleted = { info ->
+            FileUtil.openFile(path = info.videoPath) { context.makeToast(R.string.file_unavailable) }
+        },
         onMenuOpen = onMenuOpen,
         onDownload = { url ->
             view.slightHapticFeedback()
@@ -182,11 +204,19 @@ fun ClassicHomePageImpl(
     taskDownloadStateMap: SnapshotStateMap<Task, Task.State>,
     onMenuOpen: (() -> Unit) = {},
     onDownload: (String) -> Unit = {},
+    completedDownloads: List<DownloadedVideoInfo> = emptyList(),
+    completedFileSizes: Map<Int, Long> = emptyMap(),
+    onOpenCompleted: (DownloadedVideoInfo) -> Unit = {},
+    onShowDownloads: () -> Unit = {},
     onActionPost: (Task, UiAction) -> Unit = { _, _ -> },
 ) {
     var urlInput by rememberSaveable { mutableStateOf("") }
     val clipboardManager = LocalClipboardManager.current
     val tasks = taskDownloadStateMap.keys.sortedDescending()
+    val completedPaths = taskDownloadStateMap.values.mapNotNull {
+        (it.downloadState as? Task.DownloadState.Completed)?.filePath
+    }.toSet()
+    val savedDownloads = classicSavedDownloads(completedDownloads, completedPaths)
 
     // Without a separate top app bar, Scaffold supplies the system-bar insets
     // once. Keep the menu and input in the same row, with a full touch target.
@@ -252,6 +282,21 @@ fun ClassicHomePageImpl(
                             task = task,
                             state = state,
                             onActionPost = { action -> onActionPost(task, action) },
+                        )
+                    }
+                }
+                savedDownloads.forEach { info ->
+                    item(key = "history-${info.id}", contentType = "saved-download") {
+                        MediaListItem(
+                            title = info.videoTitle,
+                            author = info.videoAuthor,
+                            thumbnailUrl = info.thumbnailUrl,
+                            videoPath = info.videoPath,
+                            videoUrl = info.videoUrl,
+                            videoFileSize = completedFileSizes[info.id] ?: 0L,
+                            onClick = { onOpenCompleted(info) },
+                            onLongClick = onShowDownloads,
+                            onShowContextMenu = onShowDownloads,
                         )
                     }
                 }
