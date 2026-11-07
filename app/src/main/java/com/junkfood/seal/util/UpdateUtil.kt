@@ -64,8 +64,7 @@ object UpdateUtil {
                     else -> YoutubeDL.UpdateChannel.STABLE
                 }
 
-            YoutubeDL.getInstance()
-                .updateYoutubeDL(appContext = context, updateChannel = channel)
+            VerifiedYtDlpUpdater.update(appContext = context, channel = channel)
                 .also {
                     if (it == YoutubeDL.UpdateStatus.DONE) {
                         YoutubeDL.getInstance().version(context)?.let {
