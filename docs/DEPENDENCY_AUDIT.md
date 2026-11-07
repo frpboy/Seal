@@ -39,7 +39,8 @@ Local generic debug JVM tests passed, including four new tests for upstream
 VideoInfo parsing, updater JSON tree shape, both upstream ZIP extraction APIs,
 and the existing traversal guard. Android instrumentation compilation passed.
 The instrumentation suite also exercises the same APIs on Android and starts
-the bundled downloader with `--version`, offline. CI runtime results must be
+the bundled downloader with `--version`, offline, on API24 (minimum) and API35.
+The workflow requires all seven instrumentation tests to pass. CI runtime results must be
 checked on the exact PR head before merging. These tests do not substitute for
 provider/storage, updater-network, accessibility or full download testing.
 
