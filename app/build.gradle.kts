@@ -126,6 +126,7 @@ android {
 
         versionName = baseVersionName
         buildConfigField("String", "BUNDLED_YTDLP_VERSION", "\"$bundledYtDlpVersion\"")
+        buildConfigField("String", "BUNDLED_YTDLP_SHA256", "\"$bundledYtDlpSha256\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
 
