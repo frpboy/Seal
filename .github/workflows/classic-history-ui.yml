@@ -1,12 +1,5 @@
 name: Classic history UI qualification
 on:
-  push:
-    branches: ["fix/classic-persistent-downloads"]
-  pull_request:
-    branches: [main]
-    paths:
-      - 'app/src/**/Classic*'
-      - '.github/workflows/classic-history-ui.yml'
   workflow_dispatch:
 permissions:
   contents: read
@@ -21,6 +14,8 @@ jobs:
           distribution: temurin
           java-version: '21'
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools platforms;android-36 build-tools;36.0.0
       - uses: gradle/actions/setup-gradle@v3
       - name: Enable standard runner KVM
         run: |
