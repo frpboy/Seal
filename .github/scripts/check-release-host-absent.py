@@ -3,7 +3,8 @@
 from pathlib import Path
 import zipfile
 
-needles = ['com.junkfood.seal.SafTestHostActivity', 'Lcom/junkfood/seal/SafTestHostActivity;']
+hosts = ['com.junkfood.seal.SafTestHostActivity', 'com.junkfood.seal.DirectorySettingsTestActivity']
+needles = hosts + ['L' + h.replace('.', '/') + ';' for h in hosts]
 def check_bytes(data, source):
     assert not any(n.encode(enc) in data for n in needles for enc in ['utf-8', 'utf-16le']), source
 
