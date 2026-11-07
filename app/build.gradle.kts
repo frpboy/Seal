@@ -53,6 +53,7 @@ val baseVersionName = currentVersion.name
 val currentVersionCode = currentVersion.code.toInt()
 
 android {
+    compileOptions { isCoreLibraryDesugaringEnabled = true }
     compileSdk = 36
 
     if (signingConfigured) {
@@ -215,6 +216,14 @@ ktfmt { kotlinLangStyle() }
 kotlin { jvmToolchain(21) }
 
 dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:2.1.5")
+    testImplementation("io.github.junkfood02.youtubedl-android:common:0.17.3")
+    androidTestImplementation("io.github.junkfood02.youtubedl-android:common:0.17.3")
+    constraints {
+        implementation("commons-io:commons-io:2.15.1")
+        implementation("org.apache.commons:commons-compress:1.26.0")
+        implementation("org.apache.commons:commons-lang3:3.18.0")
+    }
     implementation(project(":color"))
 
     implementation(libs.bundles.core)
@@ -238,7 +247,9 @@ dependencies {
 
     implementation(libs.okhttp)
 
-    implementation(libs.bundles.youtubedlAndroid)
+    implementation(project(":downloader-compat"))
+    implementation(libs.youtubedl.android.ffmpeg)
+    implementation(libs.youtubedl.android.aria2c)
 
     implementation(libs.mmkv)
 

@@ -19,3 +19,4 @@ dependencyResolutionManagement {
 rootProject.name = "Seali"
 include (":app")
 include(":color")
+include(":downloader-compat")
