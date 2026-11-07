@@ -1,5 +1,7 @@
 name: Classic history UI qualification
 on:
+  push:
+    branches: ["fix/classic-persistent-downloads"]
   pull_request:
     branches: [main]
     paths:
