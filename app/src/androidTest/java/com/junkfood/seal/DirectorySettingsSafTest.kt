@@ -11,6 +11,11 @@ import android.os.Build
 import android.os.SystemClock
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.documentfile.provider.DocumentFile
@@ -248,8 +253,8 @@ class DirectorySettingsSafTest {
                 "sdcard_uri=$stored\nvideo_before=$videoBefore\nvideo_after=${App.videoDownloadDir}\n" +
                     "audio_before=$audioBefore\naudio_after=${App.audioDownloadDir}\n" + lifecycle.readText(),
             )
-            screenshot("settings-$suffix-after.png")
-            dumpHierarchy("settings-$suffix-after.xml")
+            // Preserve the original unsynchronized screen observation separately.
+            screenshot("settings-$suffix-pre-render.png")
             assertTrue("Actual app callback did not persist SDCARD_URI; see outcome/lifecycle", stored.isNotEmpty())
             assertEquals("SDCARD result must not change VIDEO destination", videoBefore, App.videoDownloadDir)
             assertEquals("SDCARD result must not change AUDIO destination", audioBefore, App.audioDownloadDir)
@@ -271,7 +276,53 @@ class DirectorySettingsSafTest {
             assertEquals("settings-saf-ok", text)
             // Deliberately separate from persistence/I/O. A stale description is
             // a UI failure, not evidence that the underlying URI was not stored.
-            compose.onNodeWithText(stored).assertExists()
+            val capture = File(context.filesDir, "settings-$suffix-render-capture.txt")
+            fun stamp(stage: String) = capture.appendText("$stage uptime=${SystemClock.uptimeMillis()}\n")
+            capture.writeText("capture=Compose-root-window-PixelCopy not-full-device-screen\n" +
+                "api=${Build.VERSION.SDK_INT} uri=$stored\n" +
+                "draw_gate=" + (if (Build.VERSION.SDK_INT >= 29) "frame-commit-if-hardware" else "onDraw-not-frame-commit") + "\n")
+            stamp("await-visible-uri-start")
+            compose.waitUntil(timeoutMillis = timeout) {
+                compose.onAllNodesWithText(stored).fetchSemanticsNodes().isNotEmpty()
+            }
+            compose.onNodeWithText(stored).assertIsDisplayed()
+            compose.waitForIdle()
+            stamp("uri-displayed-before-render-capture")
+            val captureScenario = checkNotNull(scenario)
+            fun requireCaptureHost() {
+                assertTrue("Capture requires target ACTIVE focused window",
+                    focusedPackageIs(setOf(context.packageName)))
+                assertEquals(Lifecycle.State.RESUMED, captureScenario.state)
+                captureScenario.onActivity {
+                    assertEquals(DirectorySettingsTestActivity::class.java, it.javaClass)
+                    assertEquals(Lifecycle.State.RESUMED, it.lifecycle.currentState)
+                    assertTrue("Capture host must have window focus", it.hasWindowFocus())
+                }
+            }
+            requireCaptureHost()
+            // Runner gates actual resolved ui-test-android 1.8.0-rc02.
+            // Each capture attempt waits up to 2s actual redraw, then up to1s
+            // PixelCopy; ERROR_SOURCE_NO_DATA can retry up to3attempts.
+            // Redraw waits frame-commit >=29/hardware, otherwise onDraw.
+            // No fixed sleep/defaultpass; XML follows and is NOT atomic.
+            // API26 onDraw is NOT a frame-presentation guarantee. Pixels still
+            // need independent inspection; semantic existence alone is no pass.
+            val bitmap = compose.onRoot().captureToImage().asAndroidBitmap()
+            try {
+                val png = File(context.filesDir, "settings-$suffix-after.png")
+                png.outputStream().use {
+                    check(bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it))
+                }
+                check(png.isFile && png.length() > 0) { "Empty paired PNG" }
+            } finally { bitmap.recycle() }
+            stamp("window-pixelcopy-written")
+            requireCaptureHost()
+            dumpHierarchy("settings-$suffix-after.xml")
+            stamp("paired-hierarchy-written")
+            compose.onNodeWithText(stored).assertIsDisplayed()
+            requireCaptureHost()
+            recordWindows("settings-$suffix-capture-windows.txt")
+            stamp("pair-verified-before-cleanup")
         } catch (original: Throwable) {
             terminalFailure = original
             // Capture CURRENT failure state before any back/close/restore. A
@@ -289,6 +340,10 @@ class DirectorySettingsSafTest {
                 )
             }
         } finally {
+            collectFailure {
+                File(context.filesDir, "settings-$suffix-render-capture.txt").appendText(
+                    "cleanup-start uptime=${SystemClock.uptimeMillis()}\n")
+            }
             collectFailure { if (focusedPackageIs(pickerPackages)) device.pressBack() }
             collectFailure { scenario?.close() }
             collectFailure { created?.let { assertTrue("Synthetic file cleanup failed", it.delete()) } }
