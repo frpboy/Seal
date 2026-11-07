@@ -124,9 +124,19 @@ class SafPermissionEmulatorTest {
                     ?: device.wait(Until.findObject(By.textContains("Allow")), 5_000L)
             if (confirm == null) fail("No confirm button in picker. Hierarchy:\n" + dumpUiHierarchy())
             confirm.click()
-            // API 26-29 may show a second "Allow" access dialog.
-            device.wait(Until.hasObject(By.textContains("Allow")), 3_000L)
-            device.findObject(UiSelector().textContains("Allow")).takeIf { it.exists() }?.click()
+            // API35 run42389063906 XML shows DocumentsUI's second access
+            // dialog with enabled android:id/button1 text exactly "ALLOW".
+            // Keep the previously working API26 mixed-case fallback.
+            val allow = device.wait(
+                Until.findObject(By.pkg("com.android.documentsui").text("ALLOW")),
+                3_000L,
+            )
+            if (allow != null) {
+                allow.click()
+            } else {
+                device.wait(Until.hasObject(By.textContains("Allow")), 3_000L)
+                device.findObject(UiSelector().textContains("Allow")).takeIf { it.exists() }?.click()
+            }
             device.waitForIdle()
 
             // The picker confers the grant through the host's ActivityResult
