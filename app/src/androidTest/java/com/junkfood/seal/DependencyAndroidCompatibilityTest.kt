@@ -117,7 +117,7 @@ class DependencyAndroidCompatibilityTest {
                 fun waitFor(label: String, condition: () -> Boolean) {
                     val deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(30)
                     while (!condition() && System.nanoTime() < deadline) Thread.sleep(50)
-                    assertTrue(label, condition())
+                    assertTrue("$label state=${tasks.getTaskStateMap()[task]?.downloadState?.javaClass?.simpleName}", condition())
                 }
                 try {
                     tasks.enqueue(task)
