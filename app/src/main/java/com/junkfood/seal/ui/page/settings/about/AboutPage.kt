@@ -56,6 +56,7 @@ import com.junkfood.seal.ui.component.PreferenceSwitchWithDivider
 import com.junkfood.seal.util.AUTO_UPDATE
 import com.junkfood.seal.util.PreferenceUtil
 import com.junkfood.seal.util.ToastUtil
+import com.junkfood.seal.util.makeToast
 
 private const val releaseURL = "https://github.com/frpboy/Seal/releases"
 private const val repoUrl = "https://github.com/frpboy/Seal"
@@ -104,7 +105,10 @@ fun AboutPage(
 
     val uriHandler = LocalUriHandler.current
     fun openUrl(url: String) {
-        uriHandler.openUri(url)
+        runCatching { uriHandler.openUri(url) }.onFailure {
+            clipboardManager.setText(AnnotatedString(url))
+            context.makeToast(R.string.link_copied)
+        }
     }
     Scaffold(
         modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -119,7 +123,7 @@ fun AboutPage(
             LazyColumn(modifier = Modifier.padding(it)) {
                 item {
                     PreferenceItem(
-                        title = "Developer",
+                        title = stringResource(R.string.seali_developer),
                         description = "${developerName} - ${portfolioUrl}",
                         icon = Icons.Outlined.Person,
                     ) {
@@ -128,7 +132,7 @@ fun AboutPage(
                 }
                 item {
                     PreferenceItem(
-                        title = "GitHub",
+                        title = stringResource(R.string.seali_github),
                         description = githubProfileUrl,
                         icon = Icons.Outlined.Link,
                     ) {
@@ -137,7 +141,7 @@ fun AboutPage(
                 }
                 item {
                     PreferenceItem(
-                        title = "LinkedIn",
+                        title = stringResource(R.string.seali_linkedin),
                         description = linkedinUrl,
                         icon = Icons.Outlined.Link,
                     ) {
@@ -146,7 +150,7 @@ fun AboutPage(
                 }
                 item {
                     PreferenceItem(
-                        title = "Support requests",
+                        title = stringResource(R.string.seali_support_requests),
                         description = supportGroupUrl,
                         icon = Icons.Outlined.ContactSupport,
                     ) {
@@ -181,7 +185,7 @@ fun AboutPage(
                 item {
                     PreferenceItem(
                         title = stringResource(id = R.string.sponsor),
-                        description = stringResource(id = R.string.sponsor_desc),
+                        description = stringResource(id = R.string.seali_sponsor_desc),
                         icon = Icons.Outlined.VolunteerActivism,
                     ) {
                         //                    openUrl(githubSponsor)
@@ -190,7 +194,7 @@ fun AboutPage(
                 }
                 item {
                     PreferenceItem(
-                        title = "Based on Seal by JunkFood02",
+                        title = stringResource(R.string.seali_upstream_credit),
                         description = upstreamRepoUrl,
                         icon = Icons.Outlined.Language,
                     ) {
