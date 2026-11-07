@@ -64,8 +64,7 @@ object UpdateUtil {
                     else -> YoutubeDL.UpdateChannel.STABLE
                 }
 
-            YoutubeDL.getInstance()
-                .updateYoutubeDL(appContext = context, updateChannel = channel)
+            VerifiedYtDlpUpdater.update(appContext = context, channel = channel)
                 .also {
                     if (it == YoutubeDL.UpdateStatus.DONE) {
                         YoutubeDL.getInstance().version(context)?.let {
@@ -77,6 +76,13 @@ object UpdateUtil {
                 }
         }
 
+    class NoReleaseAvailableException : Exception("No release is available for the selected channel")
+    class ManualTestBuildRequiredException : Exception("Debug test builds require manual installation")
+
+    private fun requireSelfUpdateSupported() {
+        if (App.isDebugBuild()) throw ManualTestBuildRequiredException()
+    }
+
     private fun getLatestRelease(): Release =
         client.newCall(requestForReleases).execute().body.use {
             val releaseList = jsonFormat.decodeFromString<List<Release>>(it.string())
@@ -84,11 +90,12 @@ object UpdateUtil {
             val latestRelease =
                 releaseList
                     .filter { if (stable) it.name.toVersion() is Version.Stable else true }
-                    .maxByOrNull { it.name.toVersion() } ?: throw Exception("null response")
+                    .maxByOrNull { it.name.toVersion() } ?: throw NoReleaseAvailableException()
             latestRelease
         }
 
     fun checkForUpdate(context: Context = App.context): Release? {
+        requireSelfUpdateSupported()
         val currentVersion = context.getCurrentVersion()
         val latestRelease = getLatestRelease()
         val latestVersion = latestRelease.name.toVersion()
@@ -109,6 +116,7 @@ object UpdateUtil {
 
     fun installLatestApk(context: Context = App.context) =
         context.run {
+            requireSelfUpdateSupported()
             kotlin
                 .runCatching {
                     val contentUri =
@@ -147,6 +155,7 @@ object UpdateUtil {
         release: Release,
     ): Flow<DownloadStatus> =
         withContext(Dispatchers.IO) {
+            requireSelfUpdateSupported()
             val apkVersion =
                 context.packageManager
                     .getPackageArchiveInfo(context.getLatestApk().absolutePath, 0)

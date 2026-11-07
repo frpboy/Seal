@@ -9,6 +9,7 @@ import com.junkfood.seal.util.DownloadUtil
 import com.junkfood.seal.util.PlaylistResult
 import com.junkfood.seal.util.VideoInfo
 import com.yausername.youtubedl_android.YoutubeDL
+import com.junkfood.seal.util.CancellableYoutubeDL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -220,7 +221,7 @@ class DownloadDialogViewModel(private val downloader: DownloaderV2) : ViewModel(
     private fun cancel(): Boolean {
         return when (val state = sheetState) {
             is SheetState.Loading -> {
-                val res = YoutubeDL.destroyProcessById(id = state.taskKey)
+                val res = CancellableYoutubeDL.cancel(id = state.taskKey)
                 if (res) {
                     state.job.cancel()
                 }

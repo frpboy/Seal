@@ -34,6 +34,14 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
 
         context = this.baseContext
+        // A first launch can be a share, not just a launcher tap. Seed the
+        // configure state before onboarding decides whether the home is idle.
+        // Recreated activities retain their ViewModel state; do not replay.
+        if (savedInstanceState == null) {
+            intent.getSharedURL()?.let { url ->
+                dialogViewModel.postAction(DownloadDialogViewModel.Action.ShowSheet(listOf(url)))
+            }
+        }
         setContent {
             KoinContext {
                 val windowSizeClass = calculateWindowSizeClass(this)

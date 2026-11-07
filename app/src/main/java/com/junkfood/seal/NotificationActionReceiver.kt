@@ -10,6 +10,7 @@ import com.junkfood.seal.download.DownloaderV2
 import com.junkfood.seal.util.NotificationUtil
 import com.junkfood.seal.util.ToastUtil
 import com.yausername.youtubedl_android.YoutubeDL
+import com.junkfood.seal.util.CancellableYoutubeDL
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 
@@ -56,7 +57,7 @@ class NotificationActionReceiver : BroadcastReceiver(), KoinComponent {
             Log.d(TAG, "Task (id:$taskId) was killed.")
         } else {
             // todo: reserved for custom commands
-            YoutubeDL.destroyProcessById(taskId)
+            CancellableYoutubeDL.cancel(taskId)
             Downloader.onProcessCanceled(taskId)
         }
     }

@@ -7,12 +7,19 @@ on:
     branches: [ "main" ]
     tags: [ "v*" ]
   workflow_dispatch:
+    inputs:
+      expected_head:
+        description: "Exact reviewed full commit SHA; one release-prep attempt only"
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 jobs:
   build:
+    if: >-
+      ${{ !(github.repository == 'frpboy/Seal' && ((github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'frpboy/Seal' && github.event.pull_request.head.ref == 'candidate/security-baseline') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/candidate/security-baseline'))) }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -39,6 +46,19 @@ jobs:
 
       - name: Run generic debug unit tests
         run: ./gradlew testGenericDebugUnitTest
+
+      - name: Assert JVM XML counts
+        if: always()
+        run: python3 .github/scripts/check-jvm-results.py
+
+      - name: Upload JVM XML evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jvm-test-results-${{ github.sha }}
+          path: app/build/test-results/testGenericDebugUnitTest/TEST-*.xml
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Run buildSrc unit tests
         run: ./gradlew -p buildSrc test --console=plain
@@ -188,7 +208,7 @@ jobs:
           echo "available=true" >> "$GITHUB_OUTPUT"
           validation_succeeded=true
           echo "Upload keystore validated successfully (format: $store_type; private key and passwords verified)."
-      
+
       - name: Build generic release APK variants
         if: steps.signing.outputs.available == 'true'
         env:
@@ -209,6 +229,10 @@ jobs:
           SEALI_UPLOAD_KEYSTORE_FILE: app/seali-upload-key.jks
           SEALI_UPLOAD_KEYSTORE_TYPE: ${{ steps.signing.outputs.store_type }}
         run: ./gradlew --no-daemon bundlePlayRelease -PnoSplits
+
+      - name: Prove debug SAF host absent from built release artifacts
+        if: steps.signing.outputs.available == 'true'
+        run: python3 .github/scripts/check-release-host-absent.py
 
       - name: Verify APK and AAB signatures against the upload certificate
         if: steps.signing.outputs.available == 'true'
@@ -374,8 +398,15 @@ jobs:
           rm -f app/seali-upload-key.jks "$RUNNER_TEMP/seali-upload-key.base64" "$RUNNER_TEMP/seali-keystore-check.log" "$RUNNER_TEMP/seali-upload-key-check.csr" "$RUNNER_TEMP/seali-upload-key-nested.base64" "$RUNNER_TEMP/seali-upload-key-nested.bin"
 
   history-ui:
+    if: >-
+      ${{ !(github.repository == 'frpboy/Seal' && ((github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'frpboy/Seal' && github.event.pull_request.head.ref == 'candidate/security-baseline') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/candidate/security-baseline'))) }}
     runs-on: ubuntu-latest
     timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        # Android 8.0 is the approved product minimum. API24 failure evidence remains in the audit.
+        api-level: [26, 35]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -395,26 +426,462 @@ jobs:
           sudo udevadm trigger --name-match=kvm
       - uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 35
+          api-level: ${{ matrix.api-level }}
           arch: x86_64
           profile: pixel_2
           disable-animations: true
-          script: |
-            chmod +x gradlew
-            ./gradlew assembleGenericDebug assembleGenericDebugAndroidTest
-            find app/build/outputs/apk/generic/debug -name '*x86_64*.apk' -print -quit | xargs adb install -r
-            find app/build/outputs/apk/androidTest/generic/debug -name '*.apk' -print -quit | xargs adb install -r
-            adb shell am instrument -w -r -e class com.junkfood.seal.ClassicHomeHistoryTest com.frpboy.seali.debug.test/androidx.test.runner.AndroidJUnitRunner | tee instrumentation-result.txt
-            grep -F 'OK (2 tests)' instrumentation-result.txt
-            ! grep -E 'FAILURES|INSTRUMENTATION_FAILED|shortMsg=' instrumentation-result.txt
-            adb exec-out run-as com.frpboy.seali.debug cat files/classic-history.png > classic-history.png
-            test -s classic-history.png
+          script: bash .github/scripts/qualify-emulator.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: classic-history-ui-evidence
+          name: classic-history-ui-evidence-api${{ matrix.api-level }}
           path: |
             classic-history.png
+            classic-controls-normal.png
+            classic-controls-font2.png
+            classic-controls-normal-ime.png
+            classic-controls-font2-ime.png
+            classic-recreate.png
+            bundled-ytdlp-version.txt
             instrumentation-result.txt
+            uc-oracle-result.txt
+            uc-seed-result.txt
+            uc-verify-result.txt
+            ytdlp-migration-result.txt
+            qualification-head.txt
+            qualification-summary.txt
+            saf-host-identity.txt
+            saf-picker-hierarchy.xml
             app/build/reports/androidTests/connected/
             app/build/outputs/androidTest-results/connected/
+
+  # Separate fresh hosted VM per API, one disposable AVD, one test process at a
+  # time. Not a phone, shared device, existing profile or signed release test.
+  settings-saf:
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        api-level: [26]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: bfc4a0dcd56516dbd2a2e833fcaa3883acc89714
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools platforms;android-36 build-tools;36.0.0
+      - uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-read-only: true
+      - name: Enable isolated runner KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          arch: x86_64
+          profile: pixel_2
+          avd-name: seali_settings_${{ github.run_id }}_${{ matrix.api-level }}
+          force-avd-creation: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -wipe-data -no-snapshot
+          disable-animations: true
+          script: bash .github/scripts/qualify-settings-saf.sh
+      - name: Bound settings evidence even after early failure
+        id: bound-settings
+        if: always()
+        run: python3 .github/scripts/bound-settings-upload.py
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.bound-settings.outcome == 'success'
+        with:
+          name: settings-saf-evidence-api${{ matrix.api-level }}
+          path: settings-upload/
+          if-no-files-found: error
+          retention-days: 1
+
+  test-apk:
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: 4d23dcc62fd463349a9f73a392720a4fb4dbdf17
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools platforms;android-36 build-tools;36.0.0
+      - uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-read-only: true
+      - name: Assemble separate debug test APK only
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleGenericDebug
+          mkdir test-apk
+          mapfile -t apks < <(find app/build/outputs/apk/generic/debug -maxdepth 1 -type f -name '*arm64-v8a*.apk')
+          test "${#apks[@]}" = 1
+          cp "${apks[0]}" test-apk/Seali-test-arm64-v8a.apk
+          test "$(stat -c %s test-apk/Seali-test-arm64-v8a.apk)" -le 157286400
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging test-apk/Seali-test-arm64-v8a.apk > test-apk/package.txt
+          grep -q "package: name='com.frpboy.seali.debug'" test-apk/package.txt
+          grep -Fx "application-debuggable" test-apk/package.txt
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs test-apk/Seali-test-arm64-v8a.apk > test-apk/signature.txt
+          sha256sum test-apk/Seali-test-arm64-v8a.apk > test-apk/SHA256SUMS
+          printf 'source=%s\norchestration=%s\nrun=%s attempt=%s\n' "$(git rev-parse HEAD)" "$GITHUB_SHA" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" > test-apk/provenance.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: seali-separate-debug-arm64-test
+          path: test-apk/
+          if-no-files-found: error
+          retention-days: 1
+
+  release-prep:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.repository == 'frpboy/Seal' && github.ref == 'refs/heads/candidate/security-baseline' && github.run_attempt == 1 && inputs.expected_head == github.sha }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify reviewed source and record exact build identity
+        env:
+          EXPECTED_HEAD: ${{ inputs.expected_head }}
+        run: |
+          set -euo pipefail
+          source=00ce4ea84ed7c9506150f6ec205b8c82e3038815
+          [[ "$EXPECTED_HEAD" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$(git rev-parse HEAD)" == "$EXPECTED_HEAD" ]]
+          [[ "$(git rev-parse HEAD:app)" == 70860b1597f8a9572b7a8fb85474699c2bf9027b ]]
+          [[ "$(git rev-parse HEAD:buildSrc)" == 267f3a56887f0ed75e5d1f62ba695f37865e2557 ]]
+          [[ "$(git rev-parse HEAD:gradle)" == c35e51423aac3a48b501cadc3ead445304a48685 ]]
+          [[ "$(git rev-parse HEAD:build.gradle.kts)" == e10338ada88cd01f6f7e5954c13d5c58223962d8 ]]
+          [[ "$(git rev-parse HEAD:settings.gradle.kts)" == bead5f47474ff1fadad573a7e266c0d18e02e7b6 ]]
+          [[ "$(git rev-parse HEAD:gradle.properties)" == 88f26a21ff53c9dc381d422a64cc9d2cfdc9c46a ]]
+          [[ "$(git rev-parse HEAD:gradlew)" == 4f906e0c811fc9e230eb44819f509cd0627f2600 ]]
+          [[ "$(git rev-parse HEAD:gradlew.bat)" == ac1b06f93825db68fb0c0b5150917f340eaa5d02 ]]
+          printf 'build_commit=%s\nbuild_tree=%s\nreviewed_source=%s\n' "$(git rev-parse HEAD)" "$(git rev-parse HEAD^{tree})" "$source" > release-prep-identity.txt
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools platforms;android-36 build-tools;36.0.0
+      - uses: gradle/actions/setup-gradle@v3
+      - name: Compile bounded UX instrumentation and run JVM unit tests
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon --max-workers=2 testGenericDebugUnitTest assembleGenericDebug assembleGenericDebugAndroidTest
+          python3 .github/scripts/check-jvm-results.py
+      - name: Validate and stage private Play upload key
+        id: signing
+        shell: bash
+        env:
+          SEALI_UPLOAD_KEYSTORE_BASE64: ${{ secrets.SEALI_UPLOAD_KEYSTORE_BASE64 }}
+          SEALI_UPLOAD_KEY_ALIAS: ${{ secrets.SEALI_UPLOAD_KEY_ALIAS }}
+          SEALI_UPLOAD_KEY_PASSWORD: ${{ secrets.SEALI_UPLOAD_KEY_PASSWORD }}
+          SEALI_UPLOAD_STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "$SEALI_UPLOAD_KEYSTORE_BASE64" ]]; then
+            if [[ "$GITHUB_EVENT_NAME" == "pull_request" && -z "$SEALI_UPLOAD_KEY_ALIAS$SEALI_UPLOAD_KEY_PASSWORD$SEALI_UPLOAD_STORE_PASSWORD" ]]; then
+              echo "available=false" >> "$GITHUB_OUTPUT"
+              echo "::notice::Signing secrets are unavailable to this pull request; release packaging is safely skipped."
+              exit 0
+            fi
+            echo "::error::Missing SEALI_UPLOAD_KEYSTORE_BASE64. Configure the four Seali upload-signing repository secrets before running a release build."
+            exit 1
+          fi
+
+          for name in SEALI_UPLOAD_KEY_ALIAS SEALI_UPLOAD_KEY_PASSWORD SEALI_UPLOAD_STORE_PASSWORD; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Missing required signing secret: $name"
+              exit 1
+            fi
+          done
+
+          umask 077
+          key_file="app/seali-upload-key.jks"
+          normalized_base64="$RUNNER_TEMP/seali-upload-key.base64"
+          check_log="$RUNNER_TEMP/seali-keystore-check.log"
+          csr_file="$RUNNER_TEMP/seali-upload-key-check.csr"
+          nested_base64="$RUNNER_TEMP/seali-upload-key-nested.base64"
+          nested_file="$RUNNER_TEMP/seali-upload-key-nested.bin"
+          validation_succeeded=false
+
+          cleanup_validation_files() {
+            rm -f "$normalized_base64" "$check_log" "$csr_file" "$nested_base64" "$nested_file"
+            if [[ "$validation_succeeded" != true ]]; then
+              rm -f "$key_file"
+            fi
+          }
+          trap cleanup_validation_files EXIT
+
+          # PowerShell and other encoders may wrap Base64 across lines. Remove
+          # whitespace only; never echo or print the secret or decoded bytes.
+          printf '%s' "$SEALI_UPLOAD_KEYSTORE_BASE64" | tr -d '[:space:]' > "$normalized_base64"
+          if ! base64 --decode "$normalized_base64" > "$key_file"; then
+            echo "::error::SEALI_UPLOAD_KEYSTORE_BASE64 is not valid Base64. Encode the original keystore file bytes, not its path or a JSON wrapper."
+            exit 1
+          fi
+          if [[ ! -s "$key_file" ]]; then
+            echo "::error::The decoded upload keystore is empty."
+            exit 1
+          fi
+          chmod 600 "$key_file"
+
+          # Detect the real container from its file signature. keytool on
+          # modern JDKs can transparently read legacy keystores through more
+          # than one requested type, so a successful -list alone is not a
+          # reliable format detector.
+          magic="$(od -An -tx1 -N4 "$key_file" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')"
+          store_type=""
+          case "$magic" in
+            feedfeed) store_type="JKS" ;;
+            30*) store_type="PKCS12" ;;
+          esac
+
+          # Recover safely if the repository secret was accidentally made by
+          # Base64-encoding an already-Base64 text file. This never prints the
+          # decoded data and accepts the nested result only if its binary
+          # signature is a recognized JKS or PKCS12 container.
+          if [[ -z "$store_type" ]]; then
+            tr -d '[:space:]' < "$key_file" > "$nested_base64"
+            if LC_ALL=C grep -Eq '^[A-Za-z0-9+/=]+$' "$nested_base64" &&
+              base64 --decode "$nested_base64" > "$nested_file" 2>/dev/null; then
+              nested_magic="$(od -An -tx1 -N4 "$nested_file" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')"
+              case "$nested_magic" in
+                feedfeed) store_type="JKS" ;;
+                30*) store_type="PKCS12" ;;
+              esac
+              if [[ -n "$store_type" ]]; then
+                mv "$nested_file" "$key_file"
+                chmod 600 "$key_file"
+                echo "::notice::The upload keystore secret contained an extra Base64 layer; the workflow normalized it in memory."
+              fi
+            fi
+          fi
+
+          if [[ -z "$store_type" ]]; then
+            echo "::error::The decoded secret is not a JKS or PKCS12 keystore, even after checking for accidental double-Base64 encoding. Update the secret using one Base64 encoding of the original binary keystore file."
+            exit 1
+          fi
+
+          if ! keytool -list \
+            -keystore "$key_file" \
+            -storetype "$store_type" \
+            -storepass:env SEALI_UPLOAD_STORE_PASSWORD \
+            > /dev/null 2>&1; then
+            echo "::error::The decoded $store_type keystore could not be opened with the configured store password. Verify the Base64 file and store-password secret; no keystore data was logged."
+            exit 1
+          fi
+
+          if ! keytool -list -v \
+            -keystore "$key_file" \
+            -storetype "$store_type" \
+            -storepass:env SEALI_UPLOAD_STORE_PASSWORD \
+            -alias "$SEALI_UPLOAD_KEY_ALIAS" > "$check_log" 2>&1; then
+            echo "::error::The keystore opens successfully, but the configured alias was not found or could not be read. Check SEALI_UPLOAD_KEY_ALIAS."
+            exit 1
+          fi
+
+          if ! grep -qi "Entry type: PrivateKeyEntry" "$check_log"; then
+            echo "::error::The configured alias is not a private-key entry. A certificate-only keystore cannot sign Seali releases."
+            exit 1
+          fi
+
+          # PKCS12 stores use the store password to protect the private key.
+          # JKS supports a separate key password.
+          if [[ "$store_type" == "PKCS12" && "$SEALI_UPLOAD_KEY_PASSWORD" != "$SEALI_UPLOAD_STORE_PASSWORD" ]]; then
+            echo "::error::This keystore is PKCS12, which requires the private-key password and store password to match. Correct the secret values without sharing them."
+            exit 1
+          fi
+
+          # Prove the private key can be unlocked without exporting it or
+          # changing the keystore. The CSR is temporary and immediately erased.
+          if ! keytool -certreq \
+            -alias "$SEALI_UPLOAD_KEY_ALIAS" \
+            -keystore "$key_file" \
+            -storetype "$store_type" \
+            -storepass:env SEALI_UPLOAD_STORE_PASSWORD \
+            -keypass:env SEALI_UPLOAD_KEY_PASSWORD \
+            -file "$csr_file" \
+            > /dev/null 2>&1; then
+            echo "::error::The configured private-key password cannot unlock the selected upload key."
+            exit 1
+          fi
+
+          expected="$(keytool -exportcert -alias "$SEALI_UPLOAD_KEY_ALIAS" -keystore "$key_file" -storetype "$store_type" -storepass:env SEALI_UPLOAD_STORE_PASSWORD | openssl dgst -sha256 | awk '{ print tolower($NF) }')"
+          [[ "$expected" == 88774e5211b61f7827db0ba6991a668000ceab9a9e9490648054b8a19b6e070f ]] || { echo 'Unexpected release certificate; refusing before signing'; exit 1; }
+          echo "store_type=$store_type" >> "$GITHUB_OUTPUT"
+          echo "available=true" >> "$GITHUB_OUTPUT"
+          validation_succeeded=true
+          echo "Upload keystore validated successfully (format: $store_type; private key and passwords verified)."
+
+      - name: Build generic release APK variants
+        if: steps.signing.outputs.available == 'true'
+        env:
+          SEALI_UPLOAD_KEY_ALIAS: ${{ secrets.SEALI_UPLOAD_KEY_ALIAS }}
+          SEALI_UPLOAD_KEY_PASSWORD: ${{ secrets.SEALI_UPLOAD_KEY_PASSWORD }}
+          SEALI_UPLOAD_STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
+          SEALI_UPLOAD_KEYSTORE_FILE: app/seali-upload-key.jks
+          SEALI_UPLOAD_KEYSTORE_TYPE: ${{ steps.signing.outputs.store_type }}
+        run: ./gradlew --no-daemon --max-workers=2 assembleGenericRelease
+
+      # Play App Bundles own ABI delivery; disable APK split outputs for this task.
+      - name: Build Google Play App Bundle
+        if: steps.signing.outputs.available == 'true'
+        env:
+          SEALI_UPLOAD_KEY_ALIAS: ${{ secrets.SEALI_UPLOAD_KEY_ALIAS }}
+          SEALI_UPLOAD_KEY_PASSWORD: ${{ secrets.SEALI_UPLOAD_KEY_PASSWORD }}
+          SEALI_UPLOAD_STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
+          SEALI_UPLOAD_KEYSTORE_FILE: app/seali-upload-key.jks
+          SEALI_UPLOAD_KEYSTORE_TYPE: ${{ steps.signing.outputs.store_type }}
+        run: ./gradlew --no-daemon --max-workers=2 bundlePlayRelease -PnoSplits
+
+      - name: Prove debug SAF host absent from built release artifacts
+        if: steps.signing.outputs.available == 'true'
+        run: python3 .github/scripts/check-release-host-absent.py
+
+      - name: Verify APK and AAB signatures against the upload certificate
+        if: steps.signing.outputs.available == 'true'
+        shell: bash
+        env:
+          SEALI_UPLOAD_KEY_ALIAS: ${{ secrets.SEALI_UPLOAD_KEY_ALIAS }}
+          SEALI_UPLOAD_STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
+          SEALI_UPLOAD_KEYSTORE_TYPE: ${{ steps.signing.outputs.store_type }}
+        run: |
+          set -euo pipefail
+
+          keystore="app/seali-upload-key.jks"
+          apksigner="$ANDROID_HOME/build-tools/36.0.0/apksigner"
+          apk_dir="app/build/outputs/apk/generic/release"
+          aab_dir="app/build/outputs/bundle/playRelease"
+
+          expected_fingerprint="$(
+            keytool -exportcert \
+              -alias "$SEALI_UPLOAD_KEY_ALIAS" \
+              -keystore "$keystore" \
+              -storetype "$SEALI_UPLOAD_KEYSTORE_TYPE" \
+              -storepass:env SEALI_UPLOAD_STORE_PASSWORD \
+              | openssl dgst -sha256 \
+              | awk '{ print tolower($NF) }'
+          )"
+
+          # Preserve the actual delivered production signing identity, not a
+          # new ephemeral debug key or silently changed repository secret.
+          [[ "$expected_fingerprint" == 88774e5211b61f7827db0ba6991a668000ceab9a9e9490648054b8a19b6e070f ]]
+          mkdir -p release-metadata
+          printf 'production_cert_sha256=%s\n' "$expected_fingerprint" > release-metadata/signing.txt
+          mapfile -t apks < <(find "$apk_dir" -maxdepth 1 -type f -name '*.apk' | sort)
+          if [[ "${#apks[@]}" -ne 5 ]]; then
+            echo "::error::Expected five ABI/universal APKs, found ${#apks[@]}."
+            exit 1
+          fi
+
+          for apk in "${apks[@]}"; do
+            signer_output="$("$apksigner" verify --verbose --print-certs "$apk" 2>&1)"
+            actual_fingerprint="$(
+              printf '%s\n' "$signer_output" \
+                | sed -nE 's/^Signer #1 certificate SHA-256 digest: ([[:xdigit:]:]+)$/\1/p' \
+                | head -n 1 \
+                | tr -d ':' \
+                | tr '[:upper:]' '[:lower:]'
+            )"
+            printf '%s\n' "$signer_output" > "release-metadata/$(basename "$apk").signature.txt"
+            "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$apk" > "release-metadata/$(basename "$apk").badging.txt"
+            if [[ -z "$actual_fingerprint" || "$actual_fingerprint" != "$expected_fingerprint" ]]; then
+              echo "::error::APK signature verification failed or the APK was signed with a different certificate: $(basename "$apk")"
+              exit 1
+            fi
+          done
+
+          mapfile -t aabs < <(find "$aab_dir" -maxdepth 1 -type f -name '*.aab' | sort)
+          if [[ "${#aabs[@]}" -ne 1 ]]; then
+            echo "::error::Expected exactly one Google Play AAB, found ${#aabs[@]}."
+            exit 1
+          fi
+
+          jarsigner -verify "${aabs[0]}" > /dev/null
+          aab_fingerprint="$(
+            keytool -printcert -jarfile "${aabs[0]}" 2>/dev/null \
+              | sed -nE 's/^[[:space:]]*SHA256: ([[:xdigit:]:]+).*$/\1/p' \
+              | head -n 1 \
+              | tr -d ':' \
+              | tr '[:upper:]' '[:lower:]'
+          )"
+          if [[ -z "$aab_fingerprint" || "$aab_fingerprint" != "$expected_fingerprint" ]]; then
+            echo "::error::The AAB is unsigned, invalid, or signed with a different certificate."
+            exit 1
+          fi
+
+          echo "Verified all five APKs and the Google Play AAB against the configured upload certificate."
+
+      - name: Remove private signing material
+        if: always()
+        shell: bash
+        run: |
+          rm -f app/seali-upload-key.jks "$RUNNER_TEMP/seali-upload-key.base64" "$RUNNER_TEMP/seali-keystore-check.log" "$RUNNER_TEMP/seali-upload-key-check.csr" "$RUNNER_TEMP/seali-upload-key-nested.base64" "$RUNNER_TEMP/seali-upload-key-nested.bin"
+
+      - name: Check final packaged native ELF alignment
+        run: python3 .github/scripts/check-native-alignment.py
+      - name: Encrypt private release binaries
+        id: encrypt
+        run: python3 .github/scripts/encrypt-release-prep.py
+      - name: Enable standard runner KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: default
+          profile: pixel_2
+          disable-animations: true
+          script: |
+            set -euo pipefail
+            mapfile -t app_apks < <(find app/build/outputs/apk/generic/debug -name '*x86_64*.apk')
+            mapfile -t test_apks < <(find app/build/outputs/apk/androidTest/generic/debug -name '*.apk')
+            [[ "${#app_apks[@]}" -eq 1 && "${#test_apks[@]}" -eq 1 ]]
+            adb install -r "${app_apks[0]}"
+            adb install -r "${test_apks[0]}"
+            bash .github/scripts/qualify-release-ux.sh
+      - name: Stage fixed safe evidence with combined upload ceiling
+        id: safe
+        if: always()
+        run: python3 .github/scripts/stage-safe-release-evidence.py
+      - name: Upload capped encrypted release preparation only
+        if: always() && steps.encrypt.outcome == 'success' && steps.safe.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: seali-private-release-prep-${{ github.run_id }}
+          retention-days: 1
+          if-no-files-found: error
+          compression-level: 0
+          path: private-release-upload/
+      - name: Upload safe synthetic qualification evidence
+        if: always() && steps.safe.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: seali-release-safe-evidence-${{ github.run_id }}
+          retention-days: 1
+          if-no-files-found: error
+          path: safe-release-evidence/

@@ -69,11 +69,13 @@ import com.junkfood.seal.ui.page.settings.network.WebViewPage
 import com.junkfood.seal.ui.page.settings.troubleshooting.TroubleShootingPage
 import com.junkfood.seal.ui.page.videolist.VideoListPage
 import com.junkfood.seal.util.PreferenceUtil
+import com.junkfood.seal.util.PreferenceUtil.getInt
 import com.junkfood.seal.util.UI_STYLE_CLASSIC
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 private const val TAG = "HomeEntry"
+private const val ONBOARDING_VERSION = "onboarding_version"
 
 private val TopDestinations =
     listOf(Route.HOME, Route.TASK_LIST, Route.SETTINGS_PAGE, Route.DOWNLOADS)
@@ -86,6 +88,7 @@ fun AppEntry(dialogViewModel: DownloadDialogViewModel) {
     val view = LocalView.current
     val windowWidth = LocalWindowWidthState.current
     val sheetState by dialogViewModel.sheetStateFlow.collectAsStateWithLifecycle()
+    val sheetValue by dialogViewModel.sheetValueFlow.collectAsStateWithLifecycle()
     val cookiesViewModel: CookiesViewModel = koinViewModel()
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -107,6 +110,11 @@ fun AppEntry(dialogViewModel: DownloadDialogViewModel) {
         }
     }
 
+    // A new, versioned orientation does not reuse the legacy recurring welcome flag.
+    // Do not interrupt an incoming share/configure flow; defer until the home is idle.
+    var onboardingComplete by rememberSaveable {
+        mutableStateOf(ONBOARDING_VERSION.getInt(0) >= 1)
+    }
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
     var currentTopDestination by rememberSaveable { mutableStateOf(currentRoute) }
 
@@ -194,8 +202,18 @@ fun AppEntry(dialogViewModel: DownloadDialogViewModel) {
                 )
             }
 
-            AppUpdater()
-            YtdlpUpdater()
+            if (!onboardingComplete && currentRoute == Route.HOME &&
+                sheetState is DownloadDialogViewModel.SheetState.InputUrl &&
+                sheetValue is DownloadDialogViewModel.SheetValue.Hidden) {
+                OnboardingDialog {
+                    PreferenceUtil.encodeInt(ONBOARDING_VERSION, 1)
+                    onboardingComplete = true
+                }
+            }
+            if (onboardingComplete) {
+                AppUpdater()
+                YtdlpUpdater()
+            }
         }
     }
 }

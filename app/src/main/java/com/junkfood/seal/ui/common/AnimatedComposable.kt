@@ -28,13 +28,13 @@ import com.junkfood.seal.ui.common.motion.EmphasizedDecelerate
 import com.junkfood.seal.ui.common.motion.materialSharedAxisXIn
 import com.junkfood.seal.ui.common.motion.materialSharedAxisXOut
 
-const val DURATION_ENTER = 400
-const val DURATION_EXIT = 200
-const val initialOffset = 0.10f
+const val DURATION_ENTER = 220
+const val DURATION_EXIT = 160
+const val initialOffset = 0.06f
 
 private fun <T> enterTween() = tween<T>(durationMillis = DURATION_ENTER, easing = EmphasizeEasing)
 
-private fun <T> exitTween() = tween<T>(durationMillis = DURATION_ENTER, easing = EmphasizeEasing)
+private fun <T> exitTween() = tween<T>(durationMillis = DURATION_EXIT, easing = EmphasizeEasing)
 
 private val fadeSpring =
     spring<Float>(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium)
@@ -62,29 +62,9 @@ fun NavGraphBuilder.animatedComposablePredictiveBack(
     deepLinks: List<NavDeepLink> = emptyList(),
     content: @Composable AnimatedVisibilityScope.(NavBackStackEntry) -> Unit,
 ) =
-    composable(
-        route = route,
-        arguments = arguments,
-        deepLinks = deepLinks,
-        enterTransition = { materialSharedAxisXIn(initialOffsetX = { (it * 0.15f).toInt() }) },
-        exitTransition = {
-            materialSharedAxisXOut(targetOffsetX = { -(it * initialOffset).toInt() })
-        },
-        popEnterTransition = {
-            scaleIn(
-                animationSpec = tween(durationMillis = 350, easing = EmphasizedDecelerate),
-                initialScale = 0.9f,
-            ) + materialSharedAxisXIn(initialOffsetX = { -(it * initialOffset).toInt() })
-        },
-        popExitTransition = {
-            materialSharedAxisXOut(targetOffsetX = { (it * initialOffset).toInt() }) +
-                scaleOut(
-                    targetScale = 0.9f,
-                    animationSpec = tween(durationMillis = 350, easing = EmphasizedAccelerate),
-                )
-        },
-        content = content,
-    )
+    // Keep the same restrained forward/back motion across Android versions.
+    // No whole-page zoom on back; system animation scale is left to Compose.
+    animatedComposableLegacy(route, arguments, deepLinks, content)
 
 fun NavGraphBuilder.animatedComposableLegacy(
     route: String,
@@ -97,16 +77,16 @@ fun NavGraphBuilder.animatedComposableLegacy(
         arguments = arguments,
         deepLinks = deepLinks,
         enterTransition = {
-            materialSharedAxisXIn(initialOffsetX = { (it * initialOffset).toInt() })
+            materialSharedAxisXIn(initialOffsetX = { (it * initialOffset).toInt() }, durationMillis = DURATION_ENTER)
         },
         exitTransition = {
-            materialSharedAxisXOut(targetOffsetX = { -(it * initialOffset).toInt() })
+            materialSharedAxisXOut(targetOffsetX = { -(it * initialOffset).toInt() }, durationMillis = DURATION_EXIT)
         },
         popEnterTransition = {
-            materialSharedAxisXIn(initialOffsetX = { -(it * initialOffset).toInt() })
+            materialSharedAxisXIn(initialOffsetX = { -(it * initialOffset).toInt() }, durationMillis = DURATION_ENTER)
         },
         popExitTransition = {
-            materialSharedAxisXOut(targetOffsetX = { (it * initialOffset).toInt() })
+            materialSharedAxisXOut(targetOffsetX = { (it * initialOffset).toInt() }, durationMillis = DURATION_EXIT)
         },
         content = content,
     )
@@ -149,12 +129,12 @@ fun NavGraphBuilder.slideInVerticallyComposable(
         arguments = arguments,
         deepLinks = deepLinks,
         enterTransition = {
-            slideInVertically(initialOffsetY = { it }, animationSpec = enterTween()) + fadeIn()
+            slideInVertically(initialOffsetY = { (it * initialOffset).toInt() }, animationSpec = enterTween()) + fadeIn(fadeSpec)
         },
-        exitTransition = { slideOutVertically() },
-        popEnterTransition = { slideInVertically() },
+        exitTransition = { fadeOut(fadeSpec) },
+        popEnterTransition = { fadeIn(fadeSpec) },
         popExitTransition = {
-            slideOutVertically(targetOffsetY = { it }, animationSpec = enterTween()) + fadeOut()
+            slideOutVertically(targetOffsetY = { (it * initialOffset).toInt() }, animationSpec = exitTween()) + fadeOut(fadeSpec)
         },
         content = content,
     )

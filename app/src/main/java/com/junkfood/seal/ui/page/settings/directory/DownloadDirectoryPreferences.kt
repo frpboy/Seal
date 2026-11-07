@@ -58,6 +58,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -171,7 +172,9 @@ fun DownloadDirectoryPreferences(onNavigateBack: () -> Unit) {
     var showClearTempDialog by remember { mutableStateOf(false) }
     var showCustomCommandDirectoryDialog by remember { mutableStateOf(false) }
 
-    var editingDirectory by remember { mutableStateOf(Directory.VIDEO) }
+    // The picker can outlive this composition/activity. Restore the selected
+    // destination before ActivityResult delivers a pending tree result.
+    var editingDirectory by rememberSaveable { mutableStateOf<Directory?>(null) }
 
     val isCustomCommandEnabled by remember { mutableStateOf(CUSTOM_COMMAND.getBoolean()) }
 
@@ -198,37 +201,33 @@ fun DownloadDirectoryPreferences(onNavigateBack: () -> Unit) {
                     }
                 }
             }
-        ) {
-            it?.let { uri ->
-                App.updateDownloadDir(uri, editingDirectory)
-                if (editingDirectory != Directory.SDCARD) {
-                    val path = FileUtil.getRealPath(uri)
-                    when (editingDirectory) {
-                        Directory.AUDIO -> {
-                            audioDirectoryText = path
-                        }
-
-                        Directory.VIDEO -> {
-                            videoDirectoryText = path
-                        }
-
-                        Directory.SDCARD -> {
-                            sdcardUri = uri.toString()
-                        }
-
-                        Directory.CUSTOM_COMMAND -> {
-                            customCommandDirectory = path
-                        }
-                    }
+        ) { uri ->
+            // Consume exactly the selected pending destination, including
+            // cancellation. An unsolicited/stale result must not default VIDEO.
+            val destination = editingDirectory
+            editingDirectory = null
+            if (uri != null && destination != null) {
+                App.updateDownloadDir(uri, destination)
+                when (destination) {
+                    Directory.SDCARD -> sdcardUri = uri.toString()
+                    Directory.AUDIO -> audioDirectoryText = FileUtil.getRealPath(uri)
+                    Directory.VIDEO -> videoDirectoryText = FileUtil.getRealPath(uri)
+                    Directory.CUSTOM_COMMAND -> customCommandDirectory = FileUtil.getRealPath(uri)
                 }
             }
         }
 
     fun openDirectoryChooser(directory: Directory = Directory.VIDEO) {
-        editingDirectory = directory
-        if (Build.VERSION.SDK_INT > 29 || storagePermission.status == PermissionStatus.Granted)
-            launcher.launch(null)
-        else storagePermission.launchPermissionRequest()
+        if (editingDirectory != null) return // One picker/result at a time.
+        if (Build.VERSION.SDK_INT > 29 || storagePermission.status == PermissionStatus.Granted) {
+            editingDirectory = directory
+            try {
+                launcher.launch(null)
+            } catch (failure: Exception) {
+                editingDirectory = null
+                throw failure
+            }
+        } else storagePermission.launchPermissionRequest()
     }
 
     Scaffold(
