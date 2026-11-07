@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.performClick
 import androidx.test.platform.app.InstrumentationRegistry
@@ -36,9 +35,9 @@ class ClassicHomeHistoryTest {
         compose.onNodeWithText("Saved sample video").assertIsDisplayed().performClick()
         compose.runOnIdle { assertEquals(1, opened) }
         // Capture real composed UI, with synthetic local-only history and no network download.
-        val bitmap = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
+        val bitmap = checkNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot())
         val out = java.io.File(InstrumentationRegistry.getInstrumentation().targetContext.getExternalFilesDir(null), "classic-history.png")
-        out.outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+        out.outputStream().use { check(bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it)) }
         compose.runOnIdle { history.clear() }
         compose.onNodeWithText("Saved sample video").assertDoesNotExist()
     }
