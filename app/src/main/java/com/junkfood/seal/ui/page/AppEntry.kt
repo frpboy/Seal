@@ -152,6 +152,7 @@ fun AppEntry(dialogViewModel: DownloadDialogViewModel) {
                     if (uiStyle == UI_STYLE_CLASSIC) {
                         ClassicHomePage(
                             dialogViewModel = dialogViewModel,
+                            onShowDownloads = { navController.navigate(Route.DOWNLOADS) },
                             onMenuOpen = {
                                 view.slightHapticFeedback()
                                 scope.launch { drawerState.open() }

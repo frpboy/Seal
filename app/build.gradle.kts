@@ -73,7 +73,7 @@ android {
         applicationId = "com.frpboy.seali"
         minSdk = 24
         targetSdk = 36
-        versionCode = 200_000_150
+        versionCode = 200_000_160
         check(versionCode == currentVersionCode)
 
         versionName = baseVersionName
@@ -243,6 +243,9 @@ dependencies {
     implementation(libs.mmkv)
 
     testImplementation(libs.junit4)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test)
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.espresso.core)
     implementation(libs.androidx.compose.ui.tooling)

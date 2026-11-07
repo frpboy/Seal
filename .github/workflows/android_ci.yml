@@ -372,3 +372,49 @@ jobs:
         shell: bash
         run: |
           rm -f app/seali-upload-key.jks "$RUNNER_TEMP/seali-upload-key.base64" "$RUNNER_TEMP/seali-keystore-check.log" "$RUNNER_TEMP/seali-upload-key-check.csr" "$RUNNER_TEMP/seali-upload-key-nested.base64" "$RUNNER_TEMP/seali-upload-key-nested.bin"
+
+  history-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools platforms;android-36 build-tools;36.0.0
+      - uses: gradle/actions/setup-gradle@v3
+      - name: Enable standard runner KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          script: |
+            chmod +x gradlew
+            ./gradlew assembleGenericDebug assembleGenericDebugAndroidTest
+            find app/build/outputs/apk/generic/debug -name '*x86_64*.apk' -print -quit | xargs adb install -r
+            find app/build/outputs/apk/androidTest/generic/debug -name '*.apk' -print -quit | xargs adb install -r
+            adb shell am instrument -w -r -e class com.junkfood.seal.ClassicHomeHistoryTest com.frpboy.seali.debug.test/androidx.test.runner.AndroidJUnitRunner | tee instrumentation-result.txt
+            grep -F 'OK (2 tests)' instrumentation-result.txt
+            ! grep -E 'FAILURES|INSTRUMENTATION_FAILED|shortMsg=' instrumentation-result.txt
+            adb exec-out run-as com.frpboy.seali.debug cat files/classic-history.png > classic-history.png
+            test -s classic-history.png
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: classic-history-ui-evidence
+          path: |
+            classic-history.png
+            instrumentation-result.txt
+            app/build/reports/androidTests/connected/
+            app/build/outputs/androidTest-results/connected/

@@ -257,7 +257,7 @@ fun AutoUpdateUnavailableDialog(onDismissRequest: () -> Unit = {}) {
         val startIndex = text.indexOf(hyperLinkText)
         val endIndex = startIndex + hyperLinkText.length
         addUrlAnnotation(
-            UrlAnnotation("https://github.com/JunkFood02/Seal/releases/latest"),
+            UrlAnnotation("https://github.com/frpboy/Seal/releases"),
             start = startIndex,
             end = endIndex,
         )

@@ -118,9 +118,9 @@ import com.junkfood.seal.ui.svg.drawablevectors.download
 import com.junkfood.seal.ui.theme.SealTheme
 import com.junkfood.seal.util.DownloadUtil
 import com.junkfood.seal.util.FileUtil
+import com.junkfood.seal.util.FileUtil.getFileSize
 import com.junkfood.seal.util.getErrorReport
 import com.junkfood.seal.util.makeToast
-import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -455,7 +455,7 @@ fun DownloadPageImplV2(
                             key = { (task, _) -> task.id },
                         ) { (task, state) ->
                             val displayViewState =
-                                remember(state.downloadState) { state.withActualFileSize() }
+                                state.rememberActualFileSize()
                             with(displayViewState) {
                                 VideoCardV2(
                                     modifier = Modifier.padding(bottom = 20.dp).padding(),
@@ -486,7 +486,7 @@ fun DownloadPageImplV2(
                             span = { GridItemSpan(maxLineSpan) },
                         ) { (task, state) ->
                             val displayViewState =
-                                remember(state.downloadState) { state.withActualFileSize() }
+                                state.rememberActualFileSize()
                             VideoListItem(
                                 modifier = Modifier.padding(bottom = 16.dp),
                                 viewState = displayViewState,
@@ -516,7 +516,7 @@ fun DownloadPageImplV2(
         val task = selectedTask!!
         val taskState = taskDownloadStateMap[task] ?: return
         val downloadState = taskState.downloadState
-        val viewState = remember(downloadState) { taskState.withActualFileSize() }
+        val viewState = taskState.rememberActualFileSize()
         SealModalBottomSheet(
             sheetState = sheetState,
             contentPadding = PaddingValues(),
@@ -842,9 +842,24 @@ internal fun Task.State.isAudioTask(): Boolean =
 
 // When yt-dlp reported no size but the download completed, show the saved
 // file's actual size instead of 0.00 MB.
-internal fun Task.State.withActualFileSize(): Task.ViewState {
+internal fun Task.State.withActualFileSize(
+    sizeLookup: (String) -> Long = { it.getFileSize() }
+): Task.ViewState {
     if (viewState.fileSizeApprox > 0) return viewState
     val path = (downloadState as? Completed)?.filePath ?: return viewState
-    val size = runCatching { File(path).length() }.getOrDefault(0L)
+    val size = runCatching { sizeLookup(path) }.getOrDefault(0L)
     return if (size > 0) viewState.copy(fileSizeApprox = size.toDouble()) else viewState
+}
+
+// Document providers can perform IPC or disk work. Never query them in composition.
+@Composable
+private fun Task.State.rememberActualFileSize(): Task.ViewState {
+    return androidx.compose.runtime.key(downloadState, viewState) {
+        val display by androidx.compose.runtime.produceState(viewState) {
+            value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                this@rememberActualFileSize.withActualFileSize()
+            }
+        }
+        display
+    }
 }

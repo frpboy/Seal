@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Cancel
@@ -25,13 +26,13 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
@@ -43,9 +44,16 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.junkfood.seal.R
+import com.junkfood.seal.database.objects.DownloadedVideoInfo
+import com.junkfood.seal.ui.component.MediaListItem
+import com.junkfood.seal.util.DatabaseUtil
+import com.junkfood.seal.util.FileUtil.getFileSize
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.junkfood.seal.download.DownloaderV2
 import com.junkfood.seal.download.Task
 import com.junkfood.seal.ui.common.HapticFeedback.slightHapticFeedback
@@ -71,6 +79,7 @@ private const val TAG = "ClassicHomePage"
 fun ClassicHomePage(
     modifier: Modifier = Modifier,
     onMenuOpen: (() -> Unit) = {},
+    onShowDownloads: () -> Unit = {},
     dialogViewModel: DownloadDialogViewModel,
     downloader: DownloaderV2 = koinInject(),
 ) {
@@ -79,9 +88,23 @@ fun ClassicHomePage(
     val clipboardManager = LocalClipboardManager.current
     val uriHandler = LocalUriHandler.current
 
+    val history by remember { DatabaseUtil.getDownloadHistoryFlow() }
+        .collectAsStateWithLifecycle(emptyList())
+    val historySizes by produceState<Map<Int, Long>>(emptyMap(), history) {
+        value = withContext(Dispatchers.IO) {
+            history.associate { it.id to it.videoPath.getFileSize() }
+        }
+    }
+
     ClassicHomePageImpl(
         modifier = modifier,
         taskDownloadStateMap = downloader.getTaskStateMap(),
+        completedDownloads = history,
+        completedFileSizes = historySizes,
+        onShowDownloads = onShowDownloads,
+        onOpenCompleted = { info ->
+            FileUtil.openFile(path = info.videoPath) { context.makeToast(R.string.file_unavailable) }
+        },
         onMenuOpen = onMenuOpen,
         onDownload = { url ->
             view.slightHapticFeedback()
@@ -181,50 +204,65 @@ fun ClassicHomePageImpl(
     taskDownloadStateMap: SnapshotStateMap<Task, Task.State>,
     onMenuOpen: (() -> Unit) = {},
     onDownload: (String) -> Unit = {},
+    completedDownloads: List<DownloadedVideoInfo> = emptyList(),
+    completedFileSizes: Map<Int, Long> = emptyMap(),
+    onOpenCompleted: (DownloadedVideoInfo) -> Unit = {},
+    onShowDownloads: () -> Unit = {},
     onActionPost: (Task, UiAction) -> Unit = { _, _ -> },
 ) {
     var urlInput by rememberSaveable { mutableStateOf("") }
     val clipboardManager = LocalClipboardManager.current
     val tasks = taskDownloadStateMap.keys.sortedDescending()
+    val completedPaths = taskDownloadStateMap.values.mapNotNull {
+        (it.downloadState as? Task.DownloadState.Completed)?.filePath
+    }.toSet()
+    val savedDownloads = classicSavedDownloads(completedDownloads, completedPaths)
 
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.app_name)) },
-                navigationIcon = {
-                    IconButton(onClick = onMenuOpen) {
-                        Icon(
-                            Icons.Outlined.Menu,
-                            contentDescription = stringResource(R.string.classic_open_menu)
-                        )
-                    }
-                },
-            )
-        },
-    ) { paddingValues ->
+    // Without a separate top app bar, Scaffold supplies the system-bar insets
+    // once. Keep the menu and input in the same row, with a full touch target.
+    Scaffold(modifier = modifier.fillMaxSize()) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues).padding(horizontal = 16.dp)) {
-            OutlinedTextField(
-                value = urlInput,
-                onValueChange = { urlInput = it },
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                placeholder = { Text(stringResource(R.string.classic_link_hint)) },
-                trailingIcon = {
-                    IconButton(
-                        onClick = {
-                            clipboardManager.getText()?.text?.let {
-                                urlInput = matchUrlFromClipboard(it)
-                            }
-                        }
-                    ) {
-                        Icon(
-                            Icons.Outlined.ContentPaste,
-                            contentDescription = stringResource(R.string.paste)
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                IconButton(onClick = onMenuOpen, modifier = Modifier.size(48.dp)) {
+                    Icon(
+                        Icons.Outlined.Menu,
+                        contentDescription = stringResource(R.string.classic_open_menu),
+                    )
+                }
+                OutlinedTextField(
+                    value = urlInput,
+                    onValueChange = { urlInput = it },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    placeholder = {
+                        Text(
+                            stringResource(R.string.classic_link_hint),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
-                    }
-                },
-            )
+                    },
+                    trailingIcon = {
+                        IconButton(
+                            onClick = {
+                                clipboardManager.getText()?.text?.let {
+                                    matchUrlFromClipboard(it)
+                                        .takeIf { url -> url.isNotEmpty() }
+                                        ?.let { urlInput = it }
+                                }
+                            }
+                        ) {
+                            Icon(
+                                Icons.Outlined.ContentPaste,
+                                contentDescription = stringResource(R.string.paste),
+                            )
+                        }
+                    },
+                )
+            }
             Button(
                 onClick = { onDownload(urlInput) },
                 modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
@@ -244,6 +282,21 @@ fun ClassicHomePageImpl(
                             task = task,
                             state = state,
                             onActionPost = { action -> onActionPost(task, action) },
+                        )
+                    }
+                }
+                savedDownloads.forEach { info ->
+                    item(key = "history-${info.id}", contentType = "saved-download") {
+                        MediaListItem(
+                            title = info.videoTitle,
+                            author = info.videoAuthor,
+                            thumbnailUrl = info.thumbnailUrl,
+                            videoPath = info.videoPath,
+                            videoUrl = info.videoUrl,
+                            videoFileSize = completedFileSizes[info.id] ?: 0L,
+                            onClick = { onOpenCompleted(info) },
+                            onLongClick = onShowDownloads,
+                            onShowContextMenu = onShowDownloads,
                         )
                     }
                 }
