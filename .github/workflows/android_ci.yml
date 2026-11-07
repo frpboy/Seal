@@ -409,8 +409,16 @@ jobs:
             ./gradlew assembleGenericDebug assembleGenericDebugAndroidTest
             find app/build/outputs/apk/generic/debug -name '*x86_64*.apk' -print -quit | xargs adb install -r
             find app/build/outputs/apk/androidTest/generic/debug -name '*.apk' -print -quit | xargs adb install -r
-            adb shell am instrument -w -r -e class com.junkfood.seal.ClassicHomeHistoryTest,com.junkfood.seal.DependencyAndroidCompatibilityTest,com.junkfood.seal.ClassicHomeControlsTest,com.junkfood.seal.ClassicHomeRecreateTest,com.junkfood.seal.SafPermissionEmulatorTest,com.junkfood.seal.UpgradeContinuityTest com.frpboy.seali.debug.test/androidx.test.runner.AndroidJUnitRunner | tee instrumentation-result.txt
-            grep -F 'OK (19 tests)' instrumentation-result.txt
+            adb shell am instrument -w -r -e class com.junkfood.seal.ClassicHomeHistoryTest,com.junkfood.seal.DependencyAndroidCompatibilityTest,com.junkfood.seal.ClassicHomeControlsTest,com.junkfood.seal.ClassicHomeRecreateTest,com.junkfood.seal.SafPermissionEmulatorTest com.frpboy.seali.debug.test/androidx.test.runner.AndroidJUnitRunner | tee instrumentation-result.txt
+            grep -F 'OK (17 tests)' instrumentation-result.txt
+            # Ordered same-install persistence qualification: seed then verify as
+            # separate explicit invocations (method order inside one invocation is
+            # not guaranteed). Distinct from the signed old-to-new upgrade gate in
+            # upgrade-continuity.yml, which remains a separate unrun release gate.
+            adb shell am instrument -w -r -e class com.junkfood.seal.UpgradeContinuityTest#seedUpgradeState com.frpboy.seali.debug.test/androidx.test.runner.AndroidJUnitRunner | tee uc-seed-result.txt
+            grep -F 'OK (1 test)' uc-seed-result.txt
+            adb shell am instrument -w -r -e class com.junkfood.seal.UpgradeContinuityTest#verifyUpgradeStatePreserved com.frpboy.seali.debug.test/androidx.test.runner.AndroidJUnitRunner | tee uc-verify-result.txt
+            grep -F 'OK (1 test)' uc-verify-result.txt
             ! grep -E 'FAILURES|INSTRUMENTATION_FAILED|shortMsg=' instrumentation-result.txt
             adb exec-out run-as com.frpboy.seali.debug cat files/classic-history.png > classic-history.png
             test -s classic-history.png
