@@ -84,6 +84,16 @@ def main():
         raise RuntimeError('Boot deadline exceeded')
     assert shell('getconf', 'PAGE_SIZE').strip() == b'16384', 'not actual16KiB kernel'
     assert shell('getprop', 'ro.product.cpu.abi').strip() == b'x86_64'
+    adb('root')
+    adb('wait-for-device', seconds=20)
+    assert shell('id', '-u').strip() == b'0', 'owned emulator root identity required'
+    # Only owned disposable guest policies: prohibit IPv4/IPv6 egress before app.
+    # Host KVM policy is never modified. ADB uses the emulator transport.
+    for firewall in ['iptables', 'ip6tables']:
+        shell(firewall, '-P', 'OUTPUT', 'DROP')
+        rules=shell(firewall, '-S', 'OUTPUT').decode().splitlines()
+        assert rules == ['-P OUTPUT DROP'], 'unexpected guest egress rules'
+    report['network_isolation']='guest IPv4 and IPv6 OUTPUT DROP, no allow rules'
     # Disable documented page-size compatibility, never rely on fallback loading.
     shell('setprop', 'bionic.linker.16kb.app_compat.enabled', 'false')
     shell('setprop', 'pm.16kb.app_compat.disabled', 'true')

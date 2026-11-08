@@ -74,7 +74,9 @@ No fallback or retry. A disposable two-day fixture signing certificate signs a
 COPY after unsigned packaging gates, not production key or update continuity.
 Only appUID FFmpeg lossless WebP16x16 RGB roundtrip and app launch/process
 presence are tested. It uses the installed app's actual nativeLibraryDir and
-app-initialized codec extraction. No provider/media network/account/userdata.
+app-initialized codec extraction. No provider/media network/account/userdata. Owned guest adb-root identity is
+asserted and IPv4/IPv6 OUTPUT DROP/no allow rules verified before app install.
+These are disposable guest policies only, never host KVM permission changes.
 Screen pixels are emulator fixture only, bounded existing8MiB log-only receipt
 transport adds runtime16k.json and runtime16k.png to fixed allowlist. These must
 be independently inspected/reconstructed, not treated as UI verification from
