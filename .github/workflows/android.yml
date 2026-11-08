@@ -45,7 +45,7 @@ jobs:
               'source_tree': subprocess.check_output(['git','rev-parse','HEAD^{tree}'],text=True).strip(),
               'run_id': os.environ['GITHUB_RUN_ID'], 'attempt': os.environ['GITHUB_RUN_ATTEMPT'],
               'channel': 'alpha diagnostic only', 'signing': 'no signing config or keys supplied',
-              'android_runtime': 'NOT EXECUTED', 'aab': 'NOT BUILT',
+              'android_runtime': 'See runtime16k.json if present; missing means UNKNOWN', 'aab': 'NOT BUILT',
               'artifact_delivery': 'APK remains runner-local and is not uploaded'
           }, indent=2)+'\n')
           PY
@@ -60,6 +60,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Fail before rebuilding if actual16KiB runtime host cannot accelerate.
+          [[ -r /dev/kvm && -w /dev/kvm ]]
           # Standard Linux host only. Fail rather than retry with guessed memory caps.
           (( $(awk '/MemTotal/{print $2}' /proc/meminfo) >= 6000000 ))
           (( $(nproc) >= 2 ))
@@ -88,6 +90,14 @@ jobs:
           "$ANDROID_HOME/build-tools/36.0.0/aapt2" dump badging "${apks[0]}" > qualification-evidence/apk-badging.txt
           cp app/build/outputs/apk/generic/nativeQualification/output-metadata.json qualification-evidence/output-metadata.json
           python3 native/qualification/verify-metadata.py
+      - name: Actual x86_64 16KiB app launch and app-UID WebP runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          # No KVM permission changes. Unavailable KVM is a concrete host blocker.
+          [[ -r /dev/kvm && -w /dev/kvm ]]
+          timeout --signal=TERM --kill-after=30s 300s "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'emulator' 'system-images;android-35;google_apis_ps16k;x86_64'
+          timeout --signal=TERM --kill-after=30s 900s python3 native/qualification/runtime16k.py
       - name: Terminal receipt (including failures)
         if: always()
         env:
@@ -107,7 +117,7 @@ jobs:
               'job_status_before_receipt': os.environ['JOB_STATUS'],
               'source_sha': os.environ['GITHUB_SHA'],
               'run_id': os.environ['GITHUB_RUN_ID'], 'attempt': os.environ['GITHUB_RUN_ATTEMPT'],
-              'android_runtime': 'NOT EXECUTED', 'release_ready': False
+              'android_runtime': 'See runtime16k.json if present; missing means UNKNOWN', 'release_ready': False
           }, indent=2)+'\n')
           PY
       - name: Emit bounded allowlisted receipts to ordinary workflow log only
@@ -123,7 +133,8 @@ jobs:
                    'genericNativeQualificationCompileClasspath.json',
                    'genericNativeQualificationRuntimeClasspath.json',
                    'native-inventory.json', 'zipalign.txt', 'apk-badging.txt',
-                   'output-metadata.json', 'expected-identity.json', 'verified-identity.json']
+                   'output-metadata.json', 'expected-identity.json', 'verified-identity.json',
+                   'runtime16k.json', 'runtime16k.png']
           rows = []
           total = 0
           for name in names:

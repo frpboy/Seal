@@ -60,3 +60,27 @@ No cross-toolchain reproducibility is presumed. The transformed AAR expected
 SHA remains6755c855...; differing outputs fail closed rather than updating it.
 No APK/AAB upload, cache, deployment, signing or paid runner is added. All final
 packaging/runtime gates remain; full source review precedes another bounded run.
+
+## Narrow 16KiB runtime extension
+
+Rebuild is necessary for a new runtime unit because prior unsigned APK was
+intentionally runner-local, not retained. Existing packaging gates run first.
+Stable SDK image system-images;android-35;google_apis_ps16k;x86_64 revision5
+was observed in official SDK repository metadata. Boot must report PAGE_SIZE
+16384 and x86_64; documented page-size compat properties disabled/read back.
+No sudo/KVM permission changes: inaccessible acceleration fails immediately.
+One clean emulator, boot240s, image install300s, runtime900s, same45minjob bound.
+No fallback or retry. A disposable two-day fixture signing certificate signs a
+COPY after unsigned packaging gates, not production key or update continuity.
+Only appUID FFmpeg lossless WebP16x16 RGB roundtrip and app launch/process
+presence are tested. It uses the installed app's actual nativeLibraryDir and
+app-initialized codec extraction. No provider/media network/account/userdata.
+Screen pixels are emulator fixture only, bounded existing8MiB log-only receipt
+transport adds runtime16k.json and runtime16k.png to fixed allowlist. These must
+be independently inspected/reconstructed, not treated as UI verification from
+XML or exitstatus. No APK/key upload. Historical packaging receipts still say
+runtimeNOTEXECUTED as their own stage; runtime16k.json alone records new runtime.
+ARM64 devices, download UI codec wiring, broad UI/state/SAF/upgrade/AAB/release
+signing/installer custody remain separate gates. Cleanup verifies owned emulator
+exit when possible; detached descendants remain UNKNOWN. Forcedoutertermination
+can prevent runtime receipt, therefore missingreceipt meansUNKNOWN not success.
