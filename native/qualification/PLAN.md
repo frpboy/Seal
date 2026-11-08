@@ -14,7 +14,7 @@ This separate worktree copies the reviewed clean native integration as a depende
 - Opt-in `nativeQualification` build type copies debug settings but removes signing, adds `.nativequalification` identity and a diagnostic version suffix. It does not touch the guarded release tasks. Default builds do not create this type.
 - Actual generic nativeQualification compile/runtime configurations must select exact reviewed transformed AAR SHA 6755c855f9e86a942b6819374093d9cee6265fed1723e7c326f3969f68b36af3, original Maven identity and same component set as the untransformed attribute baseline. This is not a claim that every dependency is independently audited.
 - Full universal APK includes ARM64, ARMv7, x86_64 and x86. Existing reviewed ZIP/symlink/budget walker is reused. New adapter inventories ELF32 and ELF64, validates ABI/class/machine, and gates 64-bit PT_LOAD constraints. ELF32 is inventory only, not a 16KiB Android claim. Unsupported native locations fail closed.
-- Final APK hash/size, native entry hashes, manifest metadata, no-signature inventory and SDK zipalign output are runner receipts. No APK/AAB/raw-log upload. Maximum aggregate receipt directory 8MiB, explicit upload allowlist and seven-day retention.
+- Final APK hash/size, native entry hashes, manifest metadata, no-signature inventory and SDK zipalign output are runner receipts. No APK/AAB/raw-log upload. Maximum aggregate receipt payload 8MiB, explicit log-only allowlist. Base64 records include filename, size and SHA-256 so downloaded ordinary workflow logs can reconstruct exact receipt bytes. No artifact/cache upload or job summary is used. Log retention follows existing repository policy, not a seven-day artifact promise.
 - Manual-only workflow; contents:read; no signing keys, repository secrets, release/tag, deployment, provider or database operation. Checkout credentials not persisted. One run attempt required, exact dispatch SHA validated against actual checkout. No rerun authority.
 
 ## Before any external effect
@@ -33,4 +33,8 @@ Open even after this proposed job succeeds: Android installation/launch, actual1
 
 ## Review corrections
 
-Named terminal handler emits Python JSON and preserves phase exit status, with tiny executed stage/exit fixtures. Packaged metadata now gates source-derived default version plus diagnostic suffix and existing first-ABI code adjustment(+2), package ID, debuggable status, single universal output/no filters, metadata filename and hash tied to the actually inspected APK. All four action refs pinned to commits verified via their owning GitHub commit endpoints; action-binding receipts accompany the packet. This is pin provenance, not an audit of every action implementation.
+Named terminal handler emits Python JSON and preserves phase exit status, with tiny executed stage/exit fixtures. Packaged metadata now gates source-derived default version plus diagnostic suffix and existing first-ABI code adjustment(+2), package ID, debuggable status, single universal output/no filters, metadata filename and hash tied to the actually inspected APK. All three remaining action refs pinned to commits verified via their owning GitHub commit endpoints; action-binding receipts accompany the packet. This is pin provenance, not an audit of every action implementation.
+
+## Log-only amendment
+
+The artifact-upload step is removed to avoid metered artifact storage. Ordinary workflow logs retain a bounded, encoded allowlist only, never APK/AAB bytes. A missing/truncated envelope is incomplete evidence, not success. Overall runner loss or timeout may prevent log receipt emission. No new build or runtime test is claimed by this source amendment.

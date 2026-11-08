@@ -99,7 +99,7 @@ jobs:
           evidence = Path('qualification-evidence')
           total = sum(p.stat().st_size for p in evidence.iterdir() if p.is_file())
           if total > 8 * 1024 * 1024:
-              raise SystemExit('Receipt ceiling exceeded; no artifact upload allowed')
+              raise SystemExit('Receipt ceiling exceeded; no receipt emission allowed')
           Path('qualification-evidence/terminal.json').write_text(json.dumps({
               'job_status_before_receipt': os.environ['JOB_STATUS'],
               'source_sha': os.environ['GITHUB_SHA'],
@@ -107,30 +107,45 @@ jobs:
               'android_runtime': 'NOT EXECUTED', 'release_ready': False
           }, indent=2)+'\n')
           PY
-      - name: Enforce receipt size ceiling
+      - name: Emit bounded allowlisted receipts to ordinary workflow log only
         if: always()
-        id: receipt_cap
         shell: bash
         run: |
           set -euo pipefail
-          (( $(du -sb qualification-evidence | cut -f1) <= 8388608 ))
-          echo 'allowed=true' >> "$GITHUB_OUTPUT"
-      - name: Upload bounded receipts only, never APK, AAB or raw logs
-        if: always() && steps.receipt_cap.outputs.allowed == 'true'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: seali-unsigned-qualification-receipts-${{ github.run_id }}
-          retention-days: 7
-          if-no-files-found: error
-          path: |
-            qualification-evidence/source.json
-            qualification-evidence/terminal.json
-            qualification-evidence/gradle-terminal.json
-            qualification-evidence/genericNativeQualificationCompileClasspath.json
-            qualification-evidence/genericNativeQualificationRuntimeClasspath.json
-            qualification-evidence/native-inventory.json
-            qualification-evidence/zipalign.txt
-            qualification-evidence/apk-badging.txt
-            qualification-evidence/output-metadata.json
-            qualification-evidence/expected-identity.json
-            qualification-evidence/verified-identity.json
+          python3 - <<'PYLOG'
+          import base64, hashlib, json
+          from pathlib import Path
+          root = Path('qualification-evidence')
+          names = ['source.json', 'terminal.json', 'gradle-terminal.json',
+                   'genericNativeQualificationCompileClasspath.json',
+                   'genericNativeQualificationRuntimeClasspath.json',
+                   'native-inventory.json', 'zipalign.txt', 'apk-badging.txt',
+                   'output-metadata.json', 'expected-identity.json', 'verified-identity.json']
+          rows = []
+          total = 0
+          for name in names:
+              path = root / name
+              if path.is_symlink():
+                  raise SystemExit('Symlink receipt rejected')
+              if not path.exists():
+                  continue
+              if not path.is_file():
+                  raise SystemExit('Non-file receipt rejected')
+              with path.open('rb') as stream:
+                  data = stream.read(8 * 1024 * 1024 + 1)
+              total += len(data)
+              if total > 8 * 1024 * 1024:
+                  raise SystemExit('Receipt ceiling exceeded; no receipt bytes emitted')
+              rows.append((name, data))
+          # Encode bytes so receipt text cannot become workflow commands.
+          # No artifact/cache API or job summary is used. Missing files remain missing.
+          print('SEALI_RECEIPTS_BEGIN_V1 ' + json.dumps({'files': [name for name, _ in rows], 'bytes': total}))
+          for name, data in rows:
+              print('SEALI_FILE ' + json.dumps({'name': name, 'bytes': len(data),
+                    'sha256': hashlib.sha256(data).hexdigest()}))
+              encoded = base64.b64encode(data).decode('ascii')
+              for offset in range(0, len(encoded), 16384):
+                  print('SEALI_DATA ' + encoded[offset:offset + 16384])
+              print('SEALI_FILE_END')
+          print('SEALI_RECEIPTS_END_V1')
+          PYLOG
