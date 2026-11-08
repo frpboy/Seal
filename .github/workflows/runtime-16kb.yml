@@ -218,6 +218,38 @@ jobs:
             echo "::error::App process is not running 20s after launch on the 16 KB emulator."
             exit 1
           fi
+          # Startup gate BEFORE any screenshot: App.kt initializes
+          # YoutubeDL/FFmpeg/Aria2c asynchronously and routes failures to
+          # CrashReportActivity while the process stays alive, so PID
+          # liveness alone can false-PASS - and the crash screen carries the
+          # raw stacktrace, which must never be captured. Gate on the
+          # foreground window; the crash screen or no main window fails
+          # closed and suppresses the screenshot. Raw dumpsys output stays in
+          # shell variables only; the uploaded summary carries enums only.
+          startup_gate=FAIL_NO_MAIN_WINDOW
+          for poll in $(seq 1 12); do
+            focus="$(adb shell dumpsys window 2>/dev/null | grep mCurrentFocus || true)"
+            case "$focus" in
+              *CrashReportActivity*)
+                startup_gate=FAIL_CRASH_SCREEN
+                break
+                ;;
+              *com.frpboy.seali.debug/com.junkfood.seal.MainActivity*)
+                startup_gate=PASS
+                break
+                ;;
+            esac
+            sleep 5
+          done
+          {
+            echo "STARTUP_GATE=$startup_gate"
+            echo "STARTUP_GATE_POLLS=12"
+            echo "STARTUP_GATE_POLL_INTERVAL_SECONDS=5"
+          } > startup-gate.txt
+          if [ "$startup_gate" != PASS ]; then
+            echo "::error::Startup gate failed ($startup_gate): the app did not reach its main window; screenshot suppressed to avoid capturing a crash screen."
+            exit 1
+          fi
           adb exec-out screencap -p > runtime-16kb.png
           test -s runtime-16kb.png
           # Raw logcat never leaves the runner and is never printed to the
@@ -274,4 +306,5 @@ jobs:
             install-16k.txt
             app-pid.txt
             runtime-16kb.png
+            startup-gate.txt
             native-load-scan.txt
