@@ -4,7 +4,9 @@ name: 16 KB page-size FFmpeg/WebP functional qualification
 # Runs the FFmpegFunctionalTest instrumentation suite against the bundled
 # FFmpeg payload on a 16 KB page-size emulator. Fail-closed KVM gate, no
 # permission changes, no signing secrets, evidence-only artifacts (never an
-# APK). Complements runtime-16kb.yml (install/boot/launch smoke) with actual
+# APK). Raw system logs (logcat) never leave the runner; public evidence
+# carries only explicit PASS/FAIL summaries derived from on-runner scans.
+# Complements runtime-16kb.yml (install/boot/launch smoke) with actual
 # payload execution: version banner, WebP encode/decode, MP3 encode.
 
 on:
@@ -155,9 +157,29 @@ jobs:
           test -s roundtrip.png
           adb exec-out run-as com.frpboy.seali.debug cat files/seali-ffmpeg-functional/tone.mp3 > tone.mp3
           test -s tone.mp3
-          adb logcat -d > logcat-16k-functional.txt
+          # Raw logcat never leaves the runner or the console: whole system
+          # logs can carry incidental data unrelated to the app. The same
+          # bounded native-load scan as the smoke lane runs locally (and now
+          # also gates this lane); public evidence is the explicit PASS/FAIL
+          # summary only.
+          adb logcat -d > "$RUNNER_TEMP/logcat-16k-functional.txt"
+          logcat_lines="$(wc -l < "$RUNNER_TEMP/logcat-16k-functional.txt" | tr -d ' ')"
+          scan=PASS
+          if grep -Eq 'dlopen failed|Unsupported ELF|invalid ELF|linker.*(error|denied)|failed to load.*\.so' "$RUNNER_TEMP/logcat-16k-functional.txt"; then
+            scan=FAIL
+          fi
+          {
+            echo "LOGCAT_NATIVE_LOAD_SCAN=$scan"
+            echo "LOGCAT_LINES_SCANNED=$logcat_lines"
+          } > native-load-scan.txt
+          if [ "$scan" != PASS ]; then
+            echo "::error::Native library load failure signatures found in logcat under 16 KB pages."
+            exit 1
+          fi
 
-      # Evidence only; the APKs under test are never uploaded.
+      # Evidence only; the APKs under test are never uploaded. Raw logcat is
+      # excluded by design; native-load-scan.txt carries only the PASS/FAIL
+      # summary of the on-runner scan.
       - name: Upload functional evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -173,4 +195,4 @@ jobs:
             roundtrip.webp
             roundtrip.png
             tone.mp3
-            logcat-16k-functional.txt
+            native-load-scan.txt

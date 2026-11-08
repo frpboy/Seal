@@ -3,7 +3,9 @@ name: 16 KB page-size runtime qualification
 # Manual qualification lane only. This workflow never runs on push, pull
 # requests, or tags; it is dispatched deliberately when a 16 KB runtime check
 # is wanted. It makes no device-permission changes, uses no signing secrets,
-# and uploads evidence files only (never an APK).
+# and uploads evidence files only (never an APK). Raw system logs (logcat)
+# never leave the runner; public evidence carries only explicit PASS/FAIL
+# summaries derived from on-runner scans.
 
 on:
   workflow_dispatch:
@@ -97,7 +99,23 @@ jobs:
             exit 1
           fi
           echo "${apks[0]}" | tee apk-under-test.txt
-          "$ANDROID_HOME/build-tools/36.0.0/zipalign" -c -P 16 -v 4 "${apks[0]}" | tee zipalign-16k.txt
+          # The verbose zipalign listing is a full per-entry dump of the APK
+          # and stays on the runner. Public evidence is an explicit PASS/FAIL
+          # summary; the gate itself is unchanged (zipalign -c still decides).
+          zipalign_result=PASS
+          if ! "$ANDROID_HOME/build-tools/36.0.0/zipalign" -c -P 16 -v 4 "${apks[0]}" > "$RUNNER_TEMP/zipalign-16k.txt"; then
+            zipalign_result=FAIL
+          fi
+          apk_entries="$(unzip -Z1 "${apks[0]}" | wc -l | tr -d ' ')"
+          {
+            echo "ZIPALIGN_16K=$zipalign_result"
+            echo "ZIPALIGN_P_KIB=16"
+            echo "ZIPALIGN_APK_ENTRIES=$apk_entries"
+          } | tee zipalign-16k.txt
+          if [ "$zipalign_result" != PASS ]; then
+            echo "::error::zipalign verification failed for 16 KB page alignment."
+            exit 1
+          fi
 
       - name: Verify ELF LOAD alignment of every packaged native library
         run: |
@@ -189,14 +207,29 @@ jobs:
           fi
           adb exec-out screencap -p > runtime-16kb.png
           test -s runtime-16kb.png
-          adb logcat -d > logcat-16k.txt
-          if grep -E 'dlopen failed|Unsupported ELF|invalid ELF|linker.*(error|denied)|failed to load.*\.so' logcat-16k.txt; then
+          # Raw logcat never leaves the runner and is never printed to the
+          # console: whole system logs can carry incidental data unrelated to
+          # the app. The bounded native-load scan runs locally; the public
+          # evidence is the explicit PASS/FAIL summary only.
+          adb logcat -d > "$RUNNER_TEMP/logcat-16k.txt"
+          logcat_lines="$(wc -l < "$RUNNER_TEMP/logcat-16k.txt" | tr -d ' ')"
+          scan=PASS
+          if grep -Eq 'dlopen failed|Unsupported ELF|invalid ELF|linker.*(error|denied)|failed to load.*\.so' "$RUNNER_TEMP/logcat-16k.txt"; then
+            scan=FAIL
+          fi
+          {
+            echo "LOGCAT_NATIVE_LOAD_SCAN=$scan"
+            echo "LOGCAT_LINES_SCANNED=$logcat_lines"
+          } > native-load-scan.txt
+          if [ "$scan" != PASS ]; then
             echo "::error::Native library load failure signatures found in logcat under 16 KB pages."
             exit 1
           fi
 
       # Evidence only. The APK under test is never uploaded as an artifact;
-      # distribution stays with the release workflows.
+      # distribution stays with the release workflows. Raw logcat is excluded
+      # by design; native-load-scan.txt carries only the PASS/FAIL summary of
+      # the on-runner scan.
       - name: Upload 16 KB runtime evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -213,4 +246,4 @@ jobs:
             install-16k.txt
             app-pid.txt
             runtime-16kb.png
-            logcat-16k.txt
+            native-load-scan.txt
