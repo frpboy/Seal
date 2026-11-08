@@ -1,0 +1,29 @@
+buildscript { dependencies { classpath files('transform.jar') } }
+import org.gradle.api.attributes.Attribute
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition
+
+repositories { maven { url = uri('repo') } }
+def patched = Attribute.of('com.frpboy.seali.webp16k', Boolean)
+dependencies {
+    artifactTypes.maybeCreate('aar').attributes.attribute(patched, false)
+    registerTransform(SealiWebpTransform) {
+        from.attribute(patched, false).attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, 'aar')
+        to.attribute(patched, true).attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, 'aar')
+        parameters { recipeDirectory.set(file(providers.gradleProperty('recipeDir').get())) }
+    }
+}
+configurations {
+    qualification { attributes { attribute(patched, true) } }
+}
+dependencies { qualification 'fixture:ffmpeg:0.18.1' }
+tasks.register('qualify') {
+    doLast {
+        def files = configurations.qualification.resolve().sort()
+        assert files.size() == 2 : files
+        assert files.any { it.name == 'ffmpeg-0.18.1-seali-webp16k.aar' }
+        assert files.any { it.name == 'common-1.jar' }
+        assert configurations.qualification.incoming.resolutionResult.allComponents*.id*.displayName.contains('fixture:ffmpeg:0.18.1')
+        println 'PASS transformed AAR + original module identity + transitive common JAR preserved'
+        files.each { println 'resolved=' + it }
+    }
+}

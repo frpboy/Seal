@@ -16,6 +16,31 @@ plugins {
     alias(libs.plugins.ktfmt.gradle)
 }
 
+// Native AAR-only transform. Original Maven coordinate, classes, resources,
+// variant metadata and transitive dependency graph remain selected by Gradle.
+val sealiWebp16k = org.gradle.api.attributes.Attribute.of(
+    "com.frpboy.seali.webp16k", Boolean::class.javaObjectType,
+)
+dependencies {
+    artifactTypes.maybeCreate("aar").attributes.attribute(sealiWebp16k, false)
+    registerTransform(SealiWebpTransform::class.java) {
+        from.attribute(sealiWebp16k, false).attribute(
+            org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "aar",
+        )
+        to.attribute(sealiWebp16k, true).attribute(
+            org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "aar",
+        )
+        parameters {
+            recipeDirectory.set(rootProject.layout.projectDirectory.dir("native/webp16k"))
+        }
+    }
+}
+configurations.configureEach {
+    if (name.endsWith("CompileClasspath") || name.endsWith("RuntimeClasspath")) {
+        attributes.attribute(sealiWebp16k, true)
+    }
+}
+
 val keystorePropertiesFile: File = rootProject.file("keystore.properties")
 val keystoreProperties: Properties = Properties()
 if (keystorePropertiesFile.exists()) {
@@ -179,6 +204,16 @@ android {
     }
 
     buildTypes {
+        // Opt-in unsigned diagnostics only. Does not relax release signing guards.
+        if (providers.gradleProperty("sealiNativeQualification").orNull == "true") {
+            create("nativeQualification") {
+                initWith(getByName("debug"))
+                signingConfig = null
+                applicationIdSuffix = ".nativequalification"
+                versionNameSuffix = "-native-qualification"
+                matchingFallbacks += listOf("debug")
+            }
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true

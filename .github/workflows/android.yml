@@ -1,41 +1,136 @@
-name: Build Release APK
+name: Seali unsigned native qualification (manual only)
 
 on:
   workflow_dispatch:
+    inputs:
+      expected_head:
+        description: Exact independently reviewed full SHA, one attempt
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: seali-unsigned-native-qualification
+  cancel-in-progress: false
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
+  qualify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      EXPECTED_HEAD: ${{ inputs.expected_head }}
+      GRADLE_OPTS: -Dorg.gradle.daemon=false
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
+          persist-credentials: false
+      - name: Guard exact source and fresh attempt
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REPOSITORY" == frpboy/Seal ]]
+          [[ "$GITHUB_EVENT_NAME" == workflow_dispatch && "$GITHUB_RUN_ATTEMPT" == 1 ]]
+          [[ "$EXPECTED_HEAD" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$GITHUB_SHA" == "$EXPECTED_HEAD" && "$(git rev-parse HEAD)" == "$EXPECTED_HEAD" ]]
+          [[ -z "$(git status --porcelain)" ]]
+          [[ ! -e keystore.properties ]]
+          mkdir qualification-evidence
+          python3 - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          Path('qualification-evidence/source.json').write_text(json.dumps({
+              'source_sha': os.environ['GITHUB_SHA'],
+              'source_tree': subprocess.check_output(['git','rev-parse','HEAD^{tree}'],text=True).strip(),
+              'run_id': os.environ['GITHUB_RUN_ID'], 'attempt': os.environ['GITHUB_RUN_ATTEMPT'],
+              'channel': 'alpha diagnostic only', 'signing': 'no signing config or keys supplied',
+              'android_runtime': 'NOT EXECUTED', 'aab': 'NOT BUILT',
+              'artifact_delivery': 'APK remains runner-local and is not uploaded'
+          }, indent=2)+'\n')
+          PY
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
           java-version: '21'
-          distribution: 'temurin'
-          cache: gradle
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407
         with:
-          # The legacy "tools" SDK package is no longer published.
-          # Install only the SDK components required by this project.
           packages: platform-tools platforms;android-36 build-tools;36.0.0
-
-      - uses: gradle/actions/setup-gradle@v3
-
-      - name: Grant execute permission for Gradle wrapper
-        run: chmod +x gradlew
-
-      - name: Build release APK
-        run: ./gradlew --no-daemon assembleGenericRelease
-
-      - name: Upload release APKs
-        uses: actions/upload-artifact@v4
+      - name: Resource and toolchain preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Standard Linux host only. Fail rather than retry with guessed memory caps.
+          (( $(awk '/MemTotal/{print $2}' /proc/meminfo) >= 6000000 ))
+          (( $(nproc) >= 2 ))
+          (( $(df -Pk . | awk 'NR==2{print $4}') >= 12000000 ))
+          command -v cmake make curl unzip python3 timeout
+          java -version
+          cmake --version
+          "$ANDROID_HOME/build-tools/36.0.0/zipalign" -h || true
+          chmod +x gradlew
+      - name: Actual AGP variant selection then unsigned universal APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash native/qualification/run-phases.sh
+      - name: Inspect packaged native entries and APK ZIP alignment separately
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 native/qualification/inspect-apk.py
+          mapfile -t apks < <(find app/build/outputs/apk/generic/nativeQualification -maxdepth 1 -name '*.apk' -type f)
+          [[ ${#apks[@]} == 1 ]]
+          "$ANDROID_HOME/build-tools/36.0.0/zipalign" -c -P 16 -v 4 "${apks[0]}" > qualification-evidence/zipalign.txt
+          "$ANDROID_HOME/build-tools/36.0.0/aapt2" dump badging "${apks[0]}" > qualification-evidence/apk-badging.txt
+          cp app/build/outputs/apk/generic/nativeQualification/output-metadata.json qualification-evidence/output-metadata.json
+          python3 native/qualification/verify-metadata.py
+      - name: Terminal receipt (including failures)
+        if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p qualification-evidence
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          evidence = Path('qualification-evidence')
+          total = sum(p.stat().st_size for p in evidence.iterdir() if p.is_file())
+          if total > 8 * 1024 * 1024:
+              raise SystemExit('Receipt ceiling exceeded; no artifact upload allowed')
+          Path('qualification-evidence/terminal.json').write_text(json.dumps({
+              'job_status_before_receipt': os.environ['JOB_STATUS'],
+              'source_sha': os.environ['GITHUB_SHA'],
+              'run_id': os.environ['GITHUB_RUN_ID'], 'attempt': os.environ['GITHUB_RUN_ATTEMPT'],
+              'android_runtime': 'NOT EXECUTED', 'release_ready': False
+          }, indent=2)+'\n')
+          PY
+      - name: Enforce receipt size ceiling
+        if: always()
+        id: receipt_cap
+        shell: bash
+        run: |
+          set -euo pipefail
+          (( $(du -sb qualification-evidence | cut -f1) <= 8388608 ))
+          echo 'allowed=true' >> "$GITHUB_OUTPUT"
+      - name: Upload bounded receipts only, never APK, AAB or raw logs
+        if: always() && steps.receipt_cap.outputs.allowed == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: seali-release-apks
-          path: app/build/outputs/apk/generic/release/*.apk
+          name: seali-unsigned-qualification-receipts-${{ github.run_id }}
+          retention-days: 7
           if-no-files-found: error
-          retention-days: 14
+          path: |
+            qualification-evidence/source.json
+            qualification-evidence/terminal.json
+            qualification-evidence/gradle-terminal.json
+            qualification-evidence/genericNativeQualificationCompileClasspath.json
+            qualification-evidence/genericNativeQualificationRuntimeClasspath.json
+            qualification-evidence/native-inventory.json
+            qualification-evidence/zipalign.txt
+            qualification-evidence/apk-badging.txt
+            qualification-evidence/output-metadata.json
+            qualification-evidence/expected-identity.json
+            qualification-evidence/verified-identity.json
