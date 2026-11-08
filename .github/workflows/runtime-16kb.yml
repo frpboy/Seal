@@ -60,7 +60,14 @@ jobs:
       - name: Install emulator and the 16 KB x86_64 system image
         run: |
           set -euo pipefail
+          set +e
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
+          license_status=("${PIPESTATUS[@]}")
+          set -e
+          # yes may receive SIGPIPE after sdkmanager exits. Never hide the
+          # consumer's failure or an unrelated producer failure.
+          test "${license_status[1]}" -eq 0
+          case "${license_status[0]}" in 0|141) ;; *) exit "${license_status[0]}" ;; esac
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
             "emulator" \
             "system-images;android-35;google_apis_ps16k;x86_64"
@@ -98,11 +105,23 @@ jobs:
           mapfile -t apks < <(find app/build/outputs/apk/generic/debug -maxdepth 1 -type f -name '*x86_64*.apk' | sort)
           test "${#apks[@]}" -eq 1
           rm -rf apk16k && mkdir apk16k
+          expected_so_count="$(unzip -Z1 "${apks[0]}" | awk '/^lib\/[^/]+\/[^/]+\.so$/ {n++} END {print n+0}')"
+          test "$expected_so_count" -gt 0
           unzip -q "${apks[0]}" 'lib/*' -d apk16k
           : > elf-alignment.txt
           failures=0
-          while IFS= read -r so; do
+          mapfile -t native_libs < <(find apk16k -type f -name '*.so' | sort)
+          if [ "${#native_libs[@]}" -ne "$expected_so_count" ]; then
+            echo "::error::Extracted native library count differs from the APK inventory."
+            exit 1
+          fi
+          printf 'PACKAGED_SO_COUNT=%s\n' "${#native_libs[@]}" | tee -a elf-alignment.txt
+          for so in "${native_libs[@]}"; do
             aligns="$(readelf -lW "$so" | awk '/LOAD/{print $NF}')"
+            if [ -z "$aligns" ]; then
+              echo "::error::No ELF LOAD segments found for $so."
+              exit 1
+            fi
             bad=0
             for a in $aligns; do
               if [ "$((a))" -lt 16384 ]; then bad=1; fi
@@ -114,7 +133,7 @@ jobs:
             else
               echo "OK $line" >> elf-alignment.txt
             fi
-          done < <(find apk16k -type f -name '*.so' | sort)
+          done
           cat elf-alignment.txt
           if [ "$failures" -ne 0 ]; then
             echo "::error::One or more packaged native libraries have LOAD segment alignment below 16 KB."
