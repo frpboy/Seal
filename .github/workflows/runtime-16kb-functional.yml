@@ -164,18 +164,33 @@ jobs:
           # summary only.
           adb logcat -d > "$RUNNER_TEMP/logcat-16k-functional.txt"
           logcat_lines="$(wc -l < "$RUNNER_TEMP/logcat-16k-functional.txt" | tr -d ' ')"
-          scan=PASS
-          if grep -Eq 'dlopen failed|Unsupported ELF|invalid ELF|linker.*(error|denied)|failed to load.*\.so' "$RUNNER_TEMP/logcat-16k-functional.txt"; then
-            scan=FAIL
-          fi
+          # grep exit status is load-bearing: 0 = signature match, 1 = clean
+          # no-match, anything else = the scan itself failed. An errored scan
+          # must never upload a PASS it did not earn; fail closed instead.
+          set +e
+          grep -Eq 'dlopen failed|Unsupported ELF|invalid ELF|linker.*(error|denied)|failed to load.*\.so' "$RUNNER_TEMP/logcat-16k-functional.txt"
+          grep_status=$?
+          set -e
+          case "$grep_status" in
+            0) scan=FAIL ;;
+            1) scan=PASS ;;
+            *) scan=ERROR ;;
+          esac
           {
             echo "LOGCAT_NATIVE_LOAD_SCAN=$scan"
             echo "LOGCAT_LINES_SCANNED=$logcat_lines"
           } > native-load-scan.txt
-          if [ "$scan" != PASS ]; then
-            echo "::error::Native library load failure signatures found in logcat under 16 KB pages."
-            exit 1
-          fi
+          case "$scan" in
+            PASS) ;;
+            FAIL)
+              echo "::error::Native library load failure signatures found in logcat under 16 KB pages."
+              exit 1
+              ;;
+            *)
+              echo "::error::Native-load logcat scan could not run (grep exit $grep_status); failing closed, no PASS claimed."
+              exit 1
+              ;;
+          esac
 
       # Evidence only; the APKs under test are never uploaded. Raw logcat is
       # excluded by design; native-load-scan.txt carries only the PASS/FAIL
