@@ -64,10 +64,25 @@ jobs:
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
           license_status=("${PIPESTATUS[@]}")
           set -e
-          # yes may receive SIGPIPE after sdkmanager exits. Never hide the
-          # consumer's failure or an unrelated producer failure.
-          test "${license_status[1]}" -eq 0
-          case "${license_status[0]}" in 0|141) ;; *) exit "${license_status[0]}" ;; esac
+          # yes may die by SIGPIPE (141) after sdkmanager exits, or report
+          # "Broken pipe" and exit 1 when the runner shell inherits SIGPIPE
+          # ignored or blocked; exit 1 can also have other causes (allocation
+          # or other failures). The producer tolerance 0|1|141 is deliberately
+          # broader than the EPIPE case; it is safe because the consumer is
+          # strictly required to exit 0 first. Every failure path prints its
+          # PIPESTATUS: a silent `test` exit would leave the next failure
+          # indistinguishable again.
+          if [ "${license_status[1]}" -ne 0 ]; then
+            echo "::error::sdkmanager --licenses failed with exit ${license_status[1]} (producer ${license_status[0]})."
+            exit "${license_status[1]}"
+          fi
+          case "${license_status[0]}" in
+            0|1|141) ;;
+            *)
+              echo "::error::license accept producer exited unexpectedly with ${license_status[0]}."
+              exit "${license_status[0]}"
+              ;;
+          esac
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
             "emulator" \
             "system-images;android-35;google_apis_ps16k;x86_64"

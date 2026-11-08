@@ -63,21 +63,32 @@ jobs:
         run: |
           set -euo pipefail
           # pipefail-safe license acceptance: sdkmanager may close stdin
-          # early, which kills `yes` with SIGPIPE (141). The consumer must
-          # exit 0; the producer is tolerated only at 0 or 141; anything
-          # else propagates. PIPESTATUS captured on the very next command.
+          # early, which kills `yes` with SIGPIPE (141) - or makes it report
+          # "Broken pipe" and exit 1 when the shell inherits SIGPIPE ignored
+          # or blocked. The consumer must exit 0; the producer is tolerated
+          # at 0, 1, or 141; anything else propagates. PIPESTATUS captured on
+          # the very next command.
           set +e
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
           license_status=("${PIPESTATUS[@]}")
           set -e
           if [ "${license_status[1]}" -ne 0 ]; then
-            echo "::error::sdkmanager --licenses failed with exit ${license_status[1]}."
+            echo "::error::sdkmanager --licenses failed with exit ${license_status[1]} (producer ${license_status[0]})."
             exit "${license_status[1]}"
           fi
-          if [ "${license_status[0]}" -ne 0 ] && [ "${license_status[0]}" -ne 141 ]; then
-            echo "::error::license accept producer exited unexpectedly with ${license_status[0]}."
-            exit "${license_status[0]}"
-          fi
+          # Producer tolerance is 0, 141 (SIGPIPE kill), or 1. GNU yes exits
+          # 1 after reporting "Broken pipe" when SIGPIPE is inherited ignored
+          # or blocked, but exit 1 is NOT uniquely the EPIPE case (allocation
+          # or other failures are possible); the tolerance is deliberately
+          # broader. It is safe because the consumer is strictly required to
+          # exit 0 above.
+          case "${license_status[0]}" in
+            0|1|141) ;;
+            *)
+              echo "::error::license accept producer exited unexpectedly with ${license_status[0]}."
+              exit "${license_status[0]}"
+              ;;
+          esac
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
             "emulator" \
             "system-images;android-35;google_apis_ps16k;x86_64"
