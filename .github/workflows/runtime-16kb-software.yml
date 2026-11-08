@@ -228,6 +228,14 @@ jobs:
         run: |
           set -euo pipefail
           adb logcat -c
+          # Verified-absence reset before launch: no pre-existing marker may
+          # qualify this run (the app also deletes it in onCreate).
+          adb exec-out run-as com.frpboy.seali.debug rm -f files/seali-init-status 2>/dev/null || true
+          pre_marker="$(adb exec-out run-as com.frpboy.seali.debug cat files/seali-init-status 2>/dev/null | tr -d '\r' || true)"
+          if [ -n "$pre_marker" ]; then
+            echo "::error::Pre-launch reset failed: a stale init marker is still present."
+            exit 1
+          fi
           adb shell monkey -p com.frpboy.seali.debug -c android.intent.category.LAUNCHER 1
           sleep 20
           adb shell pidof com.frpboy.seali.debug | tee app-pid.txt
@@ -235,40 +243,53 @@ jobs:
             echo "::error::App process is not running 20s after launch on the 16 KB emulator."
             exit 1
           fi
-          # Startup gate BEFORE any screenshot: App.kt initializes
-          # YoutubeDL/FFmpeg/Aria2c asynchronously and routes failures to
-          # CrashReportActivity while the process stays alive, so PID
-          # liveness alone can false-PASS - and the crash screen carries the
-          # raw stacktrace, which must never be captured. Gate on the
-          # foreground window; the crash screen or no main window fails
-          # closed and suppresses the screenshot. Raw dumpsys output stays in
-          # shell variables only; the uploaded summary carries enums only.
-          startup_gate=FAIL_NO_MAIN_WINDOW
-          for poll in $(seq 1 12); do
-            focus="$(adb shell dumpsys window 2>/dev/null | grep mCurrentFocus || true)"
-            case "$focus" in
-              *CrashReportActivity*)
-                startup_gate=FAIL_CRASH_SCREEN
-                break
-                ;;
-              *com.frpboy.seali.debug/com.junkfood.seal.MainActivity*)
-                startup_gate=PASS
-                break
-                ;;
-            esac
+          # Startup init gate. This lane captures NO screenshots: a crash
+          # screen carries the raw stacktrace and no timing assumption can
+          # make capturing it safe. App.kt deletes files/seali-init-status at
+          # process start and writes "OK pid=<pid>" or "ERROR pid=<pid>" when
+          # its caught async initialization block (YoutubeDL/FFmpeg/Aria2c/
+          # cookies/cleanup) terminates; a write failure (swallowed
+          # app-side, never logged raw) leaves the file absent and fails this
+          # gate closed as TIMEOUT. The lane binds the signal to the process
+          # identity captured below: a pid change means the observed process
+          # died or restarted and is REJECTED (a later OK from a new process
+          # after a crash loop never qualifies). The default uncaught handler
+          # can keep the process alive on CrashReportActivity, so this gate
+          # claims ONLY the caught initialization chain's terminal result for
+          # this process - nothing about uncaught paths. Enum + pid only; no
+          # error text is read, printed, or uploaded.
+          startup_init=TIMEOUT
+          expected_pid="$(adb shell pidof com.frpboy.seali.debug | tr -d ' \r')"
+          for poll in $(seq 1 24); do
+            live_pid="$(adb shell pidof com.frpboy.seali.debug | tr -d ' \r')"
+            if [ -z "$live_pid" ]; then
+              startup_init=PROCESS_DIED
+              break
+            fi
+            if [ "$live_pid" != "$expected_pid" ]; then
+              startup_init=RESTART_DETECTED
+              break
+            fi
+            marker="$(adb exec-out run-as com.frpboy.seali.debug cat files/seali-init-status 2>/dev/null | tr -d '\r' || true)"
+            if [ "$marker" = "OK pid=$expected_pid" ]; then
+              startup_init=PASS
+              break
+            fi
+            if [ "$marker" = "ERROR pid=$expected_pid" ]; then
+              startup_init=ERROR
+              break
+            fi
             sleep 5
           done
           {
-            echo "STARTUP_GATE=$startup_gate"
-            echo "STARTUP_GATE_POLLS=12"
-            echo "STARTUP_GATE_POLL_INTERVAL_SECONDS=5"
-          } > startup-gate.txt
-          if [ "$startup_gate" != PASS ]; then
-            echo "::error::Startup gate failed ($startup_gate): the app did not reach its main window; screenshot suppressed to avoid capturing a crash screen."
+            echo "STARTUP_INIT=$startup_init"
+            echo "STARTUP_INIT_POLLS=24"
+            echo "STARTUP_INIT_POLL_INTERVAL_SECONDS=5"
+          } > startup-init.txt
+          if [ "$startup_init" != PASS ]; then
+            echo "::error::Startup init gate failed ($startup_init): no fresh terminal OK from this process's caught initialization block."
             exit 1
           fi
-          adb exec-out screencap -p > runtime-16kb-software.png
-          test -s runtime-16kb-software.png
           # Raw logcat never leaves the runner and is never printed to the
           # console: whole system logs can carry incidental data unrelated to
           # the app. The bounded native-load scan runs locally; the public
@@ -306,7 +327,9 @@ jobs:
       # Evidence only. The APK under test is never uploaded as an artifact;
       # distribution stays with the release workflows. Raw logcat is excluded
       # by design; native-load-scan.txt carries only the PASS/FAIL summary of
-      # the on-runner scan. accel-mode.txt and boot-timing.txt make the
+      # the on-runner scan; startup-init.txt carries only the enum
+      # result of the terminal init-signal poll. The lane captures no
+      # screenshots. accel-mode.txt and boot-timing.txt make the
       # software-emulation provenance of every result explicit.
       - name: Upload 16 KB software-mode evidence
         if: always()
@@ -325,6 +348,5 @@ jobs:
             device-props.txt
             install-16k.txt
             app-pid.txt
-            runtime-16kb-software.png
-            startup-gate.txt
+            startup-init.txt
             native-load-scan.txt
