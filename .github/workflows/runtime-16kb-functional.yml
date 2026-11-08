@@ -1,0 +1,161 @@
+name: 16 KB page-size FFmpeg/WebP functional qualification
+
+# Manual qualification lane only: workflow_dispatch, never push/PR/tag.
+# Runs the FFmpegFunctionalTest instrumentation suite against the bundled
+# FFmpeg payload on a 16 KB page-size emulator. Fail-closed KVM gate, no
+# permission changes, no signing secrets, evidence-only artifacts (never an
+# APK). Complements runtime-16kb.yml (install/boot/launch smoke) with actual
+# payload execution: version banner, WebP encode/decode, MP3 encode.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: runtime-16kb-functional-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  runtime-16kb-functional:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools platforms;android-36 build-tools;36.0.0
+
+      - uses: gradle/actions/setup-gradle@v3
+
+      # Deliberately fail-closed: no sudo udev rule, no chmod on /dev/kvm.
+      - name: Check KVM availability (fail closed, no permission changes)
+        run: |
+          set -euo pipefail
+          if [ ! -e /dev/kvm ]; then
+            echo "::error::/dev/kvm is missing on this runner. This lane requires the standard GitHub-hosted runner KVM device."
+            exit 1
+          fi
+          if [ ! -c /dev/kvm ]; then
+            echo "::error::/dev/kvm exists but is not a character device."
+            exit 1
+          fi
+          if [ ! -r /dev/kvm ] || [ ! -w /dev/kvm ]; then
+            echo "::error::/dev/kvm is not readable and writable by the runner user, and this lane refuses to change device permissions (no sudo udev rule, no chmod). Use a runner image that grants KVM access to its user."
+            exit 1
+          fi
+          ls -l /dev/kvm
+
+      - name: Install emulator and the 16 KB x86_64 system image
+        run: |
+          set -euo pipefail
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "emulator" \
+            "system-images;android-35;google_apis_ps16k;x86_64"
+
+      - name: Create the 16 KB AVD
+        run: |
+          set -euo pipefail
+          echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd \
+            --force \
+            --name seali16kfn \
+            --package "system-images;android-35;google_apis_ps16k;x86_64" \
+            --device pixel_6
+
+      - name: Build app and instrumentation APKs
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleGenericDebug assembleGenericDebugAndroidTest
+
+      - name: Boot the 16 KB emulator and verify the environment
+        run: |
+          set -euo pipefail
+          "$ANDROID_HOME/emulator/emulator" -avd seali16kfn \
+            -no-window -no-audio -no-boot-anim \
+            -gpu swiftshader_indirect -no-snapshot-save -accel on &
+          timeout 600 bash -c '
+            adb wait-for-device
+            while ! adb shell getprop sys.boot_completed 2>/dev/null | grep -q 1; do sleep 2; done
+          '
+          page_size="$(adb shell getconf PAGE_SIZE | tr -d "\r")"
+          echo "PAGE_SIZE=$page_size" | tee page-size.txt
+          if [ "$page_size" != "16384" ]; then
+            echo "::error::Expected PAGE_SIZE 16384 on the 16 KB emulator, got '$page_size'. Functional results would be meaningless."
+            exit 1
+          fi
+
+      - name: Install app and test APKs
+        run: |
+          set -euo pipefail
+          mapfile -t apks < <(find app/build/outputs/apk/generic/debug -maxdepth 1 -type f -name '*x86_64*.apk' | sort)
+          test "${#apks[@]}" -eq 1
+          adb install -r "${apks[0]}" 2>&1 | tee install-16k.txt
+          if grep -qi 'Failure' install-16k.txt; then
+            echo "::error::App APK install failed on the 16 KB emulator."
+            exit 1
+          fi
+          mapfile -t test_apks < <(find app/build/outputs/apk/androidTest/generic/debug -maxdepth 1 -type f -name '*.apk' | sort)
+          test "${#test_apks[@]}" -eq 1
+          adb install -r "${test_apks[0]}" 2>&1 | tee -a install-16k.txt
+          if grep -qi 'Failure' install-16k.txt; then
+            echo "::error::Test APK install failed on the 16 KB emulator."
+            exit 1
+          fi
+
+      - name: Run the FFmpeg/WebP functional test
+        run: |
+          set -euo pipefail
+          adb logcat -c
+          adb shell am instrument -w -r \
+            -e class com.junkfood.seal.FFmpegFunctionalTest \
+            com.frpboy.seali.debug.test/androidx.test.runner.AndroidJUnitRunner \
+            2>&1 | tee instrumentation-result.txt
+          grep -E 'OK \([0-9]+ tests?\)' instrumentation-result.txt
+          if grep -E 'FAILURES|INSTRUMENTATION_FAILED|shortMsg=' instrumentation-result.txt; then
+            echo "::error::Functional instrumentation reported failures."
+            exit 1
+          fi
+
+      - name: Pull on-device evidence
+        run: |
+          set -euo pipefail
+          adb exec-out run-as com.frpboy.seali.debug cat files/seali-ffmpeg-functional/ffmpeg-functional.txt > ffmpeg-functional.txt
+          test -s ffmpeg-functional.txt
+          adb exec-out run-as com.frpboy.seali.debug cat files/seali-ffmpeg-functional/roundtrip.webp > roundtrip.webp
+          test -s roundtrip.webp
+          adb exec-out run-as com.frpboy.seali.debug cat files/seali-ffmpeg-functional/roundtrip.png > roundtrip.png
+          test -s roundtrip.png
+          adb exec-out run-as com.frpboy.seali.debug cat files/seali-ffmpeg-functional/tone.mp3 > tone.mp3
+          test -s tone.mp3
+          adb logcat -d > logcat-16k-functional.txt
+
+      # Evidence only; the APKs under test are never uploaded.
+      - name: Upload functional evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-16kb-functional-evidence
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            page-size.txt
+            install-16k.txt
+            instrumentation-result.txt
+            ffmpeg-functional.txt
+            roundtrip.webp
+            roundtrip.png
+            tone.mp3
+            logcat-16k-functional.txt
