@@ -1,10 +1,17 @@
 name: Stage alpha prerelease
 
+# Release staging is deliberately manual. Routine push and pull request runs
+# of android_ci.yml publish no APK artifacts by design; the only run that can
+# satisfy this contract is a manual android_ci.yml dispatch started with
+# publish_apk_artifacts=true on the intended commit. This workflow stages a
+# DRAFT prerelease from that run's artifacts; the tag is created only if and
+# when the draft is published.
+
 on:
   workflow_dispatch:
     inputs:
       run_id:
-        description: "Actions run ID whose artifacts become the release assets"
+        description: "Manual Android CI dispatch run ID (started with publish_apk_artifacts=true) whose artifacts become the release assets"
         required: true
       tag:
         description: "Release tag (created only if and when the draft is published)"
@@ -77,7 +84,7 @@ jobs:
           [ "$CONCLUSION" = "success" ] || { echo "ERROR: source run did not succeed"; exit 1; }
           [ "$HEAD_SHA" = "$TARGET" ] || { echo "ERROR: run head SHA does not match target commit"; exit 1; }
           [ "$HEAD_REPO" = "$REPOSITORY" ] || { echo "ERROR: run comes from another repository (untrusted fork run)"; exit 1; }
-          case "$EVENT" in push|workflow_dispatch) ;; *) echo "ERROR: unexpected run event $EVENT"; exit 1 ;; esac
+          case "$EVENT" in workflow_dispatch) ;; *) echo "ERROR: source run must be a manual workflow_dispatch run of android_ci.yml (push and pull request runs publish no artifacts by design); got $EVENT"; exit 1 ;; esac
 
       - name: Download built APK artifacts
         uses: actions/download-artifact@v4
