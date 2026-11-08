@@ -38,3 +38,29 @@ Named terminal handler emits Python JSON and preserves phase exit status, with t
 ## Log-only amendment
 
 The artifact-upload step is removed to avoid metered artifact storage. Ordinary workflow logs retain a bounded, encoded allowlist only, never APK/AAB bytes. A missing/truncated envelope is incomplete evidence, not success. Overall runner loss or timeout may prevent log receipt emission. No new build or runtime test is claimed by this source amendment.
+
+## Proposed exact-path host adapter (source only)
+
+Run42455567604 failed in selection before native downloads because the recipe
+uses /usr/bin/cmake but image20261101.360.1 supplies /usr/local/bin/cmake3.31.6.
+This amendment preserves every native recipe byte. It proposes ONE new symlink
+on the disposable hosted VM, using only sudo -n /usr/bin/ln -sT, never force or
+replacement, apt installation, permissions changes, security-policy changes,
+custom/paid runners, or persistent account infrastructure. Execution needs
+explicit approval for this elevated host operation as well as a new bounded run.
+Capability is not authority. The image, OS, architecture, tool version, ownership,
+permissions, absent target, post-link identity/hash, and all exact recipe tool
+paths must pass before Gradle. Any mismatch fails without fallback or retry.
+Host adapter evidence is ordinary preflight log output, not a twelfth required
+qualification receipt; its local contract file is not in the upload/log allowlist.
+The new host's actual ownership/permissions and CMake binary hash remain unknown
+until that preflight runs. Different CMake provenance may change output: existing
+expected transformed AAR SHA remains unchanged and fails closed on a mismatch.
+This proposal neither executes the elevated operation nor qualifies the app.
+
+Host-adapter review correction: reject every lexical symlink in the source path
+and all parents, including cycles, before any version execution. Only the exact
+new target link is allowed separately; its parent chain and root ownership are
+checked. This fail-closed policy may reject a future image whose source path
+contains symlinks; it must not be weakened automatically. Small temporary-file
+fixtures mock ownership/platform version only, never invoke CMake or sudo.
