@@ -54,6 +54,12 @@ import org.koin.core.context.startKoin
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
+// Cleared at every process start and rewritten only when this process's
+// caught async initialization block terminates. The pid binds the marker to
+// this launch, so a stale file from a previous run can never qualify a
+// restart. Content is an enum plus pid only: never error text.
+private const val SEALI_INIT_STATUS_FILE = "seali-init-status"
+
 class App : Application() {
     override fun onCreate() {
         super.onCreate()
@@ -86,6 +92,7 @@ class App : Application() {
         clipboard = getSystemService()!!
         connectivityManager = getSystemService()!!
 
+        runCatching { File(filesDir, SEALI_INIT_STATUS_FILE).delete() }
         applicationScope.launch((Dispatchers.IO)) {
             try {
                 YoutubeDL.init(this@App)
@@ -95,7 +102,15 @@ class App : Application() {
                     FileUtil.writeContentToFile(it, getCookiesFile())
                 }
                 UpdateUtil.deleteOutdatedApk()
+                runCatching {
+                    File(filesDir, SEALI_INIT_STATUS_FILE)
+                        .writeText("OK pid=${android.os.Process.myPid()}")
+                }
             } catch (th: Throwable) {
+                runCatching {
+                    File(filesDir, SEALI_INIT_STATUS_FILE)
+                        .writeText("ERROR pid=${android.os.Process.myPid()}")
+                }
                 withContext(Dispatchers.Main) { startCrashReportActivity(th) }
             }
         }

@@ -1,0 +1,352 @@
+name: 16 KB page-size runtime qualification (software emulation)
+
+# Manual qualification lane only. workflow_dispatch, never push/PR/tag.
+# Software-emulation (TCG, `-accel off`) smoke variant of runtime-16kb.yml:
+# it requires NO /dev/kvm and makes no host permission changes, so it can run
+# when the standard runner does not grant KVM access. TCG support, boot
+# performance, and runtime behavior on this exact ps16k image are NOT proven
+# by general documentation; this lane is itself the bounded probe, and its
+# evidence carries an explicit acceleration-mode marker so software-mode
+# results are never confused with KVM results. Fail-closed: a boot that
+# exceeds its bound fails the lane with BOOT_RESULT=TIMEOUT evidence. No
+# signing secrets, evidence-only artifacts (never an APK). Raw system logs
+# (logcat) never leave the runner; public evidence carries only explicit
+# PASS/FAIL summaries derived from on-runner scans.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: runtime-16kb-software-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  runtime-16kb-software:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools platforms;android-36 build-tools;36.0.0
+
+      - uses: gradle/actions/setup-gradle@v3
+
+      # This lane deliberately never checks or changes /dev/kvm: it runs the
+      # emulator with -accel off (TCG software emulation). The marker makes
+      # the acceleration mode explicit in the uploaded evidence so results
+      # are never read as KVM-accelerated evidence.
+      - name: Record acceleration mode
+        run: |
+          set -euo pipefail
+          {
+            echo "ACCEL_MODE=software-tcg"
+            echo "EMULATOR_ACCEL_FLAG=-accel off"
+          } | tee accel-mode.txt
+
+      - name: Install emulator and the 16 KB x86_64 system image
+        run: |
+          set -euo pipefail
+          set +e
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
+          license_status=("${PIPESTATUS[@]}")
+          set -e
+          # yes may receive SIGPIPE after sdkmanager exits. Never hide the
+          # consumer's failure or an unrelated producer failure.
+          test "${license_status[1]}" -eq 0
+          case "${license_status[0]}" in 0|141) ;; *) exit "${license_status[0]}" ;; esac
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "emulator" \
+            "system-images;android-35;google_apis_ps16k;x86_64"
+
+      - name: Create the 16 KB AVD
+        run: |
+          set -euo pipefail
+          echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd \
+            --force \
+            --name seali16ksw \
+            --package "system-images;android-35;google_apis_ps16k;x86_64" \
+            --device pixel_6
+
+      - name: Build x86_64 debug APK
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleGenericDebug
+
+      # Static 16 KB gate on the exact APK that will run below.
+      - name: Verify APK zip alignment for 16 KB
+        run: |
+          set -euo pipefail
+          mapfile -t apks < <(find app/build/outputs/apk/generic/debug -maxdepth 1 -type f -name '*x86_64*.apk' | sort)
+          if [ "${#apks[@]}" -ne 1 ]; then
+            echo "::error::Expected exactly one x86_64 debug APK, found ${#apks[@]}."
+            exit 1
+          fi
+          echo "${apks[0]}" | tee apk-under-test.txt
+          # The verbose zipalign listing is a full per-entry dump of the APK
+          # and stays on the runner. Public evidence is an explicit PASS/FAIL
+          # summary; the gate itself is unchanged (zipalign -c still decides).
+          # The FAIL summary is written before any failure exit: an
+          # unreadable APK can also fail the unzip entry count, and under
+          # set -e/pipefail that must not abort the step before the summary
+          # exists on disk for the always() upload.
+          zipalign_result=PASS
+          if ! "$ANDROID_HOME/build-tools/36.0.0/zipalign" -c -P 16 -v 4 "${apks[0]}" > "$RUNNER_TEMP/zipalign-16k.txt"; then
+            zipalign_result=FAIL
+          fi
+          apk_entries=unavailable
+          set +e
+          unzip -Z1 "${apks[0]}" > "$RUNNER_TEMP/apk-entries.txt"
+          entries_status=$?
+          set -e
+          if [ "$entries_status" -eq 0 ]; then
+            apk_entries="$(wc -l < "$RUNNER_TEMP/apk-entries.txt" | tr -d ' ')"
+          else
+            zipalign_result=FAIL
+          fi
+          {
+            echo "ZIPALIGN_16K=$zipalign_result"
+            echo "ZIPALIGN_P_KIB=16"
+            echo "ZIPALIGN_APK_ENTRIES=$apk_entries"
+          } | tee zipalign-16k.txt
+          if [ "$zipalign_result" != PASS ]; then
+            echo "::error::zipalign verification failed for 16 KB page alignment."
+            exit 1
+          fi
+
+      - name: Verify ELF LOAD alignment of every packaged native library
+        run: |
+          set -euo pipefail
+          mapfile -t apks < <(find app/build/outputs/apk/generic/debug -maxdepth 1 -type f -name '*x86_64*.apk' | sort)
+          test "${#apks[@]}" -eq 1
+          rm -rf apk16k && mkdir apk16k
+          expected_so_count="$(unzip -Z1 "${apks[0]}" | awk '/^lib\/[^/]+\/[^/]+\.so$/ {n++} END {print n+0}')"
+          test "$expected_so_count" -gt 0
+          unzip -q "${apks[0]}" 'lib/*' -d apk16k
+          : > elf-alignment.txt
+          failures=0
+          mapfile -t native_libs < <(find apk16k -type f -name '*.so' | sort)
+          if [ "${#native_libs[@]}" -ne "$expected_so_count" ]; then
+            echo "::error::Extracted native library count differs from the APK inventory."
+            exit 1
+          fi
+          printf 'PACKAGED_SO_COUNT=%s\n' "${#native_libs[@]}" | tee -a elf-alignment.txt
+          for so in "${native_libs[@]}"; do
+            aligns="$(readelf -lW "$so" | awk '/LOAD/{print $NF}')"
+            if [ -z "$aligns" ]; then
+              echo "::error::No ELF LOAD segments found for $so."
+              exit 1
+            fi
+            bad=0
+            for a in $aligns; do
+              if [ "$((a))" -lt 16384 ]; then bad=1; fi
+            done
+            line="$so LOAD aligns: $(echo "$aligns" | tr '\n' ' ')"
+            if [ "$bad" -eq 1 ]; then
+              echo "MISALIGNED $line" | tee -a elf-alignment.txt
+              failures=1
+            else
+              echo "OK $line" >> elf-alignment.txt
+            fi
+          done
+          cat elf-alignment.txt
+          if [ "$failures" -ne 0 ]; then
+            echo "::error::One or more packaged native libraries have LOAD segment alignment below 16 KB."
+            exit 1
+          fi
+
+      - name: Boot the 16 KB emulator in software mode (bounded)
+        run: |
+          set -euo pipefail
+          "$ANDROID_HOME/emulator/emulator" -avd seali16ksw \
+            -no-window -no-audio -no-boot-anim \
+            -gpu swiftshader_indirect -no-snapshot-save -accel off &
+          # Bounded boot: TCG boot duration on this exact image is unproven,
+          # so the wait is capped and a timeout fails the lane with explicit
+          # BOOT_RESULT=TIMEOUT evidence instead of hanging the job.
+          boot_start=$(date +%s)
+          set +e
+          timeout 1500 bash -c '
+            adb wait-for-device
+            while ! adb shell getprop sys.boot_completed 2>/dev/null | grep -q 1; do sleep 5; done
+          '
+          boot_status=$?
+          set -e
+          boot_end=$(date +%s)
+          boot_result=TIMEOUT
+          if [ "$boot_status" -eq 0 ]; then boot_result=OK; fi
+          {
+            echo "BOOT_RESULT=$boot_result"
+            echo "BOOT_SECONDS=$((boot_end - boot_start))"
+            echo "BOOT_BUDGET_SECONDS=1500"
+          } | tee boot-timing.txt
+          if [ "$boot_status" -ne 0 ]; then
+            echo "::error::16 KB emulator did not finish booting within 1500s under software emulation (wait exit $boot_status)."
+            exit 1
+          fi
+          page_size="$(adb shell getconf PAGE_SIZE | tr -d "\r")"
+          echo "PAGE_SIZE=$page_size" | tee page-size.txt
+          if [ "$page_size" != "16384" ]; then
+            echo "::error::Expected PAGE_SIZE 16384 on the 16 KB emulator, got '$page_size'. The 16 KB environment itself did not come up; app results would be meaningless."
+            exit 1
+          fi
+          {
+            echo "ro.build.version.release=$(adb shell getprop ro.build.version.release | tr -d "\r")"
+            echo "ro.product.cpu.abilist=$(adb shell getprop ro.product.cpu.abilist | tr -d "\r")"
+          } | tee device-props.txt
+
+      - name: Install the app on the 16 KB emulator
+        run: |
+          set -euo pipefail
+          mapfile -t apks < <(find app/build/outputs/apk/generic/debug -maxdepth 1 -type f -name '*x86_64*.apk' | sort)
+          test "${#apks[@]}" -eq 1
+          adb install -r "${apks[0]}" 2>&1 | tee install-16k.txt
+          if grep -qi 'Failure' install-16k.txt; then
+            echo "::error::APK install failed on the 16 KB emulator."
+            exit 1
+          fi
+
+      # Bounded smoke: launch the app, prove the process stays up, and screen
+      # logcat for native-library load failure signatures. This is a
+      # start-up smoke on 16 KB pages, not full FFmpeg/WebP functional
+      # qualification.
+      - name: Launch smoke and capture runtime evidence
+        run: |
+          set -euo pipefail
+          adb logcat -c
+          # Verified-absence reset before launch: no pre-existing marker may
+          # qualify this run (the app also deletes it in onCreate).
+          adb exec-out run-as com.frpboy.seali.debug rm -f files/seali-init-status 2>/dev/null || true
+          pre_marker="$(adb exec-out run-as com.frpboy.seali.debug cat files/seali-init-status 2>/dev/null | tr -d '\r' || true)"
+          if [ -n "$pre_marker" ]; then
+            echo "::error::Pre-launch reset failed: a stale init marker is still present."
+            exit 1
+          fi
+          adb shell monkey -p com.frpboy.seali.debug -c android.intent.category.LAUNCHER 1
+          sleep 20
+          adb shell pidof com.frpboy.seali.debug | tee app-pid.txt
+          if [ ! -s app-pid.txt ]; then
+            echo "::error::App process is not running 20s after launch on the 16 KB emulator."
+            exit 1
+          fi
+          # Startup init gate. This lane captures NO screenshots: a crash
+          # screen carries the raw stacktrace and no timing assumption can
+          # make capturing it safe. App.kt deletes files/seali-init-status at
+          # process start and writes "OK pid=<pid>" or "ERROR pid=<pid>" when
+          # its caught async initialization block (YoutubeDL/FFmpeg/Aria2c/
+          # cookies/cleanup) terminates; a write failure (swallowed
+          # app-side, never logged raw) leaves the file absent and fails this
+          # gate closed as TIMEOUT. The lane binds the signal to the process
+          # identity captured below: a pid change means the observed process
+          # died or restarted and is REJECTED (a later OK from a new process
+          # after a crash loop never qualifies). The default uncaught handler
+          # can keep the process alive on CrashReportActivity, so this gate
+          # claims ONLY the caught initialization chain's terminal result for
+          # this process - nothing about uncaught paths. Enum + pid only; no
+          # error text is read, printed, or uploaded.
+          startup_init=TIMEOUT
+          expected_pid="$(adb shell pidof com.frpboy.seali.debug | tr -d ' \r')"
+          for poll in $(seq 1 24); do
+            live_pid="$(adb shell pidof com.frpboy.seali.debug | tr -d ' \r')"
+            if [ -z "$live_pid" ]; then
+              startup_init=PROCESS_DIED
+              break
+            fi
+            if [ "$live_pid" != "$expected_pid" ]; then
+              startup_init=RESTART_DETECTED
+              break
+            fi
+            marker="$(adb exec-out run-as com.frpboy.seali.debug cat files/seali-init-status 2>/dev/null | tr -d '\r' || true)"
+            if [ "$marker" = "OK pid=$expected_pid" ]; then
+              startup_init=PASS
+              break
+            fi
+            if [ "$marker" = "ERROR pid=$expected_pid" ]; then
+              startup_init=ERROR
+              break
+            fi
+            sleep 5
+          done
+          {
+            echo "STARTUP_INIT=$startup_init"
+            echo "STARTUP_INIT_POLLS=24"
+            echo "STARTUP_INIT_POLL_INTERVAL_SECONDS=5"
+          } > startup-init.txt
+          if [ "$startup_init" != PASS ]; then
+            echo "::error::Startup init gate failed ($startup_init): no fresh terminal OK from this process's caught initialization block."
+            exit 1
+          fi
+          # Raw logcat never leaves the runner and is never printed to the
+          # console: whole system logs can carry incidental data unrelated to
+          # the app. The bounded native-load scan runs locally; the public
+          # evidence is the explicit PASS/FAIL summary only.
+          adb logcat -d > "$RUNNER_TEMP/logcat-16k.txt"
+          logcat_lines="$(wc -l < "$RUNNER_TEMP/logcat-16k.txt" | tr -d ' ')"
+          # grep exit status is load-bearing: 0 = signature match, 1 = clean
+          # no-match, anything else = the scan itself failed. An errored scan
+          # must never upload a PASS it did not earn; fail closed instead.
+          set +e
+          grep -Eq 'dlopen failed|Unsupported ELF|invalid ELF|linker.*(error|denied)|failed to load.*\.so' "$RUNNER_TEMP/logcat-16k.txt"
+          grep_status=$?
+          set -e
+          case "$grep_status" in
+            0) scan=FAIL ;;
+            1) scan=PASS ;;
+            *) scan=ERROR ;;
+          esac
+          {
+            echo "LOGCAT_NATIVE_LOAD_SCAN=$scan"
+            echo "LOGCAT_LINES_SCANNED=$logcat_lines"
+          } > native-load-scan.txt
+          case "$scan" in
+            PASS) ;;
+            FAIL)
+              echo "::error::Native library load failure signatures found in logcat under 16 KB pages."
+              exit 1
+              ;;
+            *)
+              echo "::error::Native-load logcat scan could not run (grep exit $grep_status); failing closed, no PASS claimed."
+              exit 1
+              ;;
+          esac
+
+      # Evidence only. The APK under test is never uploaded as an artifact;
+      # distribution stays with the release workflows. Raw logcat is excluded
+      # by design; native-load-scan.txt carries only the PASS/FAIL summary of
+      # the on-runner scan; startup-init.txt carries only the enum
+      # result of the terminal init-signal poll. The lane captures no
+      # screenshots. accel-mode.txt and boot-timing.txt make the
+      # software-emulation provenance of every result explicit.
+      - name: Upload 16 KB software-mode evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-16kb-software-evidence
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            accel-mode.txt
+            boot-timing.txt
+            apk-under-test.txt
+            zipalign-16k.txt
+            elf-alignment.txt
+            page-size.txt
+            device-props.txt
+            install-16k.txt
+            app-pid.txt
+            startup-init.txt
+            native-load-scan.txt
