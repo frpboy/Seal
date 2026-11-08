@@ -86,8 +86,10 @@ FFmpeg/aria2 source.
 - Repository `LICENSE`: GNU General Public License v3.0.
 - In-app: the Credits page (FFmpeg "GNU General Public License v3.0 or
   later", aria2 "GNU General Public License v2.0", yt-dlp "The Unlicense",
-  and others). The payload zips themselves contain `usr/lib` only - no
-  `usr/bin/ffmpeg`, no `share/doc` copyright or license files.
+  and others). The payload zips carry no license documentation:
+  0.17.3 contains `usr/lib` plus macOS archive metadata (`__MACOSX`,
+  `usr/.DS_Store`); 0.18.1 contains `usr/lib` only. Neither has
+  `usr/bin/ffmpeg` nor any `share/doc` copyright or license files.
 
 ## Open items
 
