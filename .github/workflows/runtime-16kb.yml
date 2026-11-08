@@ -68,11 +68,12 @@ jobs:
           set -e
           # yes may die by SIGPIPE (141) after sdkmanager exits, or report
           # "Broken pipe" and exit 1 when the runner shell inherits SIGPIPE
-          # ignored or blocked. Both mean only that the consumer closed the
-          # pipe early. The consumer's own status stays strictly checked, so
-          # tolerating producer 0, 1, or 141 cannot mask a consumer failure.
-          # Every failure path prints its PIPESTATUS: a silent `test` exit
-          # would leave the next failure indistinguishable again.
+          # ignored or blocked; exit 1 can also have other causes (allocation
+          # or other failures). The producer tolerance 0|1|141 is deliberately
+          # broader than the EPIPE case; it is safe because the consumer is
+          # strictly required to exit 0 first. Every failure path prints its
+          # PIPESTATUS: a silent `test` exit would leave the next failure
+          # indistinguishable again.
           if [ "${license_status[1]}" -ne 0 ]; then
             echo "::error::sdkmanager --licenses failed with exit ${license_status[1]} (producer ${license_status[0]})."
             exit "${license_status[1]}"

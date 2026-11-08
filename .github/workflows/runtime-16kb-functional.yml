@@ -73,13 +73,15 @@ jobs:
           license_status=("${PIPESTATUS[@]}")
           set -e
           if [ "${license_status[1]}" -ne 0 ]; then
-            echo "::error::sdkmanager --licenses failed with exit ${license_status[1]}."
+            echo "::error::sdkmanager --licenses failed with exit ${license_status[1]} (producer ${license_status[0]})."
             exit "${license_status[1]}"
           fi
-          # Producer tolerance is 0, 141 (SIGPIPE kill), or 1 (EPIPE with
-          # SIGPIPE ignored/blocked, diagnosed by GNU yes as "Broken pipe").
-          # All three mean only an early-closed pipe; the consumer check
-          # above stays strict, so this cannot mask a consumer failure.
+          # Producer tolerance is 0, 141 (SIGPIPE kill), or 1. GNU yes exits
+          # 1 after reporting "Broken pipe" when SIGPIPE is inherited ignored
+          # or blocked, but exit 1 is NOT uniquely the EPIPE case (allocation
+          # or other failures are possible); the tolerance is deliberately
+          # broader. It is safe because the consumer is strictly required to
+          # exit 0 above.
           case "${license_status[0]}" in
             0|1|141) ;;
             *)
