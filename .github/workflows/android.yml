@@ -61,16 +61,20 @@ jobs:
         run: |
           set -euo pipefail
           python3 native/qualification/test-runtime16k.py
-          # Fail before rebuilding if actual16KiB runtime host cannot accelerate.
-          [[ -r /dev/kvm && -w /dev/kvm ]]
-          # Standard Linux host only. Fail rather than retry with guessed memory caps.
-          (( $(awk '/MemTotal/{print $2}' /proc/meminfo) >= 6000000 ))
-          (( $(nproc) >= 2 ))
-          (( $(df -Pk . | awk 'NR==2{print $4}') >= 12000000 ))
-          # Recipe uses its own checksum-pinned CMake, never host /usr/local/bin.
-          [[ "$RUNNER_ENVIRONMENT" == github-hosted && "$RUNNER_OS" == Linux && "$RUNNER_ARCH" == X64 ]]
+          # Named fail-closed diagnostics only: no host permission workaround.
+          id
+          if [[ -e /dev/kvm ]]; then stat -c 'KVM mode=%a uid=%u gid=%g type=%F' /dev/kvm; else echo 'KVM device absent'; fi
+          [[ -r /dev/kvm && -w /dev/kvm ]] || { echo 'PREFLIGHT_FAIL KVM_READ_WRITE' >&2; exit 1; }
+          mem_kib=$(awk '/MemTotal/{print $2}' /proc/meminfo)
+          cpus=$(nproc)
+          disk_kib=$(df -Pk . | awk 'NR==2{print $4}')
+          printf 'PREFLIGHT_RESOURCES mem_kib=%s cpus=%s disk_kib=%s\n' "$mem_kib" "$cpus" "$disk_kib"
+          (( mem_kib >= 6000000 )) || { echo 'PREFLIGHT_FAIL MEMORY' >&2; exit 1; }
+          (( cpus >= 2 )) || { echo 'PREFLIGHT_FAIL CPU' >&2; exit 1; }
+          (( disk_kib >= 12000000 )) || { echo 'PREFLIGHT_FAIL DISK' >&2; exit 1; }
+          [[ "$RUNNER_ENVIRONMENT" == github-hosted && "$RUNNER_OS" == Linux && "$RUNNER_ARCH" == X64 ]] || { echo 'PREFLIGHT_FAIL HOST_IDENTITY' >&2; exit 1; }
           for tool in make python3 curl unzip timeout tar sha256sum env; do
-            [[ -x "/usr/bin/$tool" ]]
+            [[ -x "/usr/bin/$tool" ]] || { printf 'PREFLIGHT_FAIL TOOL_%s\n' "$tool" >&2; exit 1; }
           done
           java -version
           "$ANDROID_HOME/build-tools/36.0.0/zipalign" -h || true
