@@ -86,3 +86,12 @@ ARM64 devices, download UI codec wiring, broad UI/state/SAF/upgrade/AAB/release
 signing/installer custody remain separate gates. Cleanup verifies owned emulator
 exit when possible; detached descendants remain UNKNOWN. Forcedoutertermination
 can prevent runtime receipt, therefore missingreceipt meansUNKNOWN not success.
+
+MainActivity must be both resumed and focused (not same-process crash activity)
+after app initialization and again after codec execution, within15s each.
+Hash all112 extracted FFmpeg ELF plus installed executable against the same
+inspected APK inventory before making any remediated-library runtime claim.
+Small mocked controller tests cover false-positive crashfocus, hash drift,
+duplicate hashes, cleanup success/failure receipt and no-emulator receipt.
+They do not prove Android runtime. 45min job bound is a failure ceiling, not
+a completion promise; existing phase ceilings need not all fit that ceiling.

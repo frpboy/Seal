@@ -7,6 +7,8 @@ import os
 from pathlib import Path
 import re
 import shlex
+import signal
+import sys
 import subprocess
 import tempfile
 import time
@@ -54,7 +56,36 @@ def finish():
     (OUT / 'runtime16k.json').write_text(json.dumps(report, indent=2) + '\n')
 
 
-atexit.register(finish)
+def focus_is_main(activities, window):
+    resumed=[x for x in activities.splitlines() if 'ResumedActivity' in x or 'mResumedActivity' in x]
+    focused=[x for x in window.splitlines() if 'mCurrentFocus=' in x]
+    def okay(lines):
+        return bool(lines) and all(PKG in x and 'com.junkfood.seal.MainActivity' in x
+                                   and 'CrashReportActivity' not in x for x in lines)
+    return okay(resumed) and okay(focused)
+
+
+def ready_main():
+    deadline=time.monotonic()+15
+    while time.monotonic()<deadline:
+        activities=shell('dumpsys','activity','activities').decode()
+        window=shell('dumpsys','window','windows').decode()
+        if focus_is_main(activities, window):
+            return {'resumed_and_focused':'MainActivity, not CrashReportActivity'}
+        time.sleep(1)
+    raise RuntimeError('MainActivity readiness/focus not established')
+
+
+def verify_hash_output(expected, output):
+    actual={}
+    for line in output.splitlines():
+        digest,path=line.split(maxsplit=1)
+        if path in actual:
+            raise RuntimeError('duplicate device hash path')
+        actual[path]=digest
+    if actual!=expected:
+        raise RuntimeError('installed/extracted native bytes differ from inspected APK inventory')
+    return len(actual)
 
 
 def main():
@@ -136,6 +167,18 @@ def main():
             time.sleep(1)
     else:
         raise RuntimeError('App initialization did not extract native codec payload')
+    report['ui_after_initialization']=ready_main()
+    inventory=json.loads((OUT/'native-inventory.json').read_text())
+    assert inventory['sha256']==identity['sha256']
+    prefix='lib/x86_64/libffmpeg.zip.so!usr/lib/'
+    expected={codecdir+'/'+row['entry'][len(prefix):]:row['sha256']
+              for row in inventory['native_elf'] if row['entry'].startswith(prefix)}
+    assert len(expected)==112, 'unexpected FFmpeg ELF inventory scope'
+    executable=[row for row in inventory['native_elf'] if row['entry']=='lib/x86_64/libffmpeg.so']
+    assert len(executable)==1
+    expected[lib+'/libffmpeg.so']=executable[0]['sha256']
+    bound=verify_hash_output(expected, app('sha256sum', *sorted(expected), seconds=90).decode())
+    report['native_hash_binding']={'files':bound,'status':'all112 extracted FFmpeg ELF plus executable equal inspected APK inventory'}
     pixels = bytes((i*17+31)%256 for i in range(16*16*3))
     app('mkdir', '-p', 'files/runtime16k')
     app('sh', '-c', 'cat > files/runtime16k/input.rgb', data=pixels)
@@ -155,10 +198,13 @@ def main():
     # Pure emulator fixture pixels only. Parent must inspect these actual pixels.
     (OUT/'runtime16k.png').write_bytes(adb('exec-out','screencap','-p'))
     assert shell('pidof', PKG).strip(), 'app exited after codec operation'
+    report['ui_after_codec']=ready_main()
     report['status']='PASS narrow x86_64 16KiB launch and appUID WebP roundtrip only'
 
 
 if __name__ == '__main__':
+    atexit.register(finish)
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(124))
     try:
         main()
     except Exception as error:

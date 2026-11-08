@@ -60,6 +60,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python3 native/qualification/test-runtime16k.py
           # Fail before rebuilding if actual16KiB runtime host cannot accelerate.
           [[ -r /dev/kvm && -w /dev/kvm ]]
           # Standard Linux host only. Fail rather than retry with guessed memory caps.
