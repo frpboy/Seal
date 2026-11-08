@@ -32,6 +32,7 @@ import com.junkfood.seal.ui.svg.drawablevectors.coder
 data class Credit(val title: String = "", val license: String? = null, val url: String = "")
 
 private const val GPL_V3 = "GNU General Public License v3.0"
+private const val GPL_V3_OR_LATER = "GNU General Public License v3.0 or later"
 private const val GPL_V2 = "GNU General Public License v2.0"
 private const val LGPL_V2_1 = "GNU Lesser General Public License, version 2.1"
 private const val APACHE_V2 = "Apache License, Version 2.0"
@@ -74,7 +75,7 @@ fun CreditsPage(onNavigateBack: () -> Unit) {
             Credit("Read You", GPL_V3, readYou),
             Credit("youtubedl-android", GPL_V3, youtubedlAndroidUrl),
             Credit("Termux", GPL_V3, termux),
-            Credit("FFmpeg", GPL_V2, FFmpeg),
+            Credit("FFmpeg", GPL_V3_OR_LATER, FFmpeg),
             Credit("Android Jetpack", APACHE_V2, jetpack),
             Credit("Kotlin", APACHE_V2, kotlin),
             Credit("dvd", GPL_V3, dvd),
