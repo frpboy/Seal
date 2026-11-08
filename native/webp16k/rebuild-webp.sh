@@ -17,13 +17,22 @@ mkdir -m 700 "$HOME"
 cd "$work"
 {
  printf 'controlled_PATH=%s\nsource_date_epoch=%s\n' "$PATH" "$SOURCE_DATE_EPOCH"
- /usr/bin/cmake --version
  /usr/bin/make --version
  /usr/bin/python3 --version
  /usr/bin/curl --version
  /usr/bin/unzip -v
 } > build-tool-versions.txt
 fetch() { if [ ! -f "$2" ]; then curl --fail --location --silent --show-error "$1" -o "$2"; fi; }
+# A new checksum-pinned toolchain provenance replaces the host CMake contract.
+# Download/extract only inside the already fresh private work directory.
+fetch https://cmake.org/files/v3.22/cmake-3.22.1-linux-x86_64.tar.gz cmake.tar.gz
+printf '%s  %s\n' 73565c72355c6652e9db149249af36bcab44d9d478c5546fd926e69ad6b43640 cmake.tar.gz | sha256sum -c -
+tar xzf cmake.tar.gz
+cmake="$work/cmake-3.22.1-linux-x86_64/bin/cmake"
+[[ -f "$cmake" && ! -L "$cmake" && -x "$cmake" ]]
+[[ "$("$cmake" --version | head -1)" == 'cmake version 3.22.1' ]]
+"$cmake" --version >> build-tool-versions.txt
+sha256sum cmake.tar.gz "$cmake" >> build-tool-versions.txt
 fetch https://dl.google.com/android/repository/android-ndk-r28c-linux.zip ndk.zip
 fetch https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.6.0.tar.gz source.tar.gz
 fetch https://repo.maven.apache.org/maven2/io/github/junkfood02/youtubedl-android/ffmpeg/0.18.1/ffmpeg-0.18.1.aar original.aar
@@ -38,7 +47,7 @@ ndk="$work/android-ndk-r28c"
 "$ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/clang" --version >> build-tool-versions.txt
 cat "$ndk/source.properties" >> build-tool-versions.txt
 for abi in arm64-v8a x86_64; do
- cmake -S libwebp-1.6.0 -B "build-$abi" \
+ "$cmake" -S libwebp-1.6.0 -B "build-$abi" \
   -DCMAKE_TOOLCHAIN_FILE="$ndk/build/cmake/android.toolchain.cmake" \
   -DANDROID_ABI="$abi" -DANDROID_PLATFORM=android-24 \
   -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON \
@@ -48,7 +57,7 @@ for abi in arm64-v8a x86_64; do
   -DWEBP_BUILD_IMG2WEBP=OFF -DWEBP_BUILD_VWEBP=OFF -DWEBP_BUILD_WEBPINFO=OFF \
   -DWEBP_BUILD_ANIM_UTILS=OFF -DWEBP_BUILD_EXTRAS=OFF -DWEBP_BUILD_WEBPMUX=OFF \
   -DWEBP_BUILD_LIBWEBPMUX=ON -DWEBP_ENABLE_SWAP_16BIT_CSP=ON
- cmake --build "build-$abi" --parallel 4
+ "$cmake" --build "build-$abi" --parallel 4
  "$ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/clang" \
   --target="$([ "$abi" = arm64-v8a ] && printf aarch64-linux-android24 || printf x86_64-linux-android24)" \
   --sysroot="$ndk/toolchains/llvm/prebuilt/linux-x86_64/sysroot" \

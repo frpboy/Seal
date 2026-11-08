@@ -64,19 +64,11 @@ jobs:
           (( $(awk '/MemTotal/{print $2}' /proc/meminfo) >= 6000000 ))
           (( $(nproc) >= 2 ))
           (( $(df -Pk . | awk 'NR==2{print $4}') >= 12000000 ))
-          # Exact recipe contract, not the caller's wider PATH.
+          # Recipe uses its own checksum-pinned CMake, never host /usr/local/bin.
           [[ "$RUNNER_ENVIRONMENT" == github-hosted && "$RUNNER_OS" == Linux && "$RUNNER_ARCH" == X64 ]]
-          [[ "$ImageOS" == ubuntu24 && "$ImageVersion" == 20261101.360.1 ]]
-          /usr/bin/python3 native/qualification/host-cmake-contract.py before
-          # Proposed scoped disposable-host adaptation. Never replace an entry.
-          # Requires separate approval for this exact elevated operation.
-          /usr/bin/sudo -n /usr/bin/ln -sT -- /usr/local/bin/cmake /usr/bin/cmake
-          /usr/bin/python3 native/qualification/host-cmake-contract.py after
-          for tool in cmake make python3 curl unzip timeout tar sha256sum env; do
+          for tool in make python3 curl unzip timeout tar sha256sum env; do
             [[ -x "/usr/bin/$tool" ]]
-            /usr/bin/readlink -f "/usr/bin/$tool"
           done
-          /usr/bin/env -i PATH=/usr/bin:/bin LC_ALL=C TZ=UTC /usr/bin/cmake --version
           java -version
           "$ANDROID_HOME/build-tools/36.0.0/zipalign" -h || true
           chmod +x gradlew

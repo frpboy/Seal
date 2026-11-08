@@ -39,28 +39,24 @@ Named terminal handler emits Python JSON and preserves phase exit status, with t
 
 The artifact-upload step is removed to avoid metered artifact storage. Ordinary workflow logs retain a bounded, encoded allowlist only, never APK/AAB bytes. A missing/truncated envelope is incomplete evidence, not success. Overall runner loss or timeout may prevent log receipt emission. No new build or runtime test is claimed by this source amendment.
 
-## Proposed exact-path host adapter (source only)
+## Checksum-pinned private CMake provenance
 
-Run42455567604 failed in selection before native downloads because the recipe
-uses /usr/bin/cmake but image20261101.360.1 supplies /usr/local/bin/cmake3.31.6.
-This amendment preserves every native recipe byte. It proposes ONE new symlink
-on the disposable hosted VM, using only sudo -n /usr/bin/ln -sT, never force or
-replacement, apt installation, permissions changes, security-policy changes,
-custom/paid runners, or persistent account infrastructure. Execution needs
-explicit approval for this elevated host operation as well as a new bounded run.
-Capability is not authority. The image, OS, architecture, tool version, ownership,
-permissions, absent target, post-link identity/hash, and all exact recipe tool
-paths must pass before Gradle. Any mismatch fails without fallback or retry.
-Host adapter evidence is ordinary preflight log output, not a twelfth required
-qualification receipt; its local contract file is not in the upload/log allowlist.
-The new host's actual ownership/permissions and CMake binary hash remain unknown
-until that preflight runs. Different CMake provenance may change output: existing
-expected transformed AAR SHA remains unchanged and fails closed on a mismatch.
-This proposal neither executes the elevated operation nor qualifies the app.
+Historical run42455567604 failed before native build because /usr/bin/cmake
+was missing. Run42455997256 stopped before sudo/Gradle because the preinstalled
+/usr/local/bin/cmake failed the ownership/nonwritable guard. Both stay failed.
+The former adapter is removed, not weakened: no host CMake executable is used,
+no root/sudo/system symlink/permission change or image-version assertion remains.
 
-Host-adapter review correction: reject every lexical symlink in the source path
-and all parents, including cycles, before any version execution. Only the exact
-new target link is allowed separately; its parent chain and root ownership are
-checked. This fail-closed policy may reject a future image whose source path
-contains symlinks; it must not be weakened automatically. Small temporary-file
-fixtures mock ownership/platform version only, never invoke CMake or sudo.
+The revised recipe adds official CMake3.22.1 Linux x86_64 archive SHA256
+73565c72355c6652e9db149249af36bcab44d9d478c5546fd926e69ad6b43640,
+verified from https://cmake.org/files/v3.22/cmake-3.22.1-SHA-256.txt.
+It downloads and checksum-checks before extraction/execution, under existing
+fresh private workdir/controlled environment/timeouts. CMake is invoked by its
+exact extracted absolute path for configure and build, never PATH lookup.
+Version and archive/executable hashes enter build-tool-versions.txt.
+This is CHANGED recipe and binary provenance. The earlier two local builds
+reported CMake3.22.1 but used the distribution package, not this archive.
+No cross-toolchain reproducibility is presumed. The transformed AAR expected
+SHA remains6755c855...; differing outputs fail closed rather than updating it.
+No APK/AAB upload, cache, deployment, signing or paid runner is added. All final
+packaging/runtime gates remain; full source review precedes another bounded run.
