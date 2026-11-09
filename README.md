@@ -1,5 +1,9 @@
 # Seali
 
+<img src="https://komarev.com/ghpvc/?username=frpboy-seali&amp;label=README%20VIEWS&amp;color=0e75b6&amp;style=for-the-badge" alt="Seali README views" />
+
+<sub>Badge requests counted by Komarev, not unique visitors or historical GitHub traffic.</sub>
+
 **Seali** is an independently maintained continuation of the open-source Android video and audio downloader originally created by [JunkFood02](https://github.com/JunkFood02/Seal).
 
 This repository is maintained by [Rahul Muraleedharan (@frpboy)](https://github.com/frpboy). Seali builds on the original project's work; it does not claim authorship of the upstream code.

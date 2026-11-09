@@ -8,6 +8,11 @@ on:
     tags: [ "v*" ]
   workflow_dispatch:
     inputs:
+      build_release:
+        description: 'Explicitly build owner-signed release APKs/AAB (separate from verification; no upload unless approved)'
+        type: boolean
+        required: false
+        default: false
       run_history_ui:
         description: 'Run the Android history UI check on an existing KVM-capable runner'
         type: boolean
@@ -29,6 +34,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Check verification and signing boundaries
+        run: python3 scripts/ci/test_verification_boundary.py
+
+      - name: Validate explicit release publication request
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_apk_artifacts == true && inputs.build_release != true
+        run: |
+          echo "::error::Public APK upload requires the explicit build_release input and separate distribution approval."
+          exit 1
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -54,9 +70,11 @@ jobs:
       - name: Run buildSrc unit tests
         run: ./gradlew -p buildSrc test --console=plain
 
-      # Release artifacts must never be published unsigned. PRs without secrets
-      # still run the debug test suite; main/tag/manual builds require signing.
+      # Verification is secret-free for every push/PR and default manual run.
+      # Owner signing/release packaging require an explicit manual opt-in.
+      # Public artifact upload remains separately gated and is distribution.
       - name: Validate and stage private Play upload key
+        if: github.event_name == 'workflow_dispatch' && inputs.build_release == true
         id: signing
         shell: bash
         env:
@@ -68,11 +86,6 @@ jobs:
           set -euo pipefail
 
           if [[ -z "$SEALI_UPLOAD_KEYSTORE_BASE64" ]]; then
-            if [[ "$GITHUB_EVENT_NAME" == "pull_request" && -z "$SEALI_UPLOAD_KEY_ALIAS$SEALI_UPLOAD_KEY_PASSWORD$SEALI_UPLOAD_STORE_PASSWORD" ]]; then
-              echo "available=false" >> "$GITHUB_OUTPUT"
-              echo "::notice::Signing secrets are unavailable to this pull request; release packaging is safely skipped."
-              exit 0
-            fi
             echo "::error::Missing SEALI_UPLOAD_KEYSTORE_BASE64. Configure the four Seali upload-signing repository secrets before running a release build."
             exit 1
           fi
@@ -379,7 +392,7 @@ jobs:
       # The signing key is needed only until packaging and verification finish.
       # Always remove it from the ephemeral runner, including failed builds.
       - name: Remove private signing material
-        if: always()
+        if: always() && github.event_name == 'workflow_dispatch' && inputs.build_release == true
         shell: bash
         run: |
           rm -f app/seali-upload-key.jks "$RUNNER_TEMP/seali-upload-key.base64" "$RUNNER_TEMP/seali-keystore-check.log" "$RUNNER_TEMP/seali-upload-key-check.csr" "$RUNNER_TEMP/seali-upload-key-nested.base64" "$RUNNER_TEMP/seali-upload-key-nested.bin"
