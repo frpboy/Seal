@@ -48,7 +48,7 @@ import com.junkfood.seal.ui.component.BackButton
 import com.junkfood.seal.ui.component.PreferenceSingleChoiceItem
 import com.junkfood.seal.ui.component.PreferenceSubtitle
 import com.junkfood.seal.ui.component.PreferencesHintCard
-import com.junkfood.seal.ui.page.settings.about.weblate
+import com.junkfood.seal.ui.page.settings.about.translationContributionUrl
 import com.junkfood.seal.ui.theme.SealTheme
 import com.junkfood.seal.util.LocaleLanguageCodeMap
 import com.junkfood.seal.util.PreferenceUtil
@@ -168,10 +168,10 @@ private fun LanguagePageImpl(
                 item {
                     PreferencesHintCard(
                         title = stringResource(R.string.translate),
-                        description = stringResource(R.string.translate_desc),
+                        description = stringResource(R.string.seali_translate_desc),
                         icon = Icons.Outlined.Translate,
                     ) {
-                        uriHandler.openUri(weblate)
+                        uriHandler.openUri(translationContributionUrl)
                     }
                 }
 
