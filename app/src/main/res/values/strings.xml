@@ -479,4 +479,10 @@
     <string name="video_requires_video_hint">Turn off Save as audio to change video format, video quality or the MKV container.</string>
     <string name="video_uses_sorting_hint">Format sorting chooses the video format and quality. Turn it off to choose them manually.</string>
     <string name="advanced_requires_selection_hint">Turn on Format selection to use video clips or merge audio streams.</string>
+    <string name="seali_package_name">Package name</string>
+    <string name="seali_issue_tracker">Seali Issue Tracker</string>
+    <string name="seali_issue_tracker_desc">Search or report Seali-specific issues. Do not post private links, cookies or credentials.</string>
+    <string name="seali_upstream_known_issues">Seal upstream known issues</string>
+    <string name="seali_ytdlp_known_issues">yt-dlp known issues and FAQ</string>
+    <string name="seali_interaction_summary">Choose the initial download type</string>
 </resources>

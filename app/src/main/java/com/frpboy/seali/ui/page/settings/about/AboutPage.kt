@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.ContactSupport
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Link
@@ -57,8 +58,8 @@ import com.frpboy.seali.util.AUTO_UPDATE
 import com.frpboy.seali.util.PreferenceUtil
 import com.frpboy.seali.util.ToastUtil
 
-private const val releaseURL = "https://github.com/frpboy/Seal/releases"
-private const val repoUrl = "https://github.com/frpboy/Seal"
+private const val releaseURL = "https://github.com/frpboy/Seali/releases"
+private const val repoUrl = "https://github.com/frpboy/Seali"
 private const val upstreamRepoUrl = "https://github.com/JunkFood02/Seal"
 private const val developerName = "Rahul Muraleedharan"
 private const val portfolioUrl = "https://www.frpboy.in/"
@@ -67,8 +68,6 @@ private const val linkedinUrl = "https://www.linkedin.com/in/rahul-muraleedharan
 private const val supportGroupUrl = "https://t.me/FRPboy_Projects"
 const val weblate = "https://hosted.weblate.org/engage/seal/"
 const val YtdlpRepository = "https://github.com/yt-dlp/yt-dlp"
-private const val githubIssueUrl = "https://github.com/JunkFood02/Seal/issues"
-private const val githubSponsor = "https://github.com/sponsors/JunkFood02"
 private const val TAG = "AboutPage"
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -120,7 +119,7 @@ fun AboutPage(
                 item {
                     PreferenceItem(
                         title = "Developer",
-                        description = "${developerName} - ${portfolioUrl}",
+                        description = "$developerName - ${aboutLinkLabel(portfolioUrl)}",
                         icon = Icons.Outlined.Person,
                     ) {
                         openUrl(portfolioUrl)
@@ -129,7 +128,7 @@ fun AboutPage(
                 item {
                     PreferenceItem(
                         title = "GitHub",
-                        description = githubProfileUrl,
+                        description = aboutLinkLabel(githubProfileUrl),
                         icon = Icons.Outlined.Link,
                     ) {
                         openUrl(githubProfileUrl)
@@ -138,7 +137,7 @@ fun AboutPage(
                 item {
                     PreferenceItem(
                         title = "LinkedIn",
-                        description = linkedinUrl,
+                        description = aboutLinkLabel(linkedinUrl),
                         icon = Icons.Outlined.Link,
                     ) {
                         openUrl(linkedinUrl)
@@ -147,7 +146,7 @@ fun AboutPage(
                 item {
                     PreferenceItem(
                         title = "Support requests",
-                        description = supportGroupUrl,
+                        description = aboutLinkLabel(supportGroupUrl),
                         icon = Icons.Outlined.ContactSupport,
                     ) {
                         openUrl(supportGroupUrl)
@@ -171,20 +170,12 @@ fun AboutPage(
                         openUrl(releaseURL)
                     }
                 }
-                /*            item {
-                    PreferenceItem(
-                        title = stringResource(R.string.github_issue),
-                        description = stringResource(R.string.github_issue_desc),
-                        icon = Icons.Outlined.ContactSupport,
-                    ) { openUrl(githubIssueUrl) }
-                }*/
                 item {
                     PreferenceItem(
                         title = stringResource(id = R.string.sponsor),
                         description = stringResource(id = R.string.sponsor_desc),
                         icon = Icons.Outlined.VolunteerActivism,
                     ) {
-                        //                    openUrl(githubSponsor)
                         onNavigateToDonatePage()
                     }
                 }
@@ -233,7 +224,8 @@ fun AboutPage(
                     }
                 }
                 item {
-                    PreferenceItem(title = "Package name", description = context.packageName) {
+                    PreferenceItem(title = stringResource(R.string.seali_package_name),
+                        description = context.packageName, icon = Icons.Outlined.Inventory2) {
                         clipboardManager.setText(AnnotatedString(context.packageName))
                         ToastUtil.makeToast(R.string.info_copied)
                     }
@@ -257,7 +249,7 @@ fun AutoUpdateUnavailableDialog(onDismissRequest: () -> Unit = {}) {
         val startIndex = text.indexOf(hyperLinkText)
         val endIndex = startIndex + hyperLinkText.length
         addUrlAnnotation(
-            UrlAnnotation("https://github.com/frpboy/Seal/releases"),
+            UrlAnnotation("https://github.com/frpboy/Seali/releases"),
             start = startIndex,
             end = endIndex,
         )

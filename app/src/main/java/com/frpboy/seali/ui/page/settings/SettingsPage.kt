@@ -216,7 +216,7 @@ fun SettingsPage(onNavigateBack: () -> Unit, onNavigateTo: (String) -> Unit) {
             item {
                 SettingItem(
                     title = stringResource(id = R.string.interface_and_interaction),
-                    description = stringResource(id = R.string.settings_before_download),
+                    description = stringResource(id = R.string.seali_interaction_summary),
                     icon = Icons.Rounded.ViewComfy,
                 ) {
                     onNavigateTo(Route.INTERACTION)
