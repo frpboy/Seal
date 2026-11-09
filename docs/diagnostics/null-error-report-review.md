@@ -15,3 +15,5 @@ Five real Kotlin/JUnit tests passed: null fallback, nested cause and original id
 Independent review required before push. Actual Android generic debug compile and actual error-dialog pixels remain open. Do not mark this merged, installed, runtime-qualified, or a fix for download failure, JavaScript support, or automatic Canceled. No new host or emulator experiment is authorized by this preparation.
 
 The sanitizer rejects control characters, backslashes, unsupported/deeplink schemes, malformed/opaque URLs and invalid ports. Public YouTube parsing accepts only known exact hosts and eleven-character safe IDs. Unknown short links are not resolved. No Instagram shortcut parser is claimed. Six real sanitizer JUnit tests cover IDs/options, credentials, secrets, malformed/deeplink/control URLs, unknown/shortlink origins and ambiguous or encoded IDs.
+
+Unknown origins may themselves contain sensitive subdomain information. The report explicitly warns to inspect the origin before sharing; this is not a universal secret-removal guarantee. No automatic sharing occurs.

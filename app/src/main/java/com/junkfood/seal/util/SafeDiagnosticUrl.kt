@@ -46,6 +46,6 @@ object SafeDiagnosticUrl {
             val suffix = if (options.isEmpty()) "" else "&" + options.joinToString("&")
             return "https://www.youtube.com/watch?v=$id$suffix [normalized public URL; other details redacted]"
         }
-        return "$origin/ [path, query and fragment withheld; use existing Copy link locally for original]"
+        return "$origin/ [path, query and fragment withheld; origin may itself be sensitive: inspect before sharing; use existing Copy link locally for original]"
     }
 }

@@ -51,5 +51,7 @@ class SafeDiagnosticUrlTest {
         for (url in listOf("https://youtube.com/watch?v=TJBXF0p4cxw&v=SECRET", "https://youtu.be/%53ECRET", "https://youtube.com/watch?v=SECRET", "https://youtube.com/shorts/private/SECRET"))
             assertFalse(SafeDiagnosticUrl.describe(url).contains("SECRET"))
         assertEquals("URL unavailable.", SafeDiagnosticUrl.describe(null))
+        val unknown = SafeDiagnosticUrl.describe("https://private-token.example.org/private")
+        assertTrue(unknown.contains("origin may itself be sensitive: inspect before sharing"))
     }
 }
