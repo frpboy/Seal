@@ -118,3 +118,9 @@ FFmpeg/aria2 source.
 Not checked: termux-packages history for files other than
 `packages/ffmpeg/build.sh`, jitpack, other junkfood02 repositories, Maven
 Central version-listing metadata beyond the versions above.
+
+## Source-build work in progress (2026-11-09)
+
+The provenance findings above describe existing upstream artifacts, not a completed independent replacement. A separately reviewed local source checkpoint contains input/source identity checks, fail-closed build admission, staged-runtime layout checks and a restricted native-entry selector. Ten synthetic tests passed for that checkpoint; synthetic fixtures are not native compilation or Android runtime evidence.
+
+A source-built package still needs the complete static-PIC dependency and capability closure, a secure x265 compatibility implementation, source-built wrapper integration, exact NDK verification, API 24 symbol and 16 KB/PIE checks on final bytes, packaging preservation and actual Android runtime qualification. Library/common/aria2 ownership is not established by renaming coordinates. No new native AAR or package has been published from this work, and existing dependencies are unchanged. Required source, notices and licenses must remain available for any eventual distribution.

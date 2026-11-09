@@ -6,6 +6,10 @@
 **Upstream:** `JunkFood02/Seal`  
 **Scope:** upstream activity, v2 implementation status, architecture, test/CI readiness, Android identity, and a safe continuation plan.
 
+## Historical scope
+
+This is the 2026-11-04 snapshot, not the current repository or release status. Its original repository name, branches, baseline commits and findings are retained as audit history. Later Seali changes and current qualification holds are recorded in [SEALI_STATUS.md](../SEALI_STATUS.md); do not treat the original baseline below as current main.
+
 ## Executive conclusion
 
 Seali should **not** be implemented as a fresh rewrite and should **not** blindly revert to the old v1 implementation.
