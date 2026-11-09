@@ -1,10 +1,19 @@
-<b>Features</b>
-Download videos and audio files from video platforms supported by yt-dlp
-Embed metadata and video thumbnail into extracted audio files
-Download all videos in the playlist with one click
-Use embedded aria2c as external downloader for all your downloads
-Embed subtitles into downloaded videos
-Execute custom yt-dlp commands with templates
-Manage in-app downloads and custom command templates
-Easy to use and user-friendly
-Material Design 3 style UI, with dynamic color theme
+Seali is an independently maintained Android video and audio downloader based on Seal and yt-dlp.
+
+<b>Alpha status</b>
+The latest public Seali APKs are 2.0.0-alpha.5. Current source is 2.0.0-alpha.6 and has not been released. Changes on the main branch are not automatically included in published APKs. See the repository README and status document for version-specific verification limits.
+
+<b>Inherited capabilities</b>
+Download video and audio from websites supported by yt-dlp.
+Extract audio and embed supported metadata and thumbnails.
+Download playlists and embed subtitles.
+Use the bundled aria2c external downloader.
+Create custom yt-dlp command templates and manage downloads.
+Material Design 3 interface with dynamic color support.
+
+Compatibility depends on the website and downloader version. These inherited capabilities are not a claim that every site, device or source revision has been revalidated.
+
+<b>Project and license</b>
+Maintained by Rahul Muraleedharan (@frpboy). Original Seal code, copyright and required third-party notices are preserved under their existing terms. The app remains GPL-3.0; renaming it does not relicense its dependencies.
+
+This repository metadata is preparation, not evidence of acceptance by F-Droid or another app store. The existing nine Fastlane screenshots depict historical upstream Seal screens, not a current Seali preview. A genuine current-source screenshot set is still pending.

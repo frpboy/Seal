@@ -25,3 +25,14 @@ A suitable runtime capture route has not yet been admitted for current source.
 Do not imply that the pending contact/About or queue-clarity changes have
 shipped because their source or unit tests passed. Preserve their separate
 visual checks before using them in a current-source gallery.
+
+## Existing store metadata
+
+The proper-name title is `Seali` in all 21 existing locale title files. The
+English description now distinguishes inherited capabilities, alpha.5 public
+APKs and alpha.6 unreleased source. Other translated descriptions are retained,
+not newly verified translations. This edit does not submit the app to a store.
+
+Keep using the existing Fastlane icon/screenshot structure. The nine historical
+images stay unchanged until a real, reviewed Seali capture set can replace them;
+do not pass them off as current screenshots in a listing or README gallery.
