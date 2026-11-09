@@ -1,0 +1,29 @@
+name: Release candidate host admission (no build or runtime)
+on:
+  workflow_dispatch:
+    inputs:
+      expected_source_sha:
+        description: Exact reviewed 40-character workflow source SHA
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: release-host-admission
+  cancel-in-progress: false
+jobs:
+  admit:
+    if: github.repository == 'frpboy/Seali' && github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Read-only host admission
+        env:
+          EXPECTED_SOURCE_SHA: ${{ inputs.expected_source_sha }}
+          REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
+        run: python3 scripts/release-qualification/host_admission.py
+      # Deliberately no upload: one sanitized JSON line is in the job log.
+      # No APKs, signing credentials, caches, billing changes or KVM changes.

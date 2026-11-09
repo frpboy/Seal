@@ -1,0 +1,47 @@
+# Exact-release qualification preparation
+
+State: source proposal only. No workflow dispatch, emulator, app install, signing operation, private key or runtime qualification has happened. The small host-admission lane does not build or qualify anything. Existing functional and screenshot lanes stay unchanged.
+
+## Available host route and admission boundary
+
+Candidate: a new standard GitHub-hosted ubuntu-24.04 x86_64 VM in public frpboy/Seali. This is a supported, no-compute-charge runner label. The account has a verified $0 Actions hard-stop budget; it must stay unchanged. Upload capacity is uncertain, so the admission lane has no artifact upload. Runner allocation is available as a service, not an already-admitted running device.
+
+GitHub documents Android hardware acceleration on hosted Linux. Its setup example changes KVM permissions. That does not meet our no-permission-change constraint. The emulator executable is fixed to the documented ubuntu-24.04 SDK path /usr/local/lib/android/sdk/emulator/emulator, never selected by ANDROID_HOME, ANDROID_SDK_ROOT, PATH or workflow input. An image-layout change fails closed without an install or alternate executable. The proposed read-only lane checks the exact reviewed source SHA, repository identity/public status/manual event, character-device access to /dev/kvm and emulator -accel-check. Inaccessible KVM exits 78 before any download/build/boot. It never adds groups, sudo rules, chmod, device mounts or an alternate accelerator. No claim that existing standard-runner permissions are sufficient is made before this read.
+
+After successful admission, a separately reviewed functional workflow must repeat the same admission in its own job, since a previous job's VM cannot admit another VM. Use API35 google_apis_ps16k x86_64 with PAGE_SIZE=16384 and acceleration on. Also use an API34 4KB x86_64 image for upgrade/application baseline coverage. Record image, API, ABI, page size and acceleration mode. No all-device claim from either x86_64 run. ARM64 device qualification is unresolved; static ABI inventory is not execution.
+
+Current local host has no /dev/kvm, no connected adb device, and only the retained API34 image. It is not the selected qualification host. TCG is not automatically substituted. A software full-functional route could be evaluated separately if admission fails; it must run the same assertions and retain its own stated limits, not turn debug install smoke into a functional pass.
+
+## Source-specific test design
+
+Base source is main72d088e plus the independently reviewed all-Markdown PR36 if merged. Rebind to the final merge SHA/tree before building. Exclude held PR30 and PR33. Source identity is already alpha.6. Do not reuse alpha.5 bytes with a different name.
+
+1. A source-reviewed private qualification route must build, retain and test the same five signed generic APKs before public upload, with SHA256, package/version/ABI and signer output. The current publish_apk_artifacts=true route is public distribution of already-qualified bytes, not a way to obtain candidates for first qualification. No complete admitted private exact-byte route exists yet; staging is blocked until one does. A separate local build cannot qualify different later CI bytes. The Play AAB is validation only, never distributed. Verify alpha.5 and alpha.6 certificates and version-code ordering before an upgrade. Source-backed check: base code200000160, split ABI offsets1..4, universal no offset. Current app ID com.frpboy.seali; debug is a different .debug package.
+2. Exact retained x86_64 and universal release APKs must be installed and driven as release, through MainActivity/AppEntry. Do not rebuild, re-sign or enable debug flags. An external UIAutomator test app targeting itself is the proposed driver, avoiding instrumentation-signature coupling to the release target. Its standalone module and selectors still need implementation and source review. Existing debug-targeted test APKs cannot simply be relabeled exact-release instrumentation.
+3. App's init marker is in private files. Nondebug release does not permit run-as. Do not change debuggable or expose a file provider to read it. Positive real download plus native operations and absence of crash UI supply release-path evidence; paired exact-tree debug tests may inspect the PID-bound marker, explicitly as debug evidence only.
+4. Exercise Classic and v2 through Settings/Appearance and actual AppEntry navigation. Source uses remember on home style, so a successful preference click alone is insufficient: leave/re-enter or relaunch and verify actual home content. Existing composable-only tests do not cover this transition.
+5. On a fresh disposable emulator, download generated synthetic media from a controlled HTTPS fixture, complete an audio extraction/FFmpeg operation, exercise aria2 with the app's real configured route, cancel a deliberately slow fixture transfer, restart and complete it, force-stop/relaunch and verify backed-up task state. No cookies, public third-party media, personal data or user storage. DownloaderV2 maps running/fetching tasks to canceled on backup restore; do not expect automatic continued download.
+6. Controlled local HTTP is not yet an admitted fixture route: current release manifest has no usesCleartextTraffic override. Do not add one just to make tests pass. Before coding a loopback fixture, prove the inherited native client's actual behavior, or use a narrowly scoped HTTPS server with a valid certificate and review the host/source/disclosure route. That route remains unresolved, not an assumed working fixture.
+7. Verify completed-history metadata including actual displayed file size, open a real file through FileProvider in a controlled viewer, handle deleted/missing file truthfully, clear/remove only the test entry and test file, preserve a sibling sentinel. Fresh default Seali directories, custom-directory selection, and legacy Seal directory preservation each need a real UI/filesystem result. A test-created Room row is not a completed-download test.
+8. Upgrade: install alpha.5 on a fresh separate disposable AVD, create only synthetic preferences/history/files, then adb install -r the verified compatible alpha.6 release. Assert preferences/history/files remain, old directories are not deleted or silently renamed, launch/download/open still work. Never clear app data between the two installs. A signer mismatch is a failed upgrade gate, not permission to uninstall and call the clean install an upgrade.
+
+## Evidence and stop rules
+
+Each assertion begins NOT_RUN. A pass requires its own positive result tied to source tree, APK hash, environment and actual test action. No aggregate release-qualified=true while any required case is not run, blocked, failed or unverifiable. Host admission always emits runtime_pass=false and release_qualified=false even when successful.
+
+Capture only controlled-app screenshots, structured test-case statuses and sanitized failure classes. Do not upload whole logcat, UI trees containing unrelated content, arbitrary files, runner environment dumps, APK signing secrets or machine identifiers. On failure, collect bounded app-specific diagnostics privately before cleanup and return exact assertion/phase/exit status. No retries that merely change timeouts, data or assertions; correct a diagnosed cause and obtain the next execution decision. Screenshots require actual visual review.
+
+Fresh VM artifacts are transient. Failure evidence must survive through reviewed allowlisted output or private custody; do not repeat the prior failure mode in which the only cause was lost. Existing capture key is abandoned; this source proposal needs no screenshot key. No dispatch until parent review and source/notices/security gates permit it.
+
+## Current implementation limits
+
+Implemented: read-only host admission source, bounded manual workflow, synthetic unit tests of admission predicates. Not implemented: standalone external release test driver, HTTPS synthetic fixture admission, full case assertions, exact retained binary ingestion and runtime evidence collection. These are open source/execution work, not completed checks. This packet is suitable for independent source review of host admission only, not approval to publish a release.
+
+## Grounding
+
+- Current source files: MainActivity.kt, App.kt, ui/page/AppEntry.kt, download/DownloaderV2.kt, util/FileUtil.kt, util/DownloadUtil.kt, app/build.gradle.kts, app/src/main/AndroidManifest.xml at base72d088e.
+- https://docs.github.com/en/actions/reference/runners/github-hosted-runners
+- https://github.blog/changelog/2024-04-02-github-actions-hardware-accelerated-android-virtualization-now-available/
+- https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md
+- https://docs.github.com/en/billing/how-tos/set-up-budgets
+- https://docs.github.com/en/billing/concepts/product-billing/github-actions
