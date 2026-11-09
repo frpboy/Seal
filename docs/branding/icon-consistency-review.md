@@ -1,0 +1,13 @@
+# Current-logo resource audit and preparation
+
+Base0ebafd82e274753180fecbe73a0d3e4c2fd83b06. Source and asset preparation only, not installed Android verification.
+
+Current identity is the three white rounded chevrons on teal introduced in PR6. Existing full-color launcher/round PNGs, adaptive drawable foreground, themed monochrome vector and Fastlane512 icon already use that identity and are unchanged.
+
+Confirmed old upstream animal artwork remained in the API24+ notification vector, all four notification PNG density fallbacks, all five legacy mipmap foreground PNGs, and the IDE project icon. Those are the only replaced assets. No third-party credit, copyright, historical screenshot or attribution is removed. Resource names are retained to preserve references.
+
+Seven live NotificationUtil builders all use R.drawable.ic_stat_seal. There is no large-icon override in that utility. Main manifest uses mipmap launcher/round; generic/play manifests add no branding override. No separate branded splash drawable, launcher shortcut icon declaration or About/drawer logo resource reference was found. Platform splash behavior derives from the unchanged application icon; on-device caching and exact installed-resource selection remain unverified. Internal names such as Theme.Seal and R.drawable.ic_stat_seal are not visible logos and are not blindly renamed.
+
+The notification vector is a white/transparent, three-chevron silhouette on24dp canvas. Its geometry is the current launcher mark normalized to a20dp-tall silhouette; it is not the full teal launcher tile, which would render incorrectly as a small status icon. PNG fallback dimensions24/36/48/72 are preserved; legacy foreground PNGs108/162/216/324/432 are regenerated from the exact existing launcher path. The IDE icon is the current512 icon resized to144. The generation script requires Pillow only on a developer machine, not in the app.
+
+Actual exported PNGs were inspected at each density and as24px alpha silhouettes on light/dark review backgrounds. Those backgrounds are review illustrations, not Android notification screenshots. The actual vector and all nine changed PNG resources compiled successfully with existing Android build-tools35.0.0 aapt2 (resource-only compile). An SVG translation of the exact XML path/stroke was rendered and inspected separately; this is not Android rendering. Actual Android app compile and real status-bar/notification/launcher rendering remain separate checks. Do not claim this is installed or fixes the user's current APK. Exact installed APK hash remains unknown. No notification behavior, report payload, channel, action, permission, task state, app ID, dependency, signing or release workflow is changed.

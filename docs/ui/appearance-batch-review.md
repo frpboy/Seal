@@ -1,0 +1,9 @@
+# Appearance clarity and named accent choices
+
+Isolated base151171f3. Two optional named seed choices, Seali Teal and Seali Blue, invoke existing explicit dynamic-off/tonal-seed preference APIs only on tap. They do not replace wallpaper colors, arbitrary existing hue/style/monochrome choices or reset a saved seed. Labels and visible swatches are both present; all new accent targets >=48dp. These are curated new Seali accents, not a claim the current logo contained these colors.
+
+Appearance interface entry includes actual short navigation/density descriptions. Existing confirmation dialog now has whole-row64dp radio targets with short descriptions that wrap, and a scrollable content column. No interface default/persistence logic changes: fresh v2 default remains; saved Classic remains, active-download guard, explicit confirm and Activity recreate preserved. Existing dark/high-contrast black controls untouched. No synthetic previews implying actual current pixels.
+
+While inspecting pager state, existing monochrome initialPage used pageCount, an out-of-range index. Corrected to pageCount-1, its actual final page. Existing non-monochrome indexing is unchanged. New named seeds are not in arbitrary hue pages, so pager initially shows first existing hue when a named seed is chosen, as it already did for unlisted seeds; named chip selection uses actual seed+style+dynamic state and remains truthful. No forced pager movement or stored-choice mutation.
+
+Source boundaries4PASS. Actual Android compile, pixel/touch/fontscale/dynamic+light+dark+highcontrast/savedClassic/freshv2/monochrome behavior still required. No visual completion or merge/release claim. Later integrated resource and app-level review remains required. Other requested queue/swipe/FAB/progress/About/format-history items remain open in the full tracker.

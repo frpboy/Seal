@@ -1,0 +1,13 @@
+{
+  "source_commit": "3d3b50fadd7ebf285310a25f3b35f49ef6540740",
+  "source_sha256": {
+    "app/src/main/java/com/junkfood/seal/download/Task.kt": "6eb74fecc874a6b46c91b55d9e2dbd103cd91dda09e243b2215549b71ab2b3b8",
+    "app/src/main/java/com/junkfood/seal/util/VideoInfo.kt": "269052ff7ecb16e8f915ec8aae89786f5ed54ea257c5d6aa59ed2390f2da7452",
+    "app/src/main/java/com/junkfood/seal/util/DownloadUtil.kt": "ed658119cc2d6e0125ce89776ee7c3560b4392d0b651beb64a19d993875f437e",
+    "app/src/main/java/com/junkfood/seal/database/objects/CommandTemplate.kt": "27bb3727b68d9f2de355baef7485f6c124154dc30052aeaf929276bfcab375b8",
+    "app/src/main/java/com/junkfood/seal/util/TextUtil.kt": "552e04f9af211052b8832704ae989902adeed166fb3c04f4944d64219fc202ae"
+  },
+  "fixture_sha256": "178fb3c2c04d2059656d81df64c2694942c9a2a1a608e0cabea6198326dbfb0f",
+  "generator": "Actual original Task.kt and VideoInfo.kt unchanged; DownloadPreferences constructor and EMPTY companion literal extracted unchanged, Android preferences methods omitted; CommandTemplate Room imports/annotations omitted only; actual toHttpsUrl function extracted unchanged. Real Kotlin serialization1.7.2/plugin2.0.21 generated JSON with all7states/all3type kinds/both actions. New production codec/writeguard and JUnit compiled unchanged against same portable model extraction with namespace-only move. This is not a full Android source compile.",
+  "old_type_ids": "All12 concrete old names also statically observed in published alpha5 APK DEX, SHA530882d0c8fad458870a91b59a62004ab46757a66837b43efb11bfa0ab741989; no user queue/private data used."
+}

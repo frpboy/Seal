@@ -78,7 +78,7 @@ Seali is an independent community continuation and is not an official release of
 
 ## Development
 
-The project uses Kotlin, Jetpack Compose and Gradle. Internal source packages retain `com.junkfood.seal`; that is not the installed application identifier. See [BUILDING.md](BUILDING.md) before changing build or signing configuration.
+The project uses Kotlin, Jetpack Compose and Gradle. Owned source packages use `com.frpboy.seali`. The installed application ID remains `com.frpboy.seali`; debug/preview suffixes are unchanged. Minimal legacy type IDs and Android component bridges remain for upgrade compatibility, not branding. See [namespace migration notes](docs/migration/owned-namespace-migration.md) for the remaining qualification gates. See [BUILDING.md](BUILDING.md) before changing build or signing configuration.
 
 Before submitting changes:
 
