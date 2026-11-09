@@ -10,7 +10,9 @@ on:
 jobs:
   handle-issues:
     # Run this job only for issues
-    if: github.repository == 'JunkFood02/Seal' && github.event_name == 'issues'
+    # Inherited upstream automation is intentionally disabled for Seali.
+    # Do not enable sponsor writes, automatic issue closure or stale closure as a rebrand.
+    if: ${{ false }}
     # Specify the runner environment
     runs-on: ubuntu-latest
     steps:

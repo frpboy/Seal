@@ -1,23 +1,29 @@
+# Seali - current project notice
+
+This inherited translation is not yet fully updated or validated for Seali. Use the [current README](../README.md) and [release page](https://github.com/frpboy/Seali/releases) for current status. No stable or F-Droid Seali release is claimed here. Screenshots and feature descriptions below may describe the original app and are not proof of the current Seali build.
+
+Maintainer: Rahul Muraleedharan. Contact: [hi@frpboy.in](mailto:hi@frpboy.in). Support: [FrpBoy Projects](https://t.me/FRPboy_Projects). Optional sponsorship: [Buy Me a Coffee](https://buymeacoffee.com/frpboy) or [Patreon](https://www.patreon.com/c/FrpBoy).
+
+Thank you to **JunkFood02** and contributors for the original [Seal project](https://github.com/JunkFood02/Seal). Original authorship and GPL-3.0 notices are preserved. See [CREDITS.md](../CREDITS.md). The links below have been updated for Seali; the inherited translation still needs language review.
+
+---
+
 <div align="center">
-<p align="center"> 
+<p align="center">
 	<img src="fastlane/metadata/android/en-US/images/icon.png" width=160 height=160 >
 </p>
 <h1 align="center">
-Seal
+Seali
 </h1>
 </div>
 
-[![F-Droid](https://img.shields.io/f-droid/v/com.junkfood.seal.svg?logo=F-Droid&color=green&style=flat-square)](https://f-droid.org/en/packages/com.junkfood.seal)
-[![Releases](https://img.shields.io/github/release/JunkFood02/Seal.svg?logo=github&color=171515&label=stable&style=flat-square)](https://github.com/JunkFood02/Seal/releases/latest)
-[![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/JunkFood02/Seal?include_prereleases&label=preview&logo=github)](https://github.com/JunkFood02/Seal/releases)
-[![GitHub all releases](https://img.shields.io/github/downloads/JunkFood02/Seal/total?style=flat-square)](https://github.com/JunkFood02/Seal/releases)
-[![GitHub Repo stars](https://img.shields.io/github/stars/JunkFood02/Seal?style=flat-square)](https://github.com/JunkFood02/Seal/stargazers)
+[![GitHub all releases](https://img.shields.io/github/downloads/frpboy/Seali/total?style=flat-square)](https://github.com/frpboy/Seali/releases)
+[![GitHub Repo stars](https://img.shields.io/github/stars/frpboy/Seali?style=flat-square)](https://github.com/frpboy/Seali/stargazers)
 [![Supported Sites](https://img.shields.io/badge/Supported-Sites-9cf.svg?style=flat-square)](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md)
-[![Telegram Channel](https://img.shields.io/badge/Telegram-Seal-blue?style=flat-square&logo=telegram)](https://t.me/seal_app)
-[![Matrix Space](https://img.shields.io/badge/Matrix-Seal-Black?style=flat-square&color=black&logo=matrix)](https://matrix.to/#/#seal-space:matrix.org)
+[![Telegram Channel](https://img.shields.io/badge/Telegram-Seali-blue?style=flat-square&logo=telegram)](https://t.me/FRPboy_Projects)
 
 <p align="center">
-  <a href="https://github.com/JunkFood02/Seal/blob/main/README.md">English</a>
+  <a href="https://github.com/frpboy/Seali/blob/main/README.md">English</a>
 &nbsp;&nbsp;| &nbsp;&nbsp;
 فارسی
 </p>
@@ -55,46 +61,44 @@ Seal
 
 </div>
 
-## ⬇️ دانلود 
+## ⬇️ دانلود
 
 برای اکثر دستگاه ها پیشنهاد می شود نسخه **arm64-v8a** را دانلود کنید.
 
--دانلود آخرین نسخه برنامه [GitHub releases](https://github.com/JunkFood02/Seal/releases/latest)
+-دانلود آخرین نسخه برنامه [GitHub releases](https://github.com/frpboy/Seali/releases)
 
--[نسخه آزمایشی](https://github.com/JunkFood02/Seal/releases/) را جهت تست و کمک به ما در توسعه دانلود کنید
+-[نسخه آزمایشی](https://github.com/frpboy/Seali/releases/) را جهت تست و کمک به ما در توسعه دانلود کنید
 
 - دانلود آخرین نسخه از F-Droid :
 
 [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
      alt="Get it on F-Droid"
-     height="70">](https://f-droid.org/packages/com.junkfood.seal/)
-     
+
 ## 💬 تماس با ما
 
-جهت گفتگو و با خبر شدن از آخرین بروزرسانی به کانال ما در تلگرام به [@seal_app](https://t.me/seal_app) و در فضای ماتریکس به آدرس [Matrix Space](https://matrix.to/#/#seal-space:matrix.org) بپیوندید
+جهت گفتگو و با خبر شدن از آخرین بروزرسانی به کانال ما در تلگرام به [@seal_app](https://t.me/FRPboy_Projects) و در فضای ماتریکس به آدرس [FrpBoy Projects (Telegram)](https://t.me/FRPboy_Projects) بپیوندید
 
 ## 🤝 همکاری
 
-علاقه مند به کمک به ما هستید ؟ برای کمک در ترجمه برنامه می توانید به [Hosted Weblate](https://hosted.weblate.org/projects/seal/) مراجعه کنید و مارا در ترجمه برنامه یاری کنید
+علاقه مند به کمک به ما هستید ؟ برای کمک در ترجمه برنامه می توانید به [Hosted Weblate](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md) مراجعه کنید و مارا در ترجمه برنامه یاری کنید
 
 <p align="right">
-<a href="https://hosted.weblate.org/engage/seal/fa/">
-<img src="https://hosted.weblate.org/widgets/seal/fa/strings/multi-auto.svg" alt="وضعیت ترجمه" />
+<a href="https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md">
 </a>
 
 >**نکته**
 
-جهت ارسال هرگونه گزارش مشکل, سوالات, ایده ها و کمک در توسعه برنامه ابتدا دستورالعمل را به آدرس [CONTRIBUTING.md](https://github.com/JunkFood02/Seal/blob/main/CONTRIBUTING.md) مطالعه کنید
+جهت ارسال هرگونه گزارش مشکل, سوالات, ایده ها و کمک در توسعه برنامه ابتدا دستورالعمل را به آدرس [CONTRIBUTING.md](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md) مطالعه کنید
 
 ## ⭐️تاریخچه امتیاز
 <p align="right">
-<a href="https://star-history.com/#JunkFood02/Seal&Timeline">
-<img src="https://api.star-history.com/svg?repos=JunkFood02/Seal&type=Timeline" alt="Star History Chart" />
+<a href="https://star-history.com/#frpboy/Seali&Timeline">
+<img src="https://api.star-history.com/svg?repos=frpboy/Seali&type=Timeline" alt="Star History Chart" />
 </p>
 
 ## 🧱 منابع
 
-برنامه Seal یک نسخه گرافیکی از [yt-dlp](https://github.com/yt-dlp/yt-dlp) می باشد و بر پایه [youtubedl-android](https://github.com/yausername/youtubedl-android) توسعه داده شده است
+برنامه Seali یک نسخه گرافیکی از [yt-dlp](https://github.com/yt-dlp/yt-dlp) می باشد و بر پایه [youtubedl-android](https://github.com/yausername/youtubedl-android) توسعه داده شده است
 
 برخی از کد های برنامه از [Read You](https://github.com/Ashinch/ReadYou) و [Music You](https://github.com/Kyant0/MusicYou) قرض گرفته شده است
 <p align="right">
@@ -109,7 +113,7 @@ Seal
 
 ## 📃 لایسنس
 
-[![GitHub](https://img.shields.io/github/license/JunkFood02/Seal?style=for-the-badge)](https://github.com/JunkFood02/Seal/blob/main/LICENSE)
+[![GitHub](https://img.shields.io/github/license/frpboy/Seali?style=for-the-badge)](https://github.com/frpboy/Seali/blob/main/LICENSE)
 
 <div align="right">
 <table><td>
