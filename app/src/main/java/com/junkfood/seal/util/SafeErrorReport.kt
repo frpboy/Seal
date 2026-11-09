@@ -22,8 +22,8 @@ object SafeErrorReport {
         return lines.joinToString("\n")
     }
 
-    fun copyReport(versionReport: String, throwable: Throwable): String =
-        versionReport + "\nURL omitted for privacy.\n" + describe(throwable)
+    fun copyReport(versionReport: String, throwable: Throwable, url: String? = null): String =
+        versionReport + "\nURL: " + SafeDiagnosticUrl.describe(url) + "\n" + describe(throwable)
 
     // Deliberately allowlist descriptions instead of trying to remove every possible secret
     // from arbitrary process output. An unrecognized message is never copied verbatim.

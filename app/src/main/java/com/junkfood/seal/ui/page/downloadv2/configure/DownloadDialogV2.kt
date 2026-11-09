@@ -281,6 +281,11 @@ fun DownloadDialog(
 private fun ErrorPage(modifier: Modifier = Modifier, state: Error, onActionPost: (Action) -> Unit) {
     val view = LocalView.current
     val clipboardManager = LocalClipboardManager.current
+    val url = when (val action = state.action) {
+        is Action.FetchFormats -> action.url
+        is Action.FetchPlaylist -> action.url
+        else -> null
+    }
     Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Icon(
             imageVector = Icons.Outlined.ErrorOutline,
@@ -312,7 +317,7 @@ private fun ErrorPage(modifier: Modifier = Modifier, state: Error, onActionPost:
                     view.longPressHapticFeedback()
                     clipboardManager.setText(
                         AnnotatedString(
-                            SafeErrorReport.copyReport(App.getVersionReport(), state.throwable)
+                            SafeErrorReport.copyReport(App.getVersionReport(), state.throwable, url)
                         )
                     )
                     ToastUtil.makeToast(R.string.error_copied)

@@ -25,7 +25,7 @@ class SafeErrorReportTest {
         val report = SafeErrorReport.copyReport("App version: test\n", Exception("Authorization: Bearer ABC\nCookie: secret\n/home/user/private.mp4 https://site/video?token=KEY"))
         for (secret in listOf("ABC", "secret", "/home", "private.mp4", "https://", "KEY"))
             assertFalse(secret, report.contains(secret))
-        assertTrue(report.contains("URL omitted for privacy."))
+        assertTrue(report.contains("URL unavailable."))
         assertTrue(report.contains("Error details were withheld for privacy."))
     }
     @Test fun `cycle and long cause chains terminate`() {
