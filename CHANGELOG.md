@@ -5,6 +5,18 @@ All notable changes (starting from v1.7.3) to stable releases will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Seali maintenance (unreleased)
+
+The current source identifies itself as 2.0.0-alpha.6. No alpha.6 release or download is published. The existing [alpha.5 prerelease](https://github.com/frpboy/Seali/releases/tag/v2.0.0-alpha.5) remains separate from later main changes.
+
+- Current maintainer contact is frpboy12@gmail.com; community documentation, contribution/translation guidance, security reporting and accessibility limits are updated.
+- Classic correctness and compact-header source changes are merged through PR14 and PR21. About donation-row cleanup is merged through PR16. These source changes are not retroactively included in alpha.5.
+- Current status, the historical audit boundary and native dependency provenance are documented. Source-built native packaging preparation is not a compiled or runtime-qualified replacement.
+- PR30 app branding/contact/credits/translation work remains unmerged pending visual qualification. PR33 sponsor buttons remains an open proposal. Issue34's duration-boundary finding is not a shipped fix.
+- Release qualification remains incomplete. No stable, Play-qualified, all-locale, accessibility or complete native-source-closure claim is made.
+
+The entries below are inherited upstream release history, retained with their original dates, links and authorship. They are not a Seali release announcement.
+
 ## [v2.0.0][2.0.0] - unreleased
 
 ### Notable changes from v1.13
