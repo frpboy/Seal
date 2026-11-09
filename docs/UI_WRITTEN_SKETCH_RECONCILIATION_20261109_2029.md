@@ -17,3 +17,19 @@ On51ac1 plus localreviewed Formate49:
 - Drawer visual reference overlaps existing source but still needs actual navigation/selected state/compact/large-font scroll and footer pixel qualification. No removed support/settings routes or forced pure-black override: preserve saved theme/Classic preferences.
 
 No new production change or remote draft is made in this reconciliation. User's latest text is part of the ongoing full-UI scope, not a separate visual delivery or a claim of completion. Source qualification path remains in progress; runtime/capture held under existing gates.
+
+## Further20:30 steering, full original recovered
+
+Original message wamid.HBgMOTE3MDM0NDc5ODAwFQIAEhggQUNCNTgyRkIyNUJDRDQ5RkY1NUY5NTREQzIxMDkzOTUA was read in full from recorded channel history. Its pasted PR status is user feedback/orientation, not independent implementation evidence. Its closing offer to review/sketch is not an extra assignment or reason to ask back.
+
+Source-grounded overlap:
+- CompactQueueErrorCard plus DownloadPageV2 wiring provide compact failed reason/retry/report; do not infer device density/touch success. Explicitly test reason readability, Retry target/hit area and report reachability on small phones/font200, not just title presence.
+- DownloadPageV2 filter group uses horizontalScroll, not a wrapping FlowRow. Counts remain visible in source. Narrow width/font200/RTL needs actual count truncation, scroll discoverability, chip selection/hit-area and row height checks. Do not change filter predicates/count semantics to improve a mock.
+- QueueRunningProgress/QueueProgressTelemetry only expose recognized measured speed/ETA and bounded determinate/unknown progress. This does not prove real downloader telemetry or visual prominence. A slight active-card emphasis remains genuine new intent, distinct from existing progress indicators; test running versus finished/failed hierarchy without hiding status or reordering persisted tasks silently.
+- Actual current preset summary exists through PreferenceStrings using current retained preferences. Do not call it historical last-used options without that data model. Cookies/subtitles/thumbnail already have VideoFilterChip controls in a horizontally scrollable AdditionalSettings row; do not add duplicate chips. Selectedstate/conditionalCookies/Command-disabled subtitle+thumbnail behavior must stay.
+- Interface selector source move already documented a new destination lifetime: saved-state/backstack/active-task guard/confirm/cancel/recreate must each have actual assertions, not a byte-identical dialog claim standing in for navigation qualification.
+- AppEntry footer uses actual appName/versionReport, not the mock's hardcodedalpha6.
+
+Live source-link check20:32IST fetched the EXACT current source destinations. https://t.me/FRPboy_Projects resolves to Telegram page describing discussion/feedback/bug reports for all FrpBoy projects; no account membership/join/test-message performed. https://github.com/frpboy/Seali/issues resolves to the fork issues. https://github.com/frpboy/Seali/releases resolves to fork releases (current fetched listingalpha5), not proof of a newer APK or installedalpha6identity. Source AboutPage owns these constants and TroubleshootingPage uses fork issues. Source match and public page content verified, Android intent launch/chooser behavior remains untested.
+
+Style intent now explicit: simple tool-like chevron+phone, not cute; preserve Material3 identity and saved dark/light/Classic preferences. This document adds scope/assertions only, no runtime or new APK claim.
