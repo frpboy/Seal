@@ -4,11 +4,11 @@
 
 This repository is maintained by [Rahul Muraleedharan (@frpboy)](https://github.com/frpboy). Seali builds on the original project's work; it does not claim authorship of the upstream code.
 
-> **Project status:** [Seali 2.0.0-alpha.5](https://github.com/frpboy/Seal/releases/tag/v2.0.0-alpha.5) is available as an alpha prerelease. The app uses the Seali identity and `com.frpboy.seali` package. The final cleanup build still needs device testing; it is not a stable or Play-qualified release. Later changes on main are not automatically included in those published APKs.
+> **Project status:** [Seali 2.0.0-alpha.5](https://github.com/frpboy/Seali/releases/tag/v2.0.0-alpha.5) is available as an alpha prerelease. The app uses the Seali identity and `com.frpboy.seali` package. The final cleanup build still needs device testing; it is not a stable or Play-qualified release. Later changes on main are not automatically included in those published APKs.
 
 ## Download and use
 
-Download an APK from the [alpha release page](https://github.com/frpboy/Seal/releases/tag/v2.0.0-alpha.5). It provides universal, ARM64, ARMv7, x86 and x86_64 builds. Choose universal if unsure. Android 7.0 (API 24) or newer is required by the current build configuration. Seali installs separately from upstream Seal; upstream app data does not migrate automatically.
+Download an APK from the [alpha release page](https://github.com/frpboy/Seali/releases/tag/v2.0.0-alpha.5). It provides universal, ARM64, ARMv7, x86 and x86_64 builds. Choose universal if unsure. Android 7.0 (API 24) or newer is required by the current build configuration. Seali installs separately from upstream Seal; upstream app data does not migrate automatically.
 
 Paste a supported video link and tap Download, then choose the desired options. The interface can be switched between Classic and v2 in Settings > Appearance > Interface. Finish or cancel active downloads before switching.
 
@@ -30,6 +30,10 @@ The inherited feature set includes:
 - Material Design 3 interface with dynamic color support.
 
 These are inherited capabilities. Current compatibility and functionality will be revalidated as part of the Seali maintenance work.
+
+## Thanks and credits
+
+Thank you to **JunkFood02** for creating Seal and sharing its source, and to the original contributors, translators and dependency maintainers whose work makes Seali possible. See [CREDITS.md](CREDITS.md) for attribution and the distinction between Seali maintenance and upstream dependencies.
 
 ## Original project and attribution
 
@@ -65,6 +69,8 @@ When distributing modified builds, comply with GPL-3.0, including the requiremen
 ## Support
 
 For Seali and the maintainer's other projects, use the [FrpBoy Projects Telegram group](https://t.me/FRPboy_Projects). Search existing repository issues before reporting a reproducible bug. Do not send private links, cookies, credentials or logs containing secrets to a public group.
+
+Public maintainer email: [hi@frpboy.in](mailto:hi@frpboy.in), as listed on the [maintainer's portfolio](https://www.frpboy.in/). Do not send passwords, cookies or other secrets.
 
 Optional financial support is separate from help requests: [Buy Me a Coffee](https://buymeacoffee.com/frpboy) or [Patreon](https://www.patreon.com/c/FrpBoy). On main, PR16 keeps these options under the single Sponsor entry. The published alpha predates that cleanup and still has the duplicate About donation rows.
 

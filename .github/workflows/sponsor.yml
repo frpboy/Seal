@@ -7,7 +7,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.repository == 'JunkFood02/Seal' }}
+    # Inherited upstream automation is intentionally disabled for Seali.
+    # Do not enable sponsor writes, automatic issue closure or stale closure as a rebrand.
+    if: ${{ false }}
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v2
