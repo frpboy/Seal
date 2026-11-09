@@ -1,25 +1,31 @@
+# Seali - current project notice
+
+This inherited translation is not yet fully updated or validated for Seali. Use the [current README](../README.md) and [release page](https://github.com/frpboy/Seali/releases) for current status. No stable or F-Droid Seali release is claimed here. Screenshots and feature descriptions below may describe the original app and are not proof of the current Seali build.
+
+Maintainer: Rahul Muraleedharan. Contact: [hi@frpboy.in](mailto:hi@frpboy.in). Support: [FrpBoy Projects](https://t.me/FRPboy_Projects). Optional sponsorship: [Buy Me a Coffee](https://buymeacoffee.com/frpboy) or [Patreon](https://www.patreon.com/c/FrpBoy).
+
+Thank you to **JunkFood02** and contributors for the original [Seal project](https://github.com/JunkFood02/Seal). Original authorship and GPL-3.0 notices are preserved. See [CREDITS.md](../CREDITS.md). The links below have been updated for Seali; the inherited translation still needs language review.
+
+---
+
 <div align="center">
 
-<img width="" src="fastlane/metadata/android/en-US/images/icon.png"  width=160 height=160  align="center">
+<img width="" src="../fastlane/metadata/android/en-US/images/icon.png"  width=160 height=160  align="center">
 
-# Seal
+# Seali
 
 ### 只為 Android 而生的視訊/音訊下載程式
 
 
-<a href="https://github.com/JunkFood02/Seal/blob/main/README.md">English</a>
+<a href="https://github.com/frpboy/Seali/blob/main/README.md">English</a>
 &nbsp;&nbsp;| &nbsp;&nbsp;
 繁體中文
 
-[![F-Droid](https://img.shields.io/f-droid/v/com.junkfood.seal?color=b4eb12&label=F-Droid&logo=fdroid&logoColor=1f78d2)](https://f-droid.org/en/packages/com.junkfood.seal)
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/JunkFood02/Seal?color=black&label=Stable&logo=github)](https://github.com/JunkFood02/Seal/releases/latest/)
-[![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/JunkFood02/Seal?include_prereleases&label=Preview&logo=Github)](https://github.com/JunkFood02/Seal/releases/)
-[![Keep a Changelog](https://img.shields.io/badge/Changelog-lightgray?style=flat&color=gray&logo=keep-a-changelog)](https://github.com/JunkFood02/Seal/blob/main/CHANGELOG.md)
-[![GitHub all releases](https://img.shields.io/github/downloads/JunkFood02/Seal/total?label=Downloads&logo=github)](https://github.com/JunkFood02/Seal/releases/)
-[![GitHub Repo stars](https://img.shields.io/github/stars/JunkFood02/Seal?color=informational&label=Stars)](https://github.com/JunkFood02/Seal/stargazers)
+[![Keep a Changelog](https://img.shields.io/badge/Changelog-lightgray?style=flat&color=gray&logo=keep-a-changelog)](https://github.com/frpboy/Seali/blob/main/CHANGELOG.md)
+[![GitHub all releases](https://img.shields.io/github/downloads/frpboy/Seali/total?label=Downloads&logo=github)](https://github.com/frpboy/Seali/releases/)
+[![GitHub Repo stars](https://img.shields.io/github/stars/frpboy/Seali?color=informational&label=Stars)](https://github.com/frpboy/Seali/stargazers)
 [![Supported Sites](https://img.shields.io/badge/Supported-Sites-9cf.svg?style=flat)](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md)
-[![Telegram Channel](https://img.shields.io/badge/Telegram-Seal-blue?style=flat&logo=telegram)](https://t.me/seal_app)
-[![Matrix Space](https://img.shields.io/badge/Matrix-Seal-Black?style=flat&color=black&logo=matrix)](https://matrix.to/#/#seal-space:matrix.org)
+[![Telegram Channel](https://img.shields.io/badge/Telegram-Seali-blue?style=flat&logo=telegram)](https://t.me/FRPboy_Projects)
 
 
 </div>
@@ -69,48 +75,32 @@
 
 ## ⬇️ 如何下載
 
-我們建議大多數裝置使用 **arm64-v8a** 版本的 APK 檔。
-
-- 從 [GitHub releases](https://github.com/JunkFood02/Seal/releases/latest) 下載最新穩定發行版
-  - 安裝 [預先發行版本](https://github.com/JunkFood02/Seal/releases/)，以幫助我們測試最新功能和變更
-
-- 穩定發行版亦可於 [F-Droid](https://f-droid.org/packages/com.junkfood.seal/) 取得
-
-<!-- [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-     alt="Get it on F-Droid"
-     height="70">](https://f-droid.org/packages/com.junkfood.seal/) -->
+Current Seali guidance (English, pending translation): download an alpha APK from the [Seali release page](https://github.com/frpboy/Seali/releases). Choose universal if unsure which ABI your device uses. No stable or F-Droid Seali release is claimed. Read the [current status](../SEALI_STATUS.md) before installing.
 
 ## 💬 如何聯繫
 
-誠摯邀請您加入 [Telegram 頻道](https://t.me/seal_app) 或 [Matrix Space](https://matrix.to/#/#seal-space:matrix.org)，與我們一同討論、接收最新消息，以及軟體發行！
+Current Seali contact (English, pending translation): [hi@frpboy.in](mailto:hi@frpboy.in) or [FrpBoy Projects on Telegram](https://t.me/FRPboy_Projects). Do not send passwords, cookies or other secrets.
 
 ## 💖 贊助之友
 
+Optional support for Rahul, Seali's current maintainer: [Buy Me a Coffee](https://buymeacoffee.com/frpboy) or [Patreon](https://www.patreon.com/c/FrpBoy).
+
+Historical Seal sponsor acknowledgements, not a list of Seali sponsors:
+
 <p><!-- sponsors --><a href="https://github.com/4kaimar"><img src="https://github.com/4kaimar.png" width="60px" alt="" /></a><a href="https://github.com/gordongw"><img src="https://github.com/gordongw.png" width="60px" alt="Gordon" /></a><a href="https://github.com/t1hta"><img src="https://github.com/t1hta.png" width="60px" alt="t1hta" /></a><a href="https://github.com/nameoneeman"><img src="https://github.com/nameoneeman.png" width="60px" alt="James" /></a><a href="https://github.com/iguanaguy44"><img src="https://github.com/iguanaguy44.png" width="60px" alt="" /></a><!-- sponsors --></p>
-
-
-Seal 永遠提供眾人免費使用並開放原始碼。若您悅納，請考慮[贊助我](https://github.com/sponsors/JunkFood02)！
 
 ## 🤝 一同貢獻
 
-永遠歡迎您的貢獻！
-
-您可以在 [Hosted Weblate](https://hosted.weblate.org/projects/seal/)，參與 Seal 的翻譯。
-	
-[![Translate status](https://hosted.weblate.org/widgets/seal/-/strings/multi-auto.svg)](https://hosted.weblate.org/engage/seal/)
-	
->**備註**
->
->請在回報錯誤、功能請求、求問，或提供任何改進建言之前，先閱讀 [CONTRIBUTING.md](https://github.com/JunkFood02/Seal/blob/main/CONTRIBUTING.md) 相關指引。
+Current Seali guidance (English, pending translation): use the [translation contribution guide](../CONTRIBUTING.md#translations) to submit Android string or README changes through a Seali pull request. Seali does not have its own Hosted Weblate project. Do not submit Seali changes to the original project's translation service.
 
 ## ⭐️ Star 歷程
 
-[![Star History Chart](https://api.star-history.com/svg?repos=JunkFood02/Seal&type=Timeline)](https://star-history.com/#JunkFood02/Seal&Timeline)
+[![Star History Chart](https://api.star-history.com/svg?repos=frpboy/Seali&type=Timeline)](https://star-history.com/#frpboy/Seali&Timeline)
 
 
 ## 🧱 致謝
 
-Seal 是基於 [youtubedl-android](https://github.com/yausername/youtubedl-android) 的 [yt-dlp](https://github.com/yt-dlp/yt-dlp) 簡易化 GUI。
+Seali 是基於 [youtubedl-android](https://github.com/yausername/youtubedl-android) 的 [yt-dlp](https://github.com/yt-dlp/yt-dlp) 簡易化 GUI。
 
 部分 UI 設計和程式碼來自 [Read You](https://github.com/Ashinch/ReadYou) 和 [Music You](https://github.com/Kyant0/MusicYou)。
 
@@ -122,13 +112,13 @@ Seal 是基於 [youtubedl-android](https://github.com/yausername/youtubedl-andro
 
 ## 📃 授權（本節僅供參考，敬請閱讀原文）
 
-[![GitHub](https://img.shields.io/github/license/JunkFood02/Seal?style=for-the-badge)](https://github.com/JunkFood02/Seal/blob/main/LICENSE)
+[![GitHub](https://img.shields.io/github/license/frpboy/Seali?style=for-the-badge)](https://github.com/frpboy/Seali/blob/main/LICENSE)
 
 >**警告**
 >
 >除依據 GPLv3 授權之來源代碼外，
->各方均不得以 Seal 作為下載程式之應用程式命名，
->Seal 衍生產品亦之。
+>各方均不得以 Seali 作為下載程式之應用程式命名，
+>Seali 衍生產品亦之。
 >衍生產品包括但不限於分支和非官方組建。
 
 <div align="right">

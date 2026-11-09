@@ -1,25 +1,31 @@
+# Seali - current project notice
+
+This inherited translation is not yet fully updated or validated for Seali. Use the [current README](../README.md) and [release page](https://github.com/frpboy/Seali/releases) for current status. No stable or F-Droid Seali release is claimed here. Screenshots and feature descriptions below may describe the original app and are not proof of the current Seali build.
+
+Maintainer: Rahul Muraleedharan. Contact: [hi@frpboy.in](mailto:hi@frpboy.in). Support: [FrpBoy Projects](https://t.me/FRPboy_Projects). Optional sponsorship: [Buy Me a Coffee](https://buymeacoffee.com/frpboy) or [Patreon](https://www.patreon.com/c/FrpBoy).
+
+Thank you to **JunkFood02** and contributors for the original [Seal project](https://github.com/JunkFood02/Seal). Original authorship and GPL-3.0 notices are preserved. See [CREDITS.md](../CREDITS.md). The links below have been updated for Seali; the inherited translation still needs language review.
+
+---
+
 <div align="center">
 
-<img width="" src="fastlane/metadata/android/en-US/images/icon.png"  width=160 height=160  align="center">
+<img width="" src="../fastlane/metadata/android/en-US/images/icon.png"  width=160 height=160  align="center">
 
-# Seal
+# Seali
 
 ### Pengunduh Video/Audio untuk Android
 
 
-<a href="https://github.com/JunkFood02/Seal/blob/main/README.md">English</a>
+<a href="https://github.com/frpboy/Seali/blob/main/README.md">English</a>
 &nbsp;&nbsp;|&nbsp;&nbsp;
 Indonesia
 
-[![F-Droid](https://img.shields.io/f-droid/v/com.junkfood.seal?color=b4eb12&label=F-Droid&logo=fdroid&logoColor=1f78d2)](https://f-droid.org/en/packages/com.junkfood.seal)
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/JunkFood02/Seal?color=black&label=Stable&logo=github)](https://github.com/JunkFood02/Seal/releases/latest/)
-[![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/JunkFood02/Seal?include_prereleases&label=Preview&logo=Github)](https://github.com/JunkFood02/Seal/releases/)
-[![Keep a Changelog](https://img.shields.io/badge/Changelog-lightgray?style=flat&color=gray&logo=keep-a-changelog)](https://github.com/JunkFood02/Seal/blob/main/CHANGELOG.md)
-[![GitHub all releases](https://img.shields.io/github/downloads/JunkFood02/Seal/total?label=Downloads&logo=github)](https://github.com/JunkFood02/Seal/releases/)
-[![GitHub Repo stars](https://img.shields.io/github/stars/JunkFood02/Seal?color=informational&label=Stars)](https://github.com/JunkFood02/Seal/stargazers)
+[![Keep a Changelog](https://img.shields.io/badge/Changelog-lightgray?style=flat&color=gray&logo=keep-a-changelog)](https://github.com/frpboy/Seali/blob/main/CHANGELOG.md)
+[![GitHub all releases](https://img.shields.io/github/downloads/frpboy/Seali/total?label=Downloads&logo=github)](https://github.com/frpboy/Seali/releases/)
+[![GitHub Repo stars](https://img.shields.io/github/stars/frpboy/Seali?color=informational&label=Stars)](https://github.com/frpboy/Seali/stargazers)
 [![Supported Sites](https://img.shields.io/badge/Supported-Sites-9cf.svg?style=flat)](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md)
-[![Telegram Channel](https://img.shields.io/badge/Telegram-Seal-blue?style=flat&logo=telegram)](https://t.me/seal_app)
-[![Matrix Space](https://img.shields.io/badge/Matrix-Seal-Black?style=flat&color=black&logo=matrix)](https://matrix.to/#/#seal-space:matrix.org)
+[![Telegram Channel](https://img.shields.io/badge/Telegram-Seali-blue?style=flat&logo=telegram)](https://t.me/FRPboy_Projects)
 
 
 </div>
@@ -69,48 +75,32 @@ tujuan yang dapat dikomposisikan.
 
 ## ⬇️ Unduh
 
-Untuk sebagian besar perangkat, disarankan untuk menginstal versi **arm64-v8a** dari aplikasi
-
-- Unduh versi stabil terbaru dari [GitHub releases](https://github.com/JunkFood02/Seal/releases/latest)
-  - Instal versi [Pra-rilis](https://github.com/JunkFood02/Seal/releases/) untuk membantu kami menguji fitur & perubahan baru
-
-- Rilis stabil juga tersedia di [F-Droid](https://f-droid.org/packages/com.junkfood.seal/)
-
-<!-- [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-     alt="Dapatkan di F-Droid"
-     height="70">](https://f-droid.org/packages/com.junkfood.seal/) -->
+Current Seali guidance (English, pending translation): download an alpha APK from the [Seali release page](https://github.com/frpboy/Seali/releases). Choose universal if unsure which ABI your device uses. No stable or F-Droid Seali release is claimed. Read the [current status](../SEALI_STATUS.md) before installing.
 
 ## 💬 Kontak
 
-Bergabunglah dengan [Telegram Channel](https://t.me/seal_app) atau [Matrix Space](https://matrix.to/#/#seal-space:matrix.org) untuk diskusi, pengumuman, dan rilis!
+Current Seali contact (English, pending translation): [hi@frpboy.in](mailto:hi@frpboy.in) or [FrpBoy Projects on Telegram](https://t.me/FRPboy_Projects). Do not send passwords, cookies or other secrets.
 
 ## 💖 Sponsor
 
+Optional support for Rahul, Seali's current maintainer: [Buy Me a Coffee](https://buymeacoffee.com/frpboy) or [Patreon](https://www.patreon.com/c/FrpBoy).
+
+Historical Seal sponsor acknowledgements, not a list of Seali sponsors:
+
 <p><!-- sponsors --><a href="https://github.com/4kaimar"><img src="https://github.com/4kaimar.png" width="60px" alt="" /></a><a href="https://github.com/gordongw"><img src="https://github.com/gordongw.png" width="60px" alt="Gordon" /></a><a href="https://github.com/t1hta"><img src="https://github.com/t1hta.png" width="60px" alt="t1hta" /></a><a href="https://github.com/nameoneeman"><img src="https://github.com/nameoneeman.png" width="60px" alt="James" /></a><a href="https://github.com/iguanaguy44"><img src="https://github.com/iguanaguy44.png" width="60px" alt="" /></a><!-- sponsors --></p>
-
-
-Seal akan selalu gratis dan open source untuk semua orang. Jika Anda menyukainya, mohon pertimbangkan untuk [mensponsori saya](https://github.com/sponsors/JunkFood02)!
 
 ## 🤝 Berkontribusi
 
-Kontribusi dipersilakan!
-
-Anda dapat membantu menerjemahkan Seal di [Hosted Weblate](https://hosted.weblate.org/projects/seal/).
-	
-[![Translate status](https://hosted.weblate.org/widgets/seal/-/strings/multi-auto.svg)](https://hosted.weblate.org/engage/seal/)
-	
->**Catatan**
->
->Untuk mengirimkan laporan bug, permintaan fitur, pertanyaan, atau ide lain untuk perbaikan, silakan baca [CONTRIBUTING.md](https://github.com/JunkFood02/Seal/blob/main/CONTRIBUTING.md) untuk petunjuk dan panduan terlebih dahulu.
+Current Seali guidance (English, pending translation): use the [translation contribution guide](../CONTRIBUTING.md#translations) to submit Android string or README changes through a Seali pull request. Seali does not have its own Hosted Weblate project. Do not submit Seali changes to the original project's translation service.
 
 ## ⭐️ Sejarah bintang
 
-[![Star History Chart](https://api.star-history.com/svg?repos=JunkFood02/Seal&type=Timeline)](https://star-history.com/#JunkFood02/Seal&Timeline)
+[![Star History Chart](https://api.star-history.com/svg?repos=frpboy/Seali&type=Timeline)](https://star-history.com/#frpboy/Seali&Timeline)
 
 
 ## 🧱 Kredit
 
-Seal adalah sebuah GUI sederhana dari [yt-dlp](https://github.com/yt-dlp/yt-dlp), berdasarkan [youtubedl-android](https://github.com/yausername/youtubedl-android)
+Seali adalah sebuah GUI sederhana dari [yt-dlp](https://github.com/yt-dlp/yt-dlp), berdasarkan [youtubedl-android](https://github.com/yausername/youtubedl-android)
 
 Beberapa desain dan kode UI dipinjam dari [Read You](https://github.com/Ashinch/ReadYou) dan [Music You](https://github.com/Kyant0/MusicYou)
 
@@ -122,13 +112,13 @@ Beberapa desain dan kode UI dipinjam dari [Read You](https://github.com/Ashinch/
 
 ## 📃 Lisensi
 
-[![GitHub](https://img.shields.io/github/license/JunkFood02/Seal?style=for-the-badge)](https://github.com/JunkFood02/Seal/blob/main/LICENSE)
+[![GitHub](https://img.shields.io/github/license/frpboy/Seali?style=for-the-badge)](https://github.com/frpboy/Seali/blob/main/LICENSE)
 
 >**Peringatan**
 >
 >Kecuali untuk kode sumber yang dilisensikan di bawah lisensi GPLv3,
->semua pihak lain dilarang menggunakan nama Seal sebagai aplikasi pengunduh,
->dan hal yang sama juga berlaku untuk turunan Seal.
+>semua pihak lain dilarang menggunakan nama Seali sebagai aplikasi pengunduh,
+>dan hal yang sama juga berlaku untuk turunan Seali.
 >Turunannya termasuk tetapi tidak terbatas pada fork dan build tidak resmi.
 
 <div align="right">
