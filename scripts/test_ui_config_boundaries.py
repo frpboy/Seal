@@ -4,7 +4,7 @@ import unittest
 import xml.etree.ElementTree as ET
 ROOT=Path(__file__).resolve().parents[1]
 class ConfigurationBoundaries(unittest.TestCase):
-    def setUp(self):self.text=(ROOT/"app/src/main/java/com/junkfood/seal/ui/page/downloadv2/configure/DownloadDialogV2.kt").read_text()
+    def setUp(self):self.text=(ROOT/"app/src/main/java/com/frpboy/seali/ui/page/downloadv2/configure/DownloadDialogV2.kt").read_text()
     def test_always_visible_current_type_chips(self):
         self.assertIn("settingChips: @Composable (DownloadType?) -> Unit",self.text)
         self.assertIn("settingChips(selectedType)",self.text)

@@ -28,7 +28,7 @@ class IconResources(unittest.TestCase):
             data=(RES/f"mipmap-{density}/ic_launcher_foreground.png").read_bytes()
             self.assertEqual((size,size),struct.unpack(">II",data[16:24]))
     def test_all_live_notification_builders_keep_same_resource(self):
-        text=(ROOT/"app/src/main/java/com/junkfood/seal/util/NotificationUtil.kt").read_text()
+        text=(ROOT/"app/src/main/java/com/frpboy/seali/util/NotificationUtil.kt").read_text()
         live="\n".join(line for line in text.splitlines() if not line.lstrip().startswith("//"))
         self.assertEqual(7,live.count("setSmallIcon(R.drawable.ic_stat_seal)"))
         self.assertNotIn("setLargeIcon", live)

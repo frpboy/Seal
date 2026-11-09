@@ -2,7 +2,7 @@
 """Source-boundary assertions supplement real helper JUnit tests, not Android UI tests."""
 from pathlib import Path
 import unittest
-ROOT = Path(__file__).resolve().parents[1] / "app/src/main/java/com/junkfood/seal"
+ROOT = Path(__file__).resolve().parents[1] / "app/src/main/java/com/frpboy/seali"
 class SafeReportRouting(unittest.TestCase):
     def test_shared_formatter_routes_without_nullable_message(self):
         text = (ROOT / "util/TextUtil.kt").read_text()

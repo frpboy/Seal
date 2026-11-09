@@ -5,7 +5,7 @@ import unittest
 import xml.etree.ElementTree as ET
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-SRC = ROOT / 'app/src/main/java/com/junkfood/seal'
+SRC = ROOT / 'app/src/main/java/com/frpboy/seali'
 
 class RuntimeConsentBoundaryTests(unittest.TestCase):
     def test_central_gate_precedes_external_update(self):

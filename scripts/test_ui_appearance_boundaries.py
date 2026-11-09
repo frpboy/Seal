@@ -4,7 +4,7 @@ import unittest
 import xml.etree.ElementTree as ET
 ROOT=Path(__file__).resolve().parents[1]
 class AppearanceBoundaries(unittest.TestCase):
-    def setUp(self): self.s=(ROOT/'app/src/main/java/com/junkfood/seal/ui/page/settings/appearance/AppearancePreferences.kt').read_text()
+    def setUp(self): self.s=(ROOT/'app/src/main/java/com/frpboy/seali/ui/page/settings/appearance/AppearancePreferences.kt').read_text()
     def test_existing_switch_guard_and_confirm_preserved(self):
         self.assertIn('InterfaceSwitchGuard.hasActiveDownloads(',self.s)
         self.assertIn('else if (selected != currentUiStyle)',self.s)

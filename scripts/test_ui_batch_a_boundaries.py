@@ -3,7 +3,7 @@ from pathlib import Path
 import unittest
 import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "app/src/main/java/com/junkfood/seal"
+SRC = ROOT / "app/src/main/java/com/frpboy/seali"
 class BatchABoundaries(unittest.TestCase):
     def test_all_empty_filters_have_honest_distinct_messages(self):
         text=(SRC/"ui/page/downloadv2/QueueEmptyState.kt").read_text()

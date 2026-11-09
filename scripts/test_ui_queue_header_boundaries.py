@@ -4,7 +4,7 @@ import unittest
 import xml.etree.ElementTree as ET
 ROOT=Path(__file__).resolve().parents[1]
 class QueueHeaderBoundaries(unittest.TestCase):
-    def setUp(self):self.s=(ROOT/'app/src/main/java/com/junkfood/seal/ui/page/downloadv2/DownloadPageV2.kt').read_text()
+    def setUp(self):self.s=(ROOT/'app/src/main/java/com/frpboy/seali/ui/page/downloadv2/DownloadPageV2.kt').read_text()
     def test_count_is_current_filter_and_outside_lazy_grid(self):
         call=self.s.index('                    SubHeader(')
         self.assertLess(call,self.s.index('else LazyVerticalGrid('))
