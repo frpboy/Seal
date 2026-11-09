@@ -37,7 +37,6 @@ import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Menu
-import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FloatingActionButton
@@ -78,7 +77,6 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -147,9 +145,10 @@ enum class Filter {
             Finished -> stringResource(R.string.status_completed)
         }
 
-    fun predict(entry: Pair<Task, Task.State>): Boolean {
+    fun predict(entry: Pair<Task, Task.State>): Boolean = matches(entry.second.downloadState)
+
+    internal fun matches(state: Task.DownloadState): Boolean {
         if (this == All) return true
-        val state = entry.second.downloadState
         return when (this) {
             Downloading -> {
                 when (state) {
@@ -326,7 +325,6 @@ fun DownloadPageImplV2(
             derivedStateOf { taskDownloadStateMap.filter { activeFilter.predict(it.toPair()) } }
         }
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var selectedTask by remember { mutableStateOf<Task?>(null) }
@@ -443,7 +441,6 @@ fun DownloadPageImplV2(
                                 audioCount = audioCount,
                                 isGridView = isGridView,
                                 onToggleView = { isGridView = !isGridView },
-                                onShowMenu = { context.makeToast("Not implemented yet!") },
                             )
                         }
                     }
@@ -506,6 +503,7 @@ fun DownloadPageImplV2(
         if (filteredMap.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize()) {
                 DownloadQueuePlaceholder(
+                    showSavedHistoryHint = activeFilter == Filter.Finished,
                     modifier =
                         Modifier.fillMaxHeight(0.4f).widthIn(max = 360.dp).align(Alignment.Center)
                 )
@@ -615,7 +613,10 @@ fun FABs(modifier: Modifier = Modifier, downloadCallback: () -> Unit = {}) {
 
 @Composable
 @Preview
-private fun DownloadQueuePlaceholder(modifier: Modifier = Modifier) {
+private fun DownloadQueuePlaceholder(
+    modifier: Modifier = Modifier,
+    showSavedHistoryHint: Boolean = false,
+) {
     BoxWithConstraints(modifier = modifier) {
         ConstraintLayout {
             val (image, text) = createRefs()
@@ -643,13 +644,19 @@ private fun DownloadQueuePlaceholder(modifier: Modifier = Modifier) {
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
-                    text = stringResource(R.string.you_ll_find_your_downloads_here),
+                    text = stringResource(
+                        if (showSavedHistoryHint) R.string.queue_no_finished_this_session
+                        else R.string.you_ll_find_your_downloads_here
+                    ),
                     modifier = Modifier.padding(horizontal = 24.dp),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    text = stringResource(R.string.download_hint),
+                    text = stringResource(
+                        if (showSavedHistoryHint) R.string.queue_saved_history_hint
+                        else R.string.download_hint
+                    ),
                     modifier = Modifier.padding(top = 4.dp).padding(horizontal = 24.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -671,7 +678,6 @@ fun SubHeader(
     audioCount: Int = 0,
     isGridView: Boolean = true,
     onToggleView: () -> Unit,
-    onShowMenu: () -> Unit,
 ) {
     val text = buildString {
         if (videoCount > 0) {
@@ -701,27 +707,15 @@ fun SubHeader(
 
         FilledIconButton(
             onClick = onToggleView,
-            modifier = Modifier.clearAndSetSemantics {}.size(32.dp),
+            modifier = Modifier.size(32.dp),
             colors = IconButtonDefaults.filledIconButtonColors(containerColor = containerColor),
         ) {
             Icon(
                 imageVector =
                     if (isGridView) Icons.AutoMirrored.Outlined.List else Icons.Outlined.GridView,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-            )
-        }
-
-        Spacer(Modifier.width(4.dp))
-
-        FilledIconButton(
-            onClick = onShowMenu,
-            modifier = Modifier.clearAndSetSemantics {}.size(32.dp),
-            colors = IconButtonDefaults.filledIconButtonColors(containerColor = containerColor),
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.MoreVert,
-                contentDescription = null,
+                contentDescription = stringResource(
+                    if (isGridView) R.string.queue_switch_to_list else R.string.queue_switch_to_grid
+                ),
                 modifier = Modifier.size(16.dp),
             )
         }

@@ -447,4 +447,8 @@
         <item quantity="one">%d audio</item>
         <item quantity="other">%d audios</item>
     </plurals>
+    <string name="queue_no_finished_this_session">No finished downloads in this session</string>
+    <string name="queue_saved_history_hint">Saved downloads remain in Downloads. Open Downloads from the navigation menu to view your history.</string>
+    <string name="queue_switch_to_list">Switch to list view</string>
+    <string name="queue_switch_to_grid">Switch to grid view</string>
 </resources>
