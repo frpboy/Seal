@@ -474,4 +474,9 @@
     <string name="queue_metadata_unavailable">Metadata unavailable</string>
     <string name="queue_retry">Retry</string>
     <string name="seali_quick_settings">Quick settings</string>
+    <string name="format_requires_audio_hint">Turn on Save as audio to convert audio, embed metadata or crop artwork.</string>
+    <string name="artwork_requires_metadata_hint">Turn on Embed metadata to crop audio artwork.</string>
+    <string name="video_requires_video_hint">Turn off Save as audio to change video format, video quality or the MKV container.</string>
+    <string name="video_uses_sorting_hint">Format sorting chooses the video format and quality. Turn it off to choose them manually.</string>
+    <string name="advanced_requires_selection_hint">Turn on Format selection to use video clips or merge audio streams.</string>
 </resources>

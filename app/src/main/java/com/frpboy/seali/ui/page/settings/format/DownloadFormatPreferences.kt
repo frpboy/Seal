@@ -128,6 +128,12 @@ fun DownloadFormatPreferences(onNavigateBack: () -> Unit, navigateToSubtitlePage
                         )
                     }
                 item { PreferenceSubtitle(text = stringResource(id = R.string.audio)) }
+                if (!isCustomCommandEnabled && !audioSwitch) item {
+                    PreferenceInfo(text = stringResource(R.string.format_requires_audio_hint))
+                }
+                if (!isCustomCommandEnabled && audioSwitch && !embedMetadata) item {
+                    PreferenceInfo(text = stringResource(R.string.artwork_requires_metadata_hint))
+                }
                 item {
                     PreferenceSwitch(
                         title = stringResource(id = R.string.extract_audio),
@@ -200,6 +206,12 @@ fun DownloadFormatPreferences(onNavigateBack: () -> Unit, navigateToSubtitlePage
                     }
                 }
                 item { PreferenceSubtitle(text = stringResource(id = R.string.video)) }
+                if (!isCustomCommandEnabled && audioSwitch) item {
+                    PreferenceInfo(text = stringResource(R.string.video_requires_video_hint))
+                }
+                if (!isCustomCommandEnabled && !audioSwitch && isFormatSortingEnabled) item {
+                    PreferenceInfo(text = stringResource(R.string.video_uses_sorting_hint))
+                }
                 item {
                     PreferenceItem(
                         title = stringResource(R.string.video_format_preference),
@@ -257,6 +269,9 @@ fun DownloadFormatPreferences(onNavigateBack: () -> Unit, navigateToSubtitlePage
                 }
 
                 item { PreferenceSubtitle(text = stringResource(id = R.string.advanced_settings)) }
+                if (!isCustomCommandEnabled && !isFormatSelectionEnabled) item {
+                    PreferenceInfo(text = stringResource(R.string.advanced_requires_selection_hint))
+                }
                 item {
                     PreferenceItem(
                         title = stringResource(id = R.string.subtitle),
