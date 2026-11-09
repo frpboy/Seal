@@ -456,4 +456,11 @@
     <string name="seali_empty_finished">No completed downloads yet</string>
     <string name="seali_empty_finished_hint">Completed downloads will appear here.</string>
     <string name="seali_empty_action_hint">Add a link, or share a video link to Seali from your browser.</string>
+    <string name="queue_filter_count">%1$s: %2$s</string>
+    <string name="queue_show_list">Show download list</string>
+    <string name="queue_show_grid">Show download cards</string>
+    <plurals name="queue_task_count">
+        <item quantity="one">%d task</item>
+        <item quantity="other">%d tasks</item>
+    </plurals>
 </resources>

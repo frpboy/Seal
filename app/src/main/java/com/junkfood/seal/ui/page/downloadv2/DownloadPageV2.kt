@@ -320,7 +320,6 @@ fun DownloadPageImplV2(
             derivedStateOf { taskDownloadStateMap.filter { activeFilter.predict(it.toPair()) } }
         }
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var selectedTask by remember { mutableStateOf<Task?>(null) }
@@ -344,7 +343,10 @@ fun DownloadPageImplV2(
     Scaffold(
         modifier = modifier.fillMaxSize().statusBarsPadding(),
         containerColor = MaterialTheme.colorScheme.surface,
-        floatingActionButton = { FABs(modifier = Modifier, downloadCallback = downloadCallback) },
+        floatingActionButton = {
+            FABs(modifier = Modifier, downloadCallback = downloadCallback,
+                expandForEmptyQueue = taskDownloadStateMap.isEmpty())
+        },
     ) { windowInsetsPadding ->
         val lazyListState = rememberLazyGridState()
         val windowWidthSizeClass = LocalWindowWidthState.current
@@ -412,6 +414,13 @@ fun DownloadPageImplV2(
                             }
                         }
                     }
+                    SubHeader(
+                        modifier = Modifier.padding(horizontal = 20.dp),
+                        filterLabel = activeFilter.label(),
+                        taskCount = filteredMap.size,
+                        isGridView = isGridView,
+                        onToggleView = { isGridView = !isGridView },
+                    )
                     Spacer(Modifier.height(8.dp))
                     if (headerOffset <= 0.1f && spacerHeight > 0f) {
                         HorizontalDivider(thickness = Dp.Hairline)
@@ -433,21 +442,6 @@ fun DownloadPageImplV2(
                             PaddingValues(start = 20.dp, end = 20.dp, bottom = 80.dp),
                     horizontalArrangement = Arrangement.spacedBy(24.dp),
                 ) {
-                    if (filteredMap.isNotEmpty()) {
-                        item(span = { GridItemSpan(maxLineSpan) }) {
-                            val videoCount = filteredMap.count { it.value.isVideoTask() }
-                            val audioCount = filteredMap.count { it.value.isAudioTask() }
-                            SubHeader(
-                                modifier = Modifier,
-                                videoCount = videoCount,
-                                audioCount = audioCount,
-                                isGridView = isGridView,
-                                onToggleView = { isGridView = !isGridView },
-                                onShowMenu = { context.makeToast("Not implemented yet!") },
-                            )
-                        }
-                    }
-
                     if (isGridView) {
                         items(
                             items =
@@ -578,8 +572,12 @@ private fun HeaderExpanded(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun FABs(modifier: Modifier = Modifier, downloadCallback: () -> Unit = {}) {
-    val expanded = LocalWindowWidthState.current != WindowWidthSizeClass.Compact
+fun FABs(
+    modifier: Modifier = Modifier,
+    downloadCallback: () -> Unit = {},
+    expandForEmptyQueue: Boolean = false,
+) {
+    val expanded = expandForEmptyQueue || LocalWindowWidthState.current != WindowWidthSizeClass.Compact
     Column(modifier = modifier.padding(6.dp), horizontalAlignment = Alignment.End) {
         FloatingActionButton(
             onClick = downloadCallback,
@@ -612,62 +610,39 @@ fun SubHeader(
         MaterialTheme.colorScheme.run {
             if (LocalDarkTheme.current.isDarkTheme()) surfaceContainer else surfaceContainerLowest
         },
-    videoCount: Int = 0,
-    audioCount: Int = 0,
+    filterLabel: String,
+    taskCount: Int,
     isGridView: Boolean = true,
     onToggleView: () -> Unit,
-    onShowMenu: () -> Unit,
 ) {
-    val text = buildString {
-        if (videoCount > 0) {
-            append(pluralStringResource(R.plurals.video_count, videoCount).format(videoCount))
-            if (audioCount > 0) {
-                append(", ")
-            }
-        }
-        if (audioCount > 0) {
-            append(pluralStringResource(R.plurals.audio_count, audioCount).format(audioCount))
-        }
-    }
+    val countText = pluralStringResource(R.plurals.queue_task_count, taskCount, taskCount)
+    val text = stringResource(R.string.queue_filter_count, filterLabel, countText)
 
     Row(
         modifier = modifier.padding(top = 12.dp, bottom = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
-            modifier = Modifier.padding(start = 8.dp),
+            modifier = Modifier.weight(1f).padding(start = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(text = text, style = MaterialTheme.typography.labelLarge)
             Spacer(Modifier.width(4.dp))
         }
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.width(8.dp))
 
         FilledIconButton(
             onClick = onToggleView,
-            modifier = Modifier.clearAndSetSemantics {}.size(32.dp),
+            modifier = Modifier.size(48.dp),
             colors = IconButtonDefaults.filledIconButtonColors(containerColor = containerColor),
         ) {
             Icon(
                 imageVector =
                     if (isGridView) Icons.AutoMirrored.Outlined.List else Icons.Outlined.GridView,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-            )
-        }
-
-        Spacer(Modifier.width(4.dp))
-
-        FilledIconButton(
-            onClick = onShowMenu,
-            modifier = Modifier.clearAndSetSemantics {}.size(32.dp),
-            colors = IconButtonDefaults.filledIconButtonColors(containerColor = containerColor),
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.MoreVert,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
+                contentDescription = stringResource(
+                    if (isGridView) R.string.queue_show_list else R.string.queue_show_grid),
+                modifier = Modifier.size(20.dp),
             )
         }
     }
