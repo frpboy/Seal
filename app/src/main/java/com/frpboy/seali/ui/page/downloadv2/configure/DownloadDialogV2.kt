@@ -193,7 +193,7 @@ fun DownloadDialog(
     sheetState: SheetState,
     preferences: DownloadUtil.DownloadPreferences,
     onPreferencesUpdate: (DownloadUtil.DownloadPreferences) -> Unit,
-    state: DownloadDialogViewModel.SheetState = InputUrl,
+    state: DownloadDialogViewModel.SheetState = InputUrl(),
     onActionPost: (Action) -> Unit = {},
 ) {
     var showVideoPresetDialog by remember { mutableStateOf(false) }
@@ -417,8 +417,9 @@ private fun DownloadDialogContent(
                 }
             }
 
-            InputUrl -> {
+            is InputUrl -> {
                 InputUrlPage(
+                    explicitlyPastedText = state.explicitlyPastedText,
                     config = config,
                     onConfigUpdate = { Config.updatePreferences(newValue = it, oldValue = config) },
                     onActionPost = onActionPost,

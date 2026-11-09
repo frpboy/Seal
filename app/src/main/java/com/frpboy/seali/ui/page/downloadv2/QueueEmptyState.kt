@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -27,7 +28,7 @@ import com.frpboy.seali.R
 
 /** Uses the existing add-link flow. It never reads the clipboard or starts a download by itself. */
 @Composable
-fun QueueEmptyState(filter: Filter, onAddLink: () -> Unit, modifier: Modifier = Modifier) {
+fun QueueEmptyState(filter: Filter, onAddLink: () -> Unit, onPasteLink: () -> Unit = {}, modifier: Modifier = Modifier) {
     val title = when (filter) {
         Filter.All -> R.string.you_ll_find_your_downloads_here
         Filter.Downloading -> R.string.seali_empty_active
@@ -50,10 +51,10 @@ fun QueueEmptyState(filter: Filter, onAddLink: () -> Unit, modifier: Modifier = 
             ) {
                 if (filter == Filter.All && !compact) {
                     Icon(
-                        painter = painterResource(R.drawable.ic_launcher_foreground),
+                        painter = painterResource(R.drawable.seali_queue_phone),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(120.dp),
+                        modifier = Modifier.size(144.dp),
                     )
                 }
                 Text(stringResource(title), style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
@@ -64,6 +65,9 @@ fun QueueEmptyState(filter: Filter, onAddLink: () -> Unit, modifier: Modifier = 
                     textAlign = TextAlign.Center,
                 )
                 FilledTonalButton(onClick = onAddLink) { Text(stringResource(R.string.seali_add_link)) }
+                if (filter == Filter.All) {
+                    TextButton(onClick = onPasteLink) { Text(stringResource(R.string.seali_paste_link)) }
+                }
                 Spacer(Modifier.height(4.dp))
             }
         }

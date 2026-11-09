@@ -30,7 +30,7 @@ class DownloadDialogViewModel(private val downloader: DownloaderV2) : ViewModel(
     }
 
     sealed interface SheetState {
-        data object InputUrl : SheetState
+        data class InputUrl(val explicitlyPastedText: String? = null) : SheetState
 
         data class Configure(val urlList: List<String>) : SheetState
 
@@ -48,7 +48,7 @@ class DownloadDialogViewModel(private val downloader: DownloaderV2) : ViewModel(
     sealed interface Action {
         data object HideSheet : Action
 
-        data class ShowSheet(val urlList: List<String>? = null) : Action
+        data class ShowSheet(val urlList: List<String>? = null, val explicitlyPastedText: String? = null) : Action
 
         data class ProceedWithURLs(val urlList: List<String>) : Action
 
@@ -82,7 +82,7 @@ class DownloadDialogViewModel(private val downloader: DownloaderV2) : ViewModel(
     private val mSelectionStateFlow: MutableStateFlow<SelectionState> =
         MutableStateFlow(SelectionState.Idle)
     private val mSheetStateFlow: MutableStateFlow<SheetState> =
-        MutableStateFlow(SheetState.InputUrl)
+        MutableStateFlow(SheetState.InputUrl())
     private val mSheetValueFlow: MutableStateFlow<SheetValue> = MutableStateFlow(SheetValue.Hidden)
 
     val selectionStateFlow = mSelectionStateFlow.asStateFlow()
@@ -212,7 +212,7 @@ class DownloadDialogViewModel(private val downloader: DownloaderV2) : ViewModel(
         if (!urlList.isNullOrEmpty()) {
             mSheetStateFlow.update { SheetState.Configure(urlList) }
         } else {
-            mSheetStateFlow.update { SheetState.InputUrl }
+            mSheetStateFlow.update { SheetState.InputUrl(action.explicitlyPastedText) }
         }
         mSheetValueFlow.update { SheetValue.Expanded }
     }

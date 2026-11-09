@@ -9,7 +9,7 @@ class BatchABoundaries(unittest.TestCase):
         text=(SRC/"ui/page/downloadv2/QueueEmptyState.kt").read_text()
         for name in ["Filter.All", "Filter.Downloading", "Filter.Canceled", "Filter.Finished"]:
             self.assertEqual(2,text.count(name + " ->"))
-        self.assertIn("R.drawable.ic_launcher_foreground",text)
+        self.assertIn("R.drawable.seali_queue_phone",text)
         self.assertIn("verticalScroll",text)
         self.assertIn("FilledTonalButton(onClick = onAddLink)",text)
         self.assertNotIn("Clipboard",text)

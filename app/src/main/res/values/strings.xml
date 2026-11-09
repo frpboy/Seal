@@ -448,6 +448,7 @@
         <item quantity="other">%d audios</item>
     </plurals>
     <string name="seali_support_and_donate">Support &amp; Donate</string>
+    <string name="seali_paste_link">Paste a link</string>
     <string name="seali_add_link">Add a link</string>
     <string name="seali_empty_active">No downloads running</string>
     <string name="seali_empty_active_hint">Your active downloads will appear here.</string>

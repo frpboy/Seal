@@ -6,6 +6,9 @@ import androidx.compose.animation.core.AnimationState
 import androidx.compose.animation.core.animateTo
 import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.LocalOverscrollFactory
+import androidx.compose.foundation.border
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -212,6 +215,12 @@ fun DownloadPageV2(
             view.slightHapticFeedback()
             dialogViewModel.postAction(Action.ShowSheet())
         },
+        pasteCallback = {
+            view.slightHapticFeedback()
+            // Explicit tap only. Opening Add link does not inspect clipboard.
+            val text = clipboardManager.getText()?.toString().orEmpty()
+            dialogViewModel.postAction(Action.ShowSheet(explicitlyPastedText = text))
+        },
         onMenuOpen = onMenuOpen,
     ) { task, action ->
         view.slightHapticFeedback()
@@ -315,6 +324,7 @@ fun DownloadPageImplV2(
     modifier: Modifier = Modifier,
     taskDownloadStateMap: SnapshotStateMap<Task, Task.State>,
     downloadCallback: () -> Unit = {},
+    pasteCallback: () -> Unit = {},
     onMenuOpen: (() -> Unit) = {},
     onActionPost: (Task, UiAction) -> Unit,
 ) {
@@ -441,6 +451,7 @@ fun DownloadPageImplV2(
                     QueueEmptyState(
                         filter = activeFilter,
                         onAddLink = downloadCallback,
+                        onPasteLink = pasteCallback,
                         modifier = Modifier.fillMaxSize().padding(bottom = 96.dp),
                     )
                 } else LazyVerticalGrid(
@@ -461,7 +472,7 @@ fun DownloadPageImplV2(
                             val displayViewState =
                                 state.rememberActualFileSize()
                             with(displayViewState) {
-                                Column(Modifier.padding(bottom = 20.dp)) {
+                                Column(Modifier.padding(bottom = 20.dp).queueActiveEmphasis(state.downloadState is Running)) {
                                 val error = state.downloadState as? Error
                                 if (error != null && thumbnailUrl.isNullOrBlank()) {
                                     CompactQueueErrorCard(task, displayViewState, error,
@@ -504,7 +515,7 @@ fun DownloadPageImplV2(
                                     modifier = Modifier.padding(bottom = 16.dp),
                                     onActionPost = onActionPost, onShowActions = { showActionSheet(task) })
                             } else VideoListItem(
-                                modifier = Modifier.padding(bottom = 16.dp),
+                                modifier = Modifier.padding(bottom = 16.dp).queueActiveEmphasis(state.downloadState is Running),
                                 viewState = displayViewState,
                                 stateIndicator = {
                                     Column {
@@ -808,3 +819,11 @@ private fun Task.State.rememberActualFileSize(): Task.ViewState {
         display
     }
 }
+
+/** Emphasis only, never changes queue ordering or state/action semantics. */
+@Composable
+private fun Modifier.queueActiveEmphasis(running: Boolean): Modifier =
+    if (!running) this else this
+        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.22f), RoundedCornerShape(16.dp))
+        .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.32f), RoundedCornerShape(16.dp))
+        .padding(8.dp)
