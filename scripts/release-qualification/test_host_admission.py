@@ -1,8 +1,10 @@
 import pathlib
+import os
+import tempfile
 import stat
 import unittest
-from unittest.mock import Mock
-from host_admission import admitted_kvm, valid_sha
+from unittest.mock import Mock, patch
+from host_admission import admitted_kvm, valid_sha, main
 
 
 class HostAdmissionTests(unittest.TestCase):
@@ -22,6 +24,27 @@ class HostAdmissionTests(unittest.TestCase):
         for r, w in [(False, False), (False, True), (True, False)]:
             self.assertFalse(admitted_kvm(path, r, w))
         self.assertTrue(admitted_kvm(path, True, True))
+
+    def test_environment_cannot_redirect_emulator_executable(self):
+        env = dict(EXPECTED_SOURCE_SHA='a' * 40, GITHUB_SHA='a' * 40,
+                   GITHUB_REPOSITORY='frpboy/Seali', REPOSITORY_PRIVATE='false',
+                   GITHUB_EVENT_NAME='workflow_dispatch', ANDROID_HOME='/tmp/attacker',
+                   ANDROID_SDK_ROOT='/tmp/attacker')
+        previous = os.getcwd()
+        with tempfile.TemporaryDirectory() as temp:
+            try:
+                os.chdir(temp)
+                with patch.dict(os.environ, env, clear=True), \
+                     patch('host_admission.admitted_kvm', return_value=True), \
+                     patch('pathlib.Path.is_file', return_value=True), \
+                     patch('subprocess.run') as run:
+                    run.return_value.returncode = 0
+                    self.assertEqual(main(), 0)
+                    run.assert_called_once_with(
+                        ['/usr/local/lib/android/sdk/emulator/emulator', '-accel-check'],
+                        shell=False, capture_output=True, timeout=30, check=False)
+            finally:
+                os.chdir(previous)
 
     def test_missing_or_unstatable_device_fails(self):
         path = Mock()

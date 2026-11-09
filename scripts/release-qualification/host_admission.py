@@ -29,14 +29,16 @@ def main():
     manual = os.environ.get('GITHUB_EVENT_NAME') == 'workflow_dispatch'
     kvm = pathlib.Path('/dev/kvm')
     accessible = admitted_kvm(kvm, os.access(kvm, os.R_OK), os.access(kvm, os.W_OK))
-    sdk = os.environ.get('ANDROID_HOME') or os.environ.get('ANDROID_SDK_ROOT') or ''
-    emulator = pathlib.Path(sdk) / 'emulator/emulator'
+    # Fixed official ubuntu-24.04 image path, not any workflow/input/env path.
+    # An image-layout change fails closed; never search PATH or install a fallback.
+    emulator = pathlib.Path('/usr/local/lib/android/sdk/emulator/emulator')
     accelerator_ok = False
     if source_matches and public_owner and manual and accessible and emulator.is_file():
         try:
             # No sudo, chmod, module loading, device creation, emulator boot or network.
-            result = subprocess.run([str(emulator), '-accel-check'],
-                                    capture_output=True, timeout=30, check=False)
+            result = subprocess.run(
+                ['/usr/local/lib/android/sdk/emulator/emulator', '-accel-check'],
+                shell=False, capture_output=True, timeout=30, check=False)
             accelerator_ok = result.returncode == 0
         except (OSError, subprocess.TimeoutExpired):
             pass
