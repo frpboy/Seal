@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -36,8 +37,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
+import com.junkfood.seal.App
+import com.junkfood.seal.util.FDROID_RUNTIME_AUTO_UPDATE_CONSENT
+import com.junkfood.seal.util.PreferenceUtil.getBoolean
+import kotlinx.coroutines.launch
 import com.junkfood.seal.R
-import com.junkfood.seal.ui.common.booleanState
 import com.junkfood.seal.ui.common.intState
 import com.junkfood.seal.ui.component.ConfirmButton
 import com.junkfood.seal.ui.component.DismissButton
@@ -98,7 +102,12 @@ private fun DialogSingleChoiceItem(
 @Composable
 fun YtdlpUpdateChannelDialog(modifier: Modifier = Modifier, onDismissRequest: () -> Unit) {
     var ytdlpUpdateChannel by YT_DLP_UPDATE_CHANNEL.intState
-    var ytdlpAutoUpdate by YT_DLP_AUTO_UPDATE.booleanState
+    val scope = rememberCoroutineScope()
+    val requestRuntimeConsent = rememberRuntimeUpdateConsent()
+    var ytdlpAutoUpdate by remember {
+        mutableStateOf(YT_DLP_AUTO_UPDATE.getBoolean() &&
+            (!App.isFDroidBuild() || FDROID_RUNTIME_AUTO_UPDATE_CONSENT.getBoolean()))
+    }
     var updateInterval by remember { mutableLongStateOf(YT_DLP_UPDATE_INTERVAL.getLong()) }
 
     SealDialog(
@@ -106,10 +115,17 @@ fun YtdlpUpdateChannelDialog(modifier: Modifier = Modifier, onDismissRequest: ()
         onDismissRequest = onDismissRequest,
         confirmButton = {
             ConfirmButton {
-                YT_DLP_AUTO_UPDATE.updateBoolean(ytdlpAutoUpdate)
-                YT_DLP_UPDATE_CHANNEL.updateInt(ytdlpUpdateChannel)
-                YT_DLP_UPDATE_INTERVAL.updateLong(updateInterval)
-                onDismissRequest()
+                scope.launch {
+                    if (App.isFDroidBuild() && ytdlpAutoUpdate) {
+                        if (!requestRuntimeConsent(true)) return@launch
+                    }
+                    if (App.isFDroidBuild())
+                        FDROID_RUNTIME_AUTO_UPDATE_CONSENT.updateBoolean(ytdlpAutoUpdate)
+                    YT_DLP_AUTO_UPDATE.updateBoolean(ytdlpAutoUpdate)
+                    YT_DLP_UPDATE_CHANNEL.updateInt(ytdlpUpdateChannel)
+                    YT_DLP_UPDATE_INTERVAL.updateLong(updateInterval)
+                    onDismissRequest()
+                }
             }
         },
         dismissButton = { DismissButton { onDismissRequest() } },

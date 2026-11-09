@@ -111,6 +111,7 @@ import kotlinx.coroutines.withContext
 fun GeneralDownloadPreferences(onNavigateBack: () -> Unit, navigateToTemplate: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val requestRuntimeConsent = rememberRuntimeUpdateConsent()
     val hapticFeedback = LocalHapticFeedback.current
 
     var showSponsorBlockDialog by remember { mutableStateOf(false) }
@@ -203,8 +204,9 @@ fun GeneralDownloadPreferences(onNavigateBack: () -> Unit, navigateToTemplate: (
                         onClick = {
                             scope.launch {
                                 runCatching {
+                                        if (!requestRuntimeConsent(false)) return@launch
                                         isUpdating = true
-                                        UpdateUtil.updateYtDlp()
+                                        UpdateUtil.updateYtDlp(manualConsent = true)
                                         ytdlpVersion = YT_DLP_VERSION.getString()
                                     }
                                     .onFailure { th ->

@@ -38,6 +38,7 @@ const val CONCURRENT = "concurrent_fragments"
 const val EXTRACT_AUDIO = "extract_audio"
 const val THUMBNAIL = "create_thumbnail"
 const val YT_DLP_VERSION = "yt-dlp_init"
+const val FDROID_RUNTIME_AUTO_UPDATE_CONSENT = "fdroid_runtime_auto_update_consent_v1"
 const val YT_DLP_AUTO_UPDATE = "yt-dlp_update"
 const val DEBUG = "debug"
 const val CONFIGURE = "configure"
@@ -219,6 +220,7 @@ private val BooleanPreferenceDefaults =
         CONFIGURE to true,
         CELLULAR_DOWNLOAD to false,
         YT_DLP_AUTO_UPDATE to true,
+        FDROID_RUNTIME_AUTO_UPDATE_CONSENT to false,
         NOTIFICATION to true,
         EMBED_METADATA to true,
         USE_CUSTOM_AUDIO_PRESET to false,
