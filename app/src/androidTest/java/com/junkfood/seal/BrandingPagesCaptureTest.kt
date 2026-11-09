@@ -1,6 +1,7 @@
 package com.junkfood.seal
 
 import android.graphics.Bitmap
+import android.os.Bundle
 import android.os.Process
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
@@ -30,18 +31,24 @@ class BrandingPagesCaptureTest {
     @Test fun productionSettingsLabelsAndCallbacks() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
-        println("SEALI_BRANDING_STAGE=native_init")
         check(context.resources.configuration.locales[0].toLanguageTag() == "en-US")
         val output = File(context.filesDir, "branding-capture")
         check(output.mkdirs() || output.isDirectory)
         check(output.listFiles().orEmpty().isEmpty())
+        fun diagnosticStage(value: String) {
+            // Values are local fixed literals, never application state or exception text.
+            instrumentation.sendStatus(0, Bundle().apply {
+                putString("stream", "\nSEALI_BRANDING_STAGE=$value\n")
+            })
+        }
+        diagnosticStage("native_init")
         // Preserve the application's real native initialization gate: a crash or incomplete init fails.
         compose.waitUntil(60_000) {
             File(context.filesDir, "seali-init-status").let {
                 it.exists() && it.readText() == "OK pid=${Process.myPid()}"
             }
         }
-        println("SEALI_BRANDING_STAGE=assertions")
+        diagnosticStage("assertions")
         val screen = mutableStateOf("about")
         val opened = mutableListOf<String>()
         val uriRecorder = object : UriHandler {
