@@ -22,6 +22,19 @@ object SafeErrorReport {
         return lines.joinToString("\n")
     }
 
+    /** First recognized safe category in the existing cause chain; never raw process output. */
+    fun reason(throwable: Throwable): String {
+        val seen = Collections.newSetFromMap(IdentityHashMap<Throwable, Boolean>())
+        var current: Throwable? = throwable
+        var count = 0
+        while (current != null && count++ < 6 && seen.add(current)) {
+            val detail = safeDetail(current.message)
+            if (detail != "No error message was provided." && detail != "Error details were withheld for privacy.") return detail
+            current = current.cause
+        }
+        return safeDetail(throwable.message)
+    }
+
     fun copyReport(versionReport: String, throwable: Throwable, url: String? = null): String =
         versionReport + "\nURL: " + SafeDiagnosticUrl.describe(url) + "\n" + describe(throwable)
 

@@ -40,6 +40,7 @@ const val FDROID_RUNTIME_AUTO_UPDATE_CONSENT = "fdroid_runtime_auto_update_conse
 const val YT_DLP_AUTO_UPDATE = "yt-dlp_update"
 const val DEBUG = "debug"
 const val CONFIGURE = "configure"
+const val QUEUE_GRID_VIEW = "queue_grid_view_v1"
 const val DARK_THEME_VALUE = "dark_theme_value"
 const val AUDIO_CONVERT = "audio_convert"
 const val AUDIO_CONVERSION_FORMAT = "audio_convert_format"

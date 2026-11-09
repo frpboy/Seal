@@ -259,7 +259,7 @@ fun NavigationDrawerSheetContent(
                     verticalArrangement = Arrangement.Center,
                 ) {
                     Text(
-                        stringResource(R.string.settings),
+                        stringResource(R.string.seali_quick_settings),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.tertiary,
                         modifier = Modifier,

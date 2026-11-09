@@ -110,6 +110,9 @@ import com.frpboy.seali.ui.page.downloadv2.configure.FormatPage
 import com.frpboy.seali.ui.page.downloadv2.configure.PlaylistSelectionPage
 import com.frpboy.seali.ui.page.downloadv2.configure.PreferencesMock
 import com.frpboy.seali.ui.theme.SealTheme
+import com.frpboy.seali.util.QUEUE_GRID_VIEW
+import com.frpboy.seali.util.PreferenceUtil.getBoolean
+import com.frpboy.seali.util.PreferenceUtil.updateBoolean
 import com.frpboy.seali.util.DownloadUtil
 import com.frpboy.seali.util.FileUtil
 import com.frpboy.seali.util.FileUtil.getFileSize
@@ -137,7 +140,7 @@ enum class Filter {
         when (this) {
             All -> stringResource(R.string.all)
             Downloading -> stringResource(R.string.status_downloading)
-            Canceled -> stringResource(R.string.status_canceled)
+            Canceled -> stringResource(R.string.queue_failed_or_canceled)
             Finished -> stringResource(R.string.status_completed)
         }
 
@@ -357,7 +360,9 @@ fun DownloadPageImplV2(
                 else HeaderSpacingDp.dp.toPx()
             }
         var headerOffset by remember { mutableFloatStateOf(spacerHeight) }
-        var isGridView by rememberSaveable { mutableStateOf(true) }
+        var isGridView by rememberSaveable {
+            mutableStateOf(QUEUE_GRID_VIEW.getBoolean(default = windowWidthSizeClass != WindowWidthSizeClass.Compact))
+        }
 
         Column(
             modifier =
@@ -411,7 +416,8 @@ fun DownloadPageImplV2(
                                     }
                                 },
                             ) {
-                                Text(filter.label())
+                                Text(stringResource(R.string.queue_chip_count, filter.label(),
+                                    taskDownloadStateMap.count { filter.predict(it.toPair()) }))
                             }
                         }
                     }
@@ -420,7 +426,10 @@ fun DownloadPageImplV2(
                         filterLabel = activeFilter.label(),
                         taskCount = filteredMap.size,
                         isGridView = isGridView,
-                        onToggleView = { isGridView = !isGridView },
+                        onToggleView = {
+                            isGridView = !isGridView
+                            QUEUE_GRID_VIEW.updateBoolean(isGridView)
+                        },
                     )
                     Spacer(Modifier.height(8.dp))
                     if (headerOffset <= 0.1f && spacerHeight > 0f) {
@@ -453,7 +462,11 @@ fun DownloadPageImplV2(
                                 state.rememberActualFileSize()
                             with(displayViewState) {
                                 Column(Modifier.padding(bottom = 20.dp)) {
-                                VideoCardV2(
+                                val error = state.downloadState as? Error
+                                if (error != null && thumbnailUrl.isNullOrBlank()) {
+                                    CompactQueueErrorCard(task, this, error,
+                                        onActionPost = onActionPost, onShowActions = { showActionSheet(task) })
+                                } else VideoCardV2(
                                     modifier = Modifier,
                                     viewState = displayViewState,
                                     actionButton = {
@@ -485,7 +498,12 @@ fun DownloadPageImplV2(
                         ) { (task, state) ->
                             val displayViewState =
                                 state.rememberActualFileSize()
-                            VideoListItem(
+                            val error = state.downloadState as? Error
+                            if (error != null && displayViewState.thumbnailUrl.isNullOrBlank()) {
+                                CompactQueueErrorCard(task, displayViewState, error,
+                                    modifier = Modifier.padding(bottom = 16.dp),
+                                    onActionPost = onActionPost, onShowActions = { showActionSheet(task) })
+                            } else VideoListItem(
                                 modifier = Modifier.padding(bottom = 16.dp),
                                 viewState = displayViewState,
                                 stateIndicator = {

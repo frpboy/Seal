@@ -469,4 +469,9 @@
     <string name="queue_progress_eta">Estimated remaining: %1$s</string>
     <string name="seali_fetching_options_hint">Checking available formats and download options. Dismissing the sheet requests cancellation.</string>
     <string name="queue_restore_failed_preserved">The saved queue could not be restored. Its original backup is kept, and download history is unchanged. New queue changes will not be saved until restore succeeds.</string>
+    <string name="queue_failed_or_canceled">Failed / Canceled</string>
+    <string name="queue_chip_count">%1$s (%2$d)</string>
+    <string name="queue_metadata_unavailable">Metadata unavailable</string>
+    <string name="queue_retry">Retry</string>
+    <string name="seali_quick_settings">Quick settings</string>
 </resources>
