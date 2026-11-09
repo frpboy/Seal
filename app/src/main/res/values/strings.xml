@@ -486,4 +486,7 @@
     <string name="seali_ytdlp_known_issues">yt-dlp known issues and FAQ</string>
     <string name="seali_interaction_summary">Interface mode and initial download type</string>
     <string name="seali_interface_location_hint">Choose Classic or v2 in Interface &amp; interaction</string>
+    <string name="seali_selected_streams">Selected streams: %1$d</string>
+    <string name="seali_stream_size_estimate">Input stream estimate: %1$s. Final file size may differ.</string>
+    <string name="seali_stream_size_unknown">Input stream size unknown. Clipping, chapters and post-processing can change the final file size.</string>
 </resources>

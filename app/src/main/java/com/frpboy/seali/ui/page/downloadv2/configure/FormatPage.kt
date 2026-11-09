@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -47,6 +48,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RangeSliderState
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -106,6 +108,7 @@ import com.frpboy.seali.util.SubtitleFormat
 import com.frpboy.seali.util.VIDEO_CLIP
 import com.frpboy.seali.util.VideoClip
 import com.frpboy.seali.util.VideoInfo
+import com.frpboy.seali.util.toFileSizeText
 import com.frpboy.seali.util.toHttpsUrl
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -382,7 +385,6 @@ private fun FormatPageImpl(
         }
     }
 
-    val isFabExpanded by remember { derivedStateOf { lazyGridState.firstVisibleItemIndex > 0 } }
 
     val selectedSubtitles = remember {
         mutableStateListOf<String>().apply { addAll(selectedSubtitleCodes) }
@@ -408,11 +410,33 @@ private fun FormatPageImpl(
                 },
             )
         },
-        floatingActionButton = {
-            val isFormatSelected = isSuggestedFormatSelected || formatList.isNotEmpty()
-            if (isFormatSelected) {
-                ExtendedFloatingActionButton(
-                    onClick = {
+        bottomBar = {
+            val streams = formatList.map {
+                SelectedStreamSummary(it.fileSize, it.fileSizeApprox, it.ext, it.vcodec, it.acodec)
+            }
+            val estimatedBytes = selectedStreamBytes(streams, isClippingVideo || isSplittingVideo)
+            val badges = selectedStreamBadges(streams)
+            Surface(tonalElevation = 3.dp) {
+                Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.seali_selected_streams, formatList.size),
+                        style = MaterialTheme.typography.titleSmall)
+                    Text(if (estimatedBytes != null)
+                        stringResource(R.string.seali_stream_size_estimate, estimatedBytes.toFileSizeText())
+                        else stringResource(R.string.seali_stream_size_unknown),
+                        style = MaterialTheme.typography.bodySmall)
+                    if (badges.isNotEmpty()) {
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(badges.size) { index ->
+                                Text(badges[index], style = MaterialTheme.typography.labelMedium,
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp))
+                            }
+                        }
+                    }
+                    Button(
+                        enabled = isSuggestedFormatSelected || formatList.isNotEmpty(),
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = {
                         onDownloadPressed(
                             FormatConfig(
                                 formatList = formatList,
@@ -425,21 +449,12 @@ private fun FormatPageImpl(
                                 selectedAutoCaptions = selectedAutoCaptions,
                             )
                         )
-                    },
-                    modifier = Modifier.padding(12.dp),
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Outlined.FileDownload,
-                            contentDescription = null,
-                            modifier = Modifier.size(24.dp),
-                        )
-                    },
-                    text = { Text(stringResource(R.string.start_download)) },
-                    expanded = isFabExpanded,
-                )
+
+                        },
+                    ) { Text(stringResource(R.string.start_download)) }
+                }
             }
         },
-        floatingActionButtonPosition = FabPosition.End,
     ) { paddingValues ->
         LazyVerticalGrid(
             modifier = Modifier.padding(paddingValues),
