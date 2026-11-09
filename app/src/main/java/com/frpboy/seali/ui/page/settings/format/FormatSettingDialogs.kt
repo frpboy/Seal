@@ -112,14 +112,14 @@ fun VideoResolutionSelectField(
     val videoResolutionText = PreferenceStrings.getVideoResolutionDesc(videoResolution)
 
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
-        SealTextField(
+        OutlinedTextField(
             modifier = modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
             value = videoResolutionText,
             onValueChange = {},
             readOnly = true,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-            //            label = { Text(stringResource(id = R.string.video_resolution)) }
+            label = { Text(stringResource(id = R.string.video_resolution)) },
         )
         ExposedDropdownMenu(
             modifier = Modifier,
