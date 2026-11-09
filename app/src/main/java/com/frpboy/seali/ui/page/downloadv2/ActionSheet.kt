@@ -1,6 +1,7 @@
 package com.frpboy.seali.ui.page.downloadv2
 
 import android.content.res.Configuration
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
@@ -27,6 +28,7 @@ import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material.icons.outlined.VideoFile
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -68,6 +70,7 @@ import com.frpboy.seali.ui.component.SealModalBottomSheet
 import com.frpboy.seali.ui.page.downloadv2.configure.PreferencesMock
 import com.frpboy.seali.ui.theme.ErrorTonalPalettes
 import com.frpboy.seali.ui.theme.SealTheme
+import com.frpboy.seali.util.SafeErrorReport
 import com.frpboy.seali.util.Format
 import com.frpboy.seali.util.toBitrateText
 import com.frpboy.seali.util.toDurationText
@@ -247,16 +250,38 @@ fun SheetContent(
         item {
             Title(
                 imageModel = viewState.thumbnailUrl,
-                title = viewState.title,
+                title = queueTaskDisplayTitle(task.url, viewState.title)
+                    ?: stringResource(R.string.queue_metadata_unavailable),
                 author = viewState.uploader,
                 downloadState = downloadState,
             )
         }
 
+        if (downloadState is Error) item {
+            Column(Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Surface(color = MaterialTheme.colorScheme.errorContainer,
+                    shape = MaterialTheme.shapes.large) {
+                    Text(SafeErrorReport.reason(downloadState.throwable),
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        style = MaterialTheme.typography.bodyMedium)
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    FilledTonalButton(modifier = Modifier.weight(1f), onClick = {
+                        onActionPost(task, UiAction.Resume)
+                        onDismissRequest()
+                    }) { Text(stringResource(R.string.queue_retry)) }
+                    FilledTonalButton(modifier = Modifier.weight(1f), onClick = {
+                        onActionPost(task, UiAction.CopyErrorReport(downloadState.throwable))
+                    }) { Text(stringResource(R.string.copy_error_report)) }
+                }
+            }
+        }
         item {
             LazyRow(
                 modifier = Modifier.padding(top = 12.dp, bottom = 24.dp),
-                contentPadding = PaddingValues(horizontal = 4.dp),
+                contentPadding = PaddingValues(horizontal = 20.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 ActionButtons(
                     task = task,
@@ -264,6 +289,7 @@ fun SheetContent(
                     viewState = viewState,
                     onDismissRequest = onDismissRequest,
                     onActionPost = onActionPost,
+                    includeErrorPrimary = false,
                 )
             }
         }
@@ -278,6 +304,7 @@ fun LazyListScope.ActionButtons(
     viewState: ViewState,
     onDismissRequest: () -> Unit,
     onActionPost: (Task, UiAction) -> Unit,
+    includeErrorPrimary: Boolean = true,
 ) {
     when (downloadState) {
         is Canceled -> {
@@ -301,7 +328,7 @@ fun LazyListScope.ActionButtons(
                 }
             }
         }
-        is Error -> {
+        is Error -> if (includeErrorPrimary) {
             item(key = "ResumeButton") {
                 ResumeButton(modifier = Modifier.animateItem()) {
                     onActionPost(task, UiAction.Resume)

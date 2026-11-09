@@ -46,7 +46,6 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.FileDownload
-import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.NewLabel
 import androidx.compose.material.icons.outlined.SettingsSuggest
 import androidx.compose.material.icons.outlined.VideoFile
@@ -1044,7 +1043,7 @@ private fun Preset(
             Crossfade(showEditIcon, animationSpec = spring(stiffness = Spring.StiffnessMedium)) {
                 if (it) {
                     Icon(
-                        imageVector = Icons.Outlined.MoreVert,
+                        imageVector = Icons.Outlined.Edit,
                         contentDescription = stringResource(R.string.edit),
                         modifier = Modifier.size(20.dp),
                     )

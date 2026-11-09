@@ -68,6 +68,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.frpboy.seali.R
+import com.frpboy.seali.ui.component.PasteFromClipBoardButton
 import com.frpboy.seali.ui.component.ClearButton
 import com.frpboy.seali.ui.component.FilledButtonWithIcon
 import com.frpboy.seali.ui.component.OutlinedButtonWithIcon
@@ -137,6 +138,7 @@ private fun InputUrlPageImpl(
 
     var url by remember { mutableStateOf("") }
     var showPasteDialog by remember { mutableStateOf(false) }
+    var explicitlyPastedUrls by remember { mutableStateOf<List<String>?>(null) }
     var showSavedUrlDialog by remember { mutableStateOf(false) }
 
     Column(modifier = modifier) {
@@ -154,6 +156,16 @@ private fun InputUrlPageImpl(
             trailingIcon = {
                 if (url.isNotEmpty()) {
                     ClearButton { url = "" }
+                } else {
+                    PasteFromClipBoardButton { text ->
+                        val links = findURLsFromString(text).distinct()
+                        if (links.size > 1) {
+                            explicitlyPastedUrls = links
+                            showPasteDialog = true
+                        } else {
+                            url = links.singleOrNull() ?: text
+                        }
+                    }
                 }
             },
         )
@@ -184,7 +196,7 @@ private fun InputUrlPageImpl(
                 item(key = "paste multiple url") {
                     SuggestionChip(
                         modifier = Modifier.animateItem(),
-                        onClick = { showPasteDialog = true },
+                        onClick = { explicitlyPastedUrls = null; showPasteDialog = true },
                         label = {
                             Text(
                                 stringResource(
@@ -263,7 +275,7 @@ private fun InputUrlPageImpl(
     }
     if (showPasteDialog) {
         URLSelectionDialog(
-            urlListFromClipboard = urlListFromClipboard,
+            urlListFromClipboard = explicitlyPastedUrls ?: urlListFromClipboard,
             onDismissRequest = { showPasteDialog = false },
             onConfirm = { onActionPost(Action.ProceedWithURLs(it)) },
         )
