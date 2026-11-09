@@ -93,6 +93,7 @@ import com.frpboy.seali.ui.component.BackButton
 import com.frpboy.seali.ui.component.CheckBoxItem
 import com.frpboy.seali.ui.component.ConfirmButton
 import com.frpboy.seali.ui.component.DismissButton
+import com.frpboy.seali.ui.component.historyProviderLabel
 import com.frpboy.seali.ui.component.MediaListItem
 import com.frpboy.seali.ui.component.SealDialog
 import com.frpboy.seali.ui.component.SealSearchBar
@@ -200,7 +201,7 @@ fun VideoListPage(viewModel: VideoListViewModel = koinViewModel(), onNavigateBac
                         VideoFilterChip(
                             selected = viewState.activeFilterIndex == i,
                             onClick = { viewModel.clickExtractorFilter(i) },
-                            label = filterSet.elementAt(i),
+                            label = historyProviderLabel(filterSet.elementAt(i)),
                         )
                     }
                 }
