@@ -104,35 +104,23 @@ English
 
 ## ⬇️ ডাউনলোড
 
-বেশিরভাগ ডিভাইসের জন্য, apks-এর **arm64-v8a** ইনস্টল করুন।
-
-- [GitHub releases](https://github.com/frpboy/Seali/releases) থেকে লেটেস্ট রিলিজ ডাউনলোড করুন।
-  - আমাদের সাহায্য করতে নতুন ফিচার ও পরিবর্তন টেস্ট করতে জন্য [pre-release](https://github.com/frpboy/Seali/releases/) ভার্সন ইনস্টল করুন।
-
-
-<!-- [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-     alt="Get it on F-Droid"
+Current Seali guidance (English, pending translation): download an alpha APK from the [Seali release page](https://github.com/frpboy/Seali/releases). Choose universal if unsure which ABI your device uses. No stable or F-Droid Seali release is claimed. Read the [current status](../SEALI_STATUS.md) before installing.
 
 ## 💬 যোগাযোগ
 
-আলোচনা, ঘোষণা এবং রিলিজের জন্য আমাদের  [টেলিগ্রাম চ্যানেল](https://t.me/FRPboy_Projects) বা [ম্যাট্রিক্স স্পেস](https://t.me/FRPboy_Projects) এ যোগ দিন!
+Current Seali contact (English, pending translation): [hi@frpboy.in](mailto:hi@frpboy.in) or [FrpBoy Projects on Telegram](https://t.me/FRPboy_Projects). Do not send passwords, cookies or other secrets.
 
 ## 💖 স্পনসর
 
+Optional support for Rahul, Seali's current maintainer: [Buy Me a Coffee](https://buymeacoffee.com/frpboy) or [Patreon](https://www.patreon.com/c/FrpBoy).
+
+Historical Seal sponsor acknowledgements, not a list of Seali sponsors:
+
 <p><!-- sponsors --><a href="https://github.com/4kaimar"><img src="https://github.com/4kaimar.png" width="60px" alt="" /></a><a href="https://github.com/gordongw"><img src="https://github.com/gordongw.png" width="60px" alt="Gordon" /></a><a href="https://github.com/zuble"><img src="https://github.com/zuble.png" width="60px" alt="zuble" /></a><a href="https://github.com/Dannyordaniel"><img src="https://github.com/Dannyordaniel.png" width="60px" alt="Daniel " /></a><a href="https://github.com/NRN83"><img src="https://github.com/NRN83.png" width="60px" alt="" /></a><!-- sponsors --></p>
-
-
-সীল সর্বদা বিনামূল্যে এবং সবার জন্য উন্মুক্ত থাকবে । আপনারা যদি এটা পছন্দ করে থাকেন, আমাকে [স্পনসর করুন!](https://buymeacoffee.com/frpboy)!
 
 ## 🤝 অবদান
 
- সবার অবদানকে স্বাগত জানাই!
- আপনি [Hosted Weblate](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md) সিল অনুবাদ করতে সাহায্য করতে পারেন।
-
-
->[!দ্রষ্টব্য]
->
->বাগ রিপোর্ট জমা দেওয়ার জন্য, ফিচার এর অনুরোধ, প্রশ্ন, বা ডেভেলপমেন্টের জন্য অন্য কোন পরামর্শ থাকলে অনুগ্রহ করে প্রথমে নির্দেশাবলী এবং নির্দেশিকাগুলির জন্য  [CONTRIBUTING.md](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md) পড়ুন।
+Current Seali guidance (English, pending translation): use the [translation contribution guide](../CONTRIBUTING.md#translations) to submit Android string or README changes through a Seali pull request. Seali does not have its own Hosted Weblate project. Do not submit Seali changes to the original project's translation service.
 
 ## ⭐️ স্টার চার্ট
 

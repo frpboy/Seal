@@ -77,36 +77,23 @@ Azərbaycanca
 
 ## ⬇️ Yüklənilmə
 
-Əksər cihazlar üçün apk-lərin **arm64-v8a** versiyasın quraşdırmaq tövsiyə olunur
-
-- Ən son stabil versiyanı [GitHub buraxılışlarından](https://github.com/frpboy/Seali/releases) yüklə
-  - Yeni xüsusiyyətləri & dəyişiklikləri sınamağımıza kömək etmək üçün [buraxılışdan əvvəl](https://github.com/frpboy/Seali/releases/) versiyaların quraşdır
-
-
-<!-- [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-     alt="F-Droid-də əldə et"
+Current Seali guidance (English, pending translation): download an alpha APK from the [Seali release page](https://github.com/frpboy/Seali/releases). Choose universal if unsure which ABI your device uses. No stable or F-Droid Seali release is claimed. Read the [current status](../SEALI_STATUS.md) before installing.
 
 ## 💬 Əlaqə
 
-Müzakirə, elanlar və buraxılışlar üçün [Telegram Kanalımıza](https://t.me/FRPboy_Projects) və ya [FrpBoy Projects (Telegram)](https://t.me/FRPboy_Projects) qoşulun!
+Current Seali contact (English, pending translation): [hi@frpboy.in](mailto:hi@frpboy.in) or [FrpBoy Projects on Telegram](https://t.me/FRPboy_Projects). Do not send passwords, cookies or other secrets.
 
 ## 💖 Himayədarlar
 
+Optional support for Rahul, Seali's current maintainer: [Buy Me a Coffee](https://buymeacoffee.com/frpboy) or [Patreon](https://www.patreon.com/c/FrpBoy).
+
+Historical Seal sponsor acknowledgements, not a list of Seali sponsors:
+
 <p><!-- sponsors --><a href="https://github.com/Marco-9456"><img src="https://github.com/Marco-9456.png" width="60px" alt="mohammed_9456" /></a><a href="https://github.com/Jas0n2k"><img src="https://github.com/Jas0n2k.png" width="60px" alt="Jas0n2k" /></a><a href="https://github.com/4kaimar"><img src="https://github.com/4kaimar.png" width="60px" alt="" /></a><a href="https://github.com/gordongw"><img src="https://github.com/gordongw.png" width="60px" alt="Gordon" /></a><!-- sponsors --></p>
-
-
-Seali həmişə, hər kəs üçün pulsuz və açıq mənbə olacaqdır.Əgər bunu bəyənirsinizsə, xahiş edirəm [mənə himayədarlıq etməyi](https://buymeacoffee.com/frpboy) fikirləşin!
 
 ## 🤝 Töhfə
 
-Töhfələr Xoşdur!
-
-Siz [Hosted Weblate](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md)-də Seali-ı tərcümə etməyə kömək edə bilərsiniz.
-
-
->**Qeyd**
->
->Səhv hesabatları, xüsusiyyət sorğuları, suallar və ya təkmilləşdirmək üçün hər hansı digər ideyalar təqdim etmək üçün əvvəlcə təlimlər və təlimatlar üçün [CONTRIBUTING.md](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md) bölməsin oxuyun.
+Current Seali guidance (English, pending translation): use the [translation contribution guide](../CONTRIBUTING.md#translations) to submit Android string or README changes through a Seali pull request. Seali does not have its own Hosted Weblate project. Do not submit Seali changes to the original project's translation service.
 
 ## ⭐️ Ulduz Tarixçəsi
 

@@ -65,7 +65,7 @@ private const val portfolioUrl = "https://www.frpboy.in/"
 private const val githubProfileUrl = "https://github.com/frpboy"
 private const val linkedinUrl = "https://www.linkedin.com/in/rahul-muraleedharan-it"
 private const val supportGroupUrl = "https://t.me/FRPboy_Projects"
-const val translationContributionUrl = "https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md"
+const val translationContributionUrl = "https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md#translations"
 const val YtdlpRepository = "https://github.com/yt-dlp/yt-dlp"
 private const val TAG = "AboutPage"
 

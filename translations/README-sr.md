@@ -79,36 +79,23 @@ Thank you to **JunkFood02** and contributors for the original [Seal project](htt
 
 ## ⬇️ Преузимање
 
-За већину уређаја, препоручује се инсталирање **arm64-v8a** верзије APK-ова
-
-- Преузмите најновију стабилну верзију са [GitHub издања](https://github.com/frpboy/Seali/releases)
-  - Инсталирајте [бета издања](https://github.com/frpboy/Seali/releases/) апликације да бисте нам помогли да тестирамо нове функције и промене
-
-
-<!-- [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-     alt="Get it on F-Droid"
+Current Seali guidance (English, pending translation): download an alpha APK from the [Seali release page](https://github.com/frpboy/Seali/releases). Choose universal if unsure which ABI your device uses. No stable or F-Droid Seali release is claimed. Read the [current status](../SEALI_STATUS.md) before installing.
 
 ## 💬 Контакт
 
-Придружите се нашем [Telegram каналу](https://t.me/FRPboy_Projects) или [FrpBoy Projects (Telegram)](https://t.me/FRPboy_Projects) за дискусију, најаве и издања.
+Current Seali contact (English, pending translation): [hi@frpboy.in](mailto:hi@frpboy.in) or [FrpBoy Projects on Telegram](https://t.me/FRPboy_Projects). Do not send passwords, cookies or other secrets.
 
 ## 💖 Спонзори
 
+Optional support for Rahul, Seali's current maintainer: [Buy Me a Coffee](https://buymeacoffee.com/frpboy) or [Patreon](https://www.patreon.com/c/FrpBoy).
+
+Historical Seal sponsor acknowledgements, not a list of Seali sponsors:
+
 <p><!-- sponsors --><a href="https://github.com/4kaimar"><img src="https://github.com/4kaimar.png" width="60px" alt="" /></a><a href="https://github.com/Velioris"><img src="https://github.com/Velioris.png" width="60px" alt="" /></a><a href="https://github.com/Driverator"><img src="https://github.com/Driverator.png" width="60px" alt="" /></a><!-- sponsors --></p>
-
-
-Seali ће увек бити бесплатан и отвореног кода за све. Ако вам се свиђа, размислите о томе да ме [спонзоришете](https://buymeacoffee.com/frpboy)!
 
 ## 🤝 Допринос
 
-Доприноси су добродошли!
-
-Можете помоћи у превођењу апликације Seali на веб-сајту [Hosted Weblate](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md).
-
-
->**Напомена**
->
->За слање извештаја о грешкама, захтева за функције, питања или било које друге идеје за побољшање апликације, прво прочитајте [CONTRIBUTING.md](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md) за упутства и смернице.
+Current Seali guidance (English, pending translation): use the [translation contribution guide](../CONTRIBUTING.md#translations) to submit Android string or README changes through a Seali pull request. Seali does not have its own Hosted Weblate project. Do not submit Seali changes to the original project's translation service.
 
 ## ⭐️ Графикон раста броја звездица
 [![Star History Chart](https://api.star-history.com/svg?repos=frpboy/Seali&type=Timeline)](https://star-history.com/#frpboy/Seali&Timeline)

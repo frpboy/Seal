@@ -50,3 +50,14 @@ Scan through our [existing issues](https://github.com/frpboy/Seali/issues) to fi
 ## Building From Source
 
 Read [BUILDING.md](BUILDING.md) for the project's actual JDK/SDK requirements, build variants and signing constraints before building.
+
+## Translations
+
+Seali does not currently have its own Hosted Weblate project. To contribute:
+
+1. Fork this Seali repository and create a focused branch.
+2. For Android interface text, edit the matching `app/src/main/res/values-<locale>/strings.xml`. Use `values/strings.xml` as the source of keys and preserve placeholders, XML escaping and formatting arguments. Do not invent translations for technical names or license notices.
+3. For a translated README, edit the matching file under `translations/`. Check the current English README and SEALI_STATUS.md; do not advertise stable, F-Droid or tested features without current evidence. Replace a pending-English guidance block only when the entire block has been accurately translated.
+4. Open a pull request against `frpboy/Seali`, naming the locale and changes. Include screenshots for interface text when a suitable existing build is available, or clearly state that layout is unverified. Maintainer review and applicable checks are required before merging.
+
+Keep original-project credits and licenses. Submit Seali-specific translation changes here, not to the original Seal translation service.

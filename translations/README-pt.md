@@ -17,7 +17,7 @@ Thank you to **JunkFood02** and contributors for the original [Seal project](htt
 ### Baixador de vídeos/áudio para Android
 
 
-<a href="https://github.com/JunkFoos02/Seali/blob/main/README.md">Inglês</a>
+<a href="../README.md">Inglês</a>
 &nbsp;&nbsp;| &nbsp;&nbsp;
 <a href="https://github.com/frpboy/Seali/blob/main/translations/README-zh_Hans.md">简体中文</a>
 &nbsp;&nbsp;| &nbsp;&nbsp;
@@ -101,33 +101,23 @@ Português
 
 ## ⬇️ Download
 
-Para a maioria dos dispositivos, é recomendado usar a versão **arm64-v8a** dos apks
-
-- Baixe a versão estável mais recente do [GitHub releases](https://github.com/frpboy/Seali/releases)
-  - Instale versões de "[pre-release](https://github.com/frpboy/Seali/releases/)" para testar novas funcionalidades e mudanças
-
+Current Seali guidance (English, pending translation): download an alpha APK from the [Seali release page](https://github.com/frpboy/Seali/releases). Choose universal if unsure which ABI your device uses. No stable or F-Droid Seali release is claimed. Read the [current status](../SEALI_STATUS.md) before installing.
 
 ## 💬 Contato
 
-Entre no nosso [Canal do Telegram](https://t.me/FRPboy_Projects) ou [FrpBoy Projects (Telegram)](https://t.me/FRPboy_Projects) para discuções, anúncios e versões novas!
+Current Seali contact (English, pending translation): [hi@frpboy.in](mailto:hi@frpboy.in) or [FrpBoy Projects on Telegram](https://t.me/FRPboy_Projects). Do not send passwords, cookies or other secrets.
 
 ## 💖 Patrocinadores
 
+Optional support for Rahul, Seali's current maintainer: [Buy Me a Coffee](https://buymeacoffee.com/frpboy) or [Patreon](https://www.patreon.com/c/FrpBoy).
+
+Historical Seal sponsor acknowledgements, not a list of Seali sponsors:
+
 <p><!-- sponsors --><a href="https://github.com/4kaimar"><img src="https://github.com/4kaimar.png" width="60px" alt="" /></a><a href="https://github.com/zuble"><img src="https://github.com/zuble.png" width="60px" alt="zuble" /></a><a href="https://github.com/Dannyordaniel"><img src="https://github.com/Dannyordaniel.png" width="60px" alt="Daniel " /></a><a href="https://github.com/NRN83"><img src="https://github.com/NRN83.png" width="60px" alt="" /></a><!-- sponsors --></p>
-
-
-O seal vai ser sempre grátis e de código aberto pra todo mundo. Se você curte o app, considere [me patrocinar](https://buymeacoffee.com/frpboy)!
 
 ## 🤝 Contribuir
 
-Contribuições são bem-vindas!!
-
-Você pode ajudar a traduzir o Seali no [Weblate Hosteado](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md).
-
-
->[!Nota]
->
->Para enviar bug reports, sugestões de funcionalidades, questões, ou ideias para melhorias, por favor leia [CONTRIBUTING.md](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md) para instruções e regras primeiro.
+Current Seali guidance (English, pending translation): use the [translation contribution guide](../CONTRIBUTING.md#translations) to submit Android string or README changes through a Seali pull request. Seali does not have its own Hosted Weblate project. Do not submit Seali changes to the original project's translation service.
 
 ## ⭐️ Linha de tempo de Stars
 

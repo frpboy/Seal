@@ -75,36 +75,23 @@ tujuan yang dapat dikomposisikan.
 
 ## ⬇️ Unduh
 
-Untuk sebagian besar perangkat, disarankan untuk menginstal versi **arm64-v8a** dari aplikasi
-
-- Unduh versi stabil terbaru dari [GitHub releases](https://github.com/frpboy/Seali/releases)
-  - Instal versi [Pra-rilis](https://github.com/frpboy/Seali/releases/) untuk membantu kami menguji fitur & perubahan baru
-
-
-<!-- [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-     alt="Dapatkan di F-Droid"
+Current Seali guidance (English, pending translation): download an alpha APK from the [Seali release page](https://github.com/frpboy/Seali/releases). Choose universal if unsure which ABI your device uses. No stable or F-Droid Seali release is claimed. Read the [current status](../SEALI_STATUS.md) before installing.
 
 ## 💬 Kontak
 
-Bergabunglah dengan [Telegram Channel](https://t.me/FRPboy_Projects) atau [FrpBoy Projects (Telegram)](https://t.me/FRPboy_Projects) untuk diskusi, pengumuman, dan rilis!
+Current Seali contact (English, pending translation): [hi@frpboy.in](mailto:hi@frpboy.in) or [FrpBoy Projects on Telegram](https://t.me/FRPboy_Projects). Do not send passwords, cookies or other secrets.
 
 ## 💖 Sponsor
 
+Optional support for Rahul, Seali's current maintainer: [Buy Me a Coffee](https://buymeacoffee.com/frpboy) or [Patreon](https://www.patreon.com/c/FrpBoy).
+
+Historical Seal sponsor acknowledgements, not a list of Seali sponsors:
+
 <p><!-- sponsors --><a href="https://github.com/4kaimar"><img src="https://github.com/4kaimar.png" width="60px" alt="" /></a><a href="https://github.com/gordongw"><img src="https://github.com/gordongw.png" width="60px" alt="Gordon" /></a><a href="https://github.com/t1hta"><img src="https://github.com/t1hta.png" width="60px" alt="t1hta" /></a><a href="https://github.com/nameoneeman"><img src="https://github.com/nameoneeman.png" width="60px" alt="James" /></a><a href="https://github.com/iguanaguy44"><img src="https://github.com/iguanaguy44.png" width="60px" alt="" /></a><!-- sponsors --></p>
-
-
-Seali akan selalu gratis dan open source untuk semua orang. Jika Anda menyukainya, mohon pertimbangkan untuk [mensponsori saya](https://buymeacoffee.com/frpboy)!
 
 ## 🤝 Berkontribusi
 
-Kontribusi dipersilakan!
-
-Anda dapat membantu menerjemahkan Seali di [Hosted Weblate](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md).
-
-
->**Catatan**
->
->Untuk mengirimkan laporan bug, permintaan fitur, pertanyaan, atau ide lain untuk perbaikan, silakan baca [CONTRIBUTING.md](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md) untuk petunjuk dan panduan terlebih dahulu.
+Current Seali guidance (English, pending translation): use the [translation contribution guide](../CONTRIBUTING.md#translations) to submit Android string or README changes through a Seali pull request. Seali does not have its own Hosted Weblate project. Do not submit Seali changes to the original project's translation service.
 
 ## ⭐️ Sejarah bintang
 

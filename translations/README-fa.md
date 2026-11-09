@@ -63,32 +63,15 @@ Seali
 
 ## ⬇️ دانلود
 
-برای اکثر دستگاه ها پیشنهاد می شود نسخه **arm64-v8a** را دانلود کنید.
-
--دانلود آخرین نسخه برنامه [GitHub releases](https://github.com/frpboy/Seali/releases)
-
--[نسخه آزمایشی](https://github.com/frpboy/Seali/releases/) را جهت تست و کمک به ما در توسعه دانلود کنید
-
-- دانلود آخرین نسخه از F-Droid :
-
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-     alt="Get it on F-Droid"
+Current Seali guidance (English, pending translation): download an alpha APK from the [Seali release page](https://github.com/frpboy/Seali/releases). Choose universal if unsure which ABI your device uses. No stable or F-Droid Seali release is claimed. Read the [current status](../SEALI_STATUS.md) before installing.
 
 ## 💬 تماس با ما
 
-جهت گفتگو و با خبر شدن از آخرین بروزرسانی به کانال ما در تلگرام به [@seal_app](https://t.me/FRPboy_Projects) و در فضای ماتریکس به آدرس [FrpBoy Projects (Telegram)](https://t.me/FRPboy_Projects) بپیوندید
+Current Seali contact (English, pending translation): [hi@frpboy.in](mailto:hi@frpboy.in) or [FrpBoy Projects on Telegram](https://t.me/FRPboy_Projects). Do not send passwords, cookies or other secrets.
 
 ## 🤝 همکاری
 
-علاقه مند به کمک به ما هستید ؟ برای کمک در ترجمه برنامه می توانید به [Hosted Weblate](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md) مراجعه کنید و مارا در ترجمه برنامه یاری کنید
-
-<p align="right">
-<a href="https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md">
-</a>
-
->**نکته**
-
-جهت ارسال هرگونه گزارش مشکل, سوالات, ایده ها و کمک در توسعه برنامه ابتدا دستورالعمل را به آدرس [CONTRIBUTING.md](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md) مطالعه کنید
+Current Seali guidance (English, pending translation): use the [translation contribution guide](../CONTRIBUTING.md#translations) to submit Android string or README changes through a Seali pull request. Seali does not have its own Hosted Weblate project. Do not submit Seali changes to the original project's translation service.
 
 ## ⭐️تاریخچه امتیاز
 <p align="right">

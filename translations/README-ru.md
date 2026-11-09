@@ -79,33 +79,19 @@ Thank you to **JunkFood02** and contributors for the original [Seal project](htt
 
 ## ⬇️ Установка
 
-Для большинства устройств рекомендовано устанавливать версию apk **arm64-v8a**
-
-- Скачать последнюю стабильную версию со [страницы с релизами](https://github.com/frpboy/Seali/releases)
-  - Установить [пре-релиз](https://github.com/frpboy/Seali/releases/) чтобы помочь протестировать нам новые функции и изменения
-
-
-<!-- [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-     alt="Скачайте его с F-Droid"
+Current Seali guidance (English, pending translation): download an alpha APK from the [Seali release page](https://github.com/frpboy/Seali/releases). Choose universal if unsure which ABI your device uses. No stable or F-Droid Seali release is claimed. Read the [current status](../SEALI_STATUS.md) before installing.
 
 ## 💬 Связаться
 
-Присоединяйтесь к нашему [Telegram каналу](https://t.me/FRPboy_Projects) или [FrpBoy Projects (Telegram)](https://t.me/FRPboy_Projects) для рассуждений, анонсов и релизов!
+Current Seali contact (English, pending translation): [hi@frpboy.in](mailto:hi@frpboy.in) or [FrpBoy Projects on Telegram](https://t.me/FRPboy_Projects). Do not send passwords, cookies or other secrets.
 
 ## 💖 Спонсоры
 
-Seali всегда будет бесплатным проектом с открытым исходным кодом для каждого. Если вам это нравится, пожалуйста рассмотрите возможность [поддержать меня](https://buymeacoffee.com/frpboy)!
+Optional support for Rahul, Seali's current maintainer: [Buy Me a Coffee](https://buymeacoffee.com/frpboy) or [Patreon](https://www.patreon.com/c/FrpBoy).
 
 ## 🤝 Помочь с переводом
 
-Помощь приветствуется!
-
-Вы можете принять участие в переводе Seali на [Hosted Weblate](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md).
-
-
->[!Note]
->
-> Чтобы отсылать нам баги, запросы на добавление новых функций или любые другие идеи, которые помогут проекту, сперва прочитайте [CONTRIBUTING.md](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md) для важной информации и инструкций.
+Current Seali guidance (English, pending translation): use the [translation contribution guide](../CONTRIBUTING.md#translations) to submit Android string or README changes through a Seali pull request. Seali does not have its own Hosted Weblate project. Do not submit Seali changes to the original project's translation service.
 
 ## ⭐️ График роста кол-ва звёздочек
 

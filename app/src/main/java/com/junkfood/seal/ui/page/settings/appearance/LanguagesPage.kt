@@ -168,7 +168,7 @@ private fun LanguagePageImpl(
                 item {
                     PreferencesHintCard(
                         title = stringResource(R.string.translate),
-                        description = stringResource(R.string.translate_desc),
+                        description = stringResource(R.string.seali_translate_desc),
                         icon = Icons.Outlined.Translate,
                     ) {
                         uriHandler.openUri(translationContributionUrl)

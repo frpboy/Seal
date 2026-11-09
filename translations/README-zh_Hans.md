@@ -70,21 +70,11 @@ Thank you to **JunkFood02** and contributors for the original [Seal project](htt
 
 ## 下载
 
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-alt="Get it on F-Droid"
-
-你也可以从 [releases](https://github.com/frpboy/Seali/releases) 获取最新的 apk
+Current Seali guidance (English, pending translation): download an alpha APK from the [Seali release page](https://github.com/frpboy/Seali/releases). Choose universal if unsure which ABI your device uses. No stable or F-Droid Seali release is claimed. Read the [current status](../SEALI_STATUS.md) before installing.
 
 ## 贡献
 
-欢迎贡献！
-
-你可以在 [Hosted Weblate](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md)  参与 Seali 的翻译
-
-
-对于错误报告、功能请求或其他改进的想法，请先在 Issue 和 Discussion 中进行搜索（包括已关闭的 Issue）。如果没有出现重复，欢迎 [发起讨论](https://github.com/frpboy/Seali/discussions) 或 [提交问题](https://github.com/frpboy/Seali/issues/new)。
-
-Seali 被设计为 yt-dlp 的一个简单的 GUI 封装，所以我们不会接受 yt-dlp 不支持的功能请求。
+Current Seali guidance (English, pending translation): use the [translation contribution guide](../CONTRIBUTING.md#translations) to submit Android string or README changes through a Seali pull request. Seali does not have its own Hosted Weblate project. Do not submit Seali changes to the original project's translation service.
 
 ## 致谢
 

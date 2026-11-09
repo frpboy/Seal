@@ -65,30 +65,15 @@ Thank you to **JunkFood02** and contributors for the original [Seal project](htt
 
 ## ⬇️ تحميل
 
-بالنسبة لمعظم الأجهزة ، يوصى بتثبيت إصدار **arm64-va** من التطبيق
-
-   قم بتنزيل أحدث <a href="https://github.com/frpboy/Seali/releases">إصدار مستقر</a> من إصدارات GitHub
-
-قم بتثبيت <a href="https://github.com/frpboy/Seali/releases/">الإصدارات المسبقة</a> لمساعدتنا في اختبار الميزات والتغييرات الجديدة
-  الإصدارات المستقرة متاحة أيضًا على F-Droid
-
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on-ar.png"
-    alt="Get it on F-Droid"
-
+Current Seali guidance (English, pending translation): download an alpha APK from the [Seali release page](https://github.com/frpboy/Seali/releases). Choose universal if unsure which ABI your device uses. No stable or F-Droid Seali release is claimed. Read the [current status](../SEALI_STATUS.md) before installing.
 
 ## 🤝 المساهمة
 
-المساهمات مرحب بها !
+Current Seali guidance (English, pending translation): use the [translation contribution guide](../CONTRIBUTING.md#translations) to submit Android string or README changes through a Seali pull request. Seali does not have its own Hosted Weblate project. Do not submit Seali changes to the original project's translation service.
 
-يمكنك المساعدة في ترجمة Seali على موقع [Hosted Weblate](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md).
+## Translation status
 
-## 🔤 حالة الترجمة
-<p align="right">
-<a href="https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md">
-</a>
-
-
-لإرسال تقارير الأخطاء أو طلب ميزات جديدة أو الأسئلة أو أي أفكار أخرى للتحسين ، يرجى قراءة ملف [CONTRIBUTING.md](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md) للحصول على الإرشادات أولاً.
+These inherited translations need language review. See the [translation guide](../CONTRIBUTING.md#translations).
 
 ## ⭐️ تاريخ النجوم
 <p align="right">

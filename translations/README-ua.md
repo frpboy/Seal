@@ -80,22 +80,11 @@ Thank you to **JunkFood02** and contributors for the original [Seal project](htt
 
 ## ⬇️ Завантажити
 
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-     alt="Завантажте з F-Droid"
-
-Або завантажте останні APK на сторінці [з релізами.](https://github.com/frpboy/Seali/releases/)
-
-
+Current Seali guidance (English, pending translation): download an alpha APK from the [Seali release page](https://github.com/frpboy/Seali/releases). Choose universal if unsure which ABI your device uses. No stable or F-Droid Seali release is claimed. Read the [current status](../SEALI_STATUS.md) before installing.
 
 ## 🤝 Допомога
 
-Співпраця вітається!
-
-Допоможіть перекласти Seali на [Hosted Weblate](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md).
-
-
->**Нотатка**
-> Щоб надіслати звіти про помилки, запити на додавання нових функцій, запитання чи будь-які інші ідеї щодо покращення, спершу прочитайте [CONTRIBUTING.md](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md) за інструкціями та вказівками.
+Current Seali guidance (English, pending translation): use the [translation contribution guide](../CONTRIBUTING.md#translations) to submit Android string or README changes through a Seali pull request. Seali does not have its own Hosted Weblate project. Do not submit Seali changes to the original project's translation service.
 
 ## ⭐️ Історія зірочок
 

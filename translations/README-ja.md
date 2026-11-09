@@ -74,34 +74,20 @@ Android用動画・音声ダウンローダー
 
 
 ## ⬇️ ダウンロード
-ほとんどの端末上では、**arm64-v8a**版のapkのインストールをお勧めします。
 
--  [GitHub releases](https://github.com/frpboy/Seali/releases)から最新の安定板をダウンロードしてください
-    - 新機能や変更点をテストをするには[プレリリース版](https://github.com/frpboy/Seali/releases/)をインストールしてください
-
-- F-Droid からも安定板をダウンロードできます
-
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-alt="F-droidで入手"
+Current Seali guidance (English, pending translation): download an alpha APK from the [Seali release page](https://github.com/frpboy/Seali/releases). Choose universal if unsure which ABI your device uses. No stable or F-Droid Seali release is claimed. Read the [current status](../SEALI_STATUS.md) before installing.
 
 ## 💬 連絡先
 
-私たちの [Telegram Channel](https://t.me/FRPboy_Projects) もしくは [FrpBoy Projects (Telegram)](https://t.me/FRPboy_Projects) で議論に参加したり、お知らせなどをご覧ください！
+Current Seali contact (English, pending translation): [hi@frpboy.in](mailto:hi@frpboy.in) or [FrpBoy Projects on Telegram](https://t.me/FRPboy_Projects). Do not send passwords, cookies or other secrets.
 
 ## 💖 スポンサー
 
-Seali は誰にとっても常にフリーでオープンソースです。気に入っていただけたら[スポンサーになることもご検討ください](https://buymeacoffee.com/frpboy)!
+Optional support for Rahul, Seali's current maintainer: [Buy Me a Coffee](https://buymeacoffee.com/frpboy) or [Patreon](https://www.patreon.com/c/FrpBoy).
 
 ## 🤝 貢献
 
-あらゆる貢献を歓迎します！
-
-Sealの翻訳を [Hosted Weblate](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md) で手伝ってください！
-
-
->**備考**
->
->バグ報告、機能要望、質問、その他改善のためのアイデアを投稿する場合は、まず [CONTRIBUTING.md](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md) を読んで、手順とガイドラインを確認してください。
+Current Seali guidance (English, pending translation): use the [translation contribution guide](../CONTRIBUTING.md#translations) to submit Android string or README changes through a Seali pull request. Seali does not have its own Hosted Weblate project. Do not submit Seali changes to the original project's translation service.
 
 ## ⭐️星の推移
 

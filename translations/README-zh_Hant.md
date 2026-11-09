@@ -75,36 +75,23 @@ Thank you to **JunkFood02** and contributors for the original [Seal project](htt
 
 ## ⬇️ 如何下載
 
-我們建議大多數裝置使用 **arm64-v8a** 版本的 APK 檔。
-
-- 從 [GitHub releases](https://github.com/frpboy/Seali/releases) 下載最新穩定發行版
-  - 安裝 [預先發行版本](https://github.com/frpboy/Seali/releases/)，以幫助我們測試最新功能和變更
-
-
-<!-- [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-     alt="Get it on F-Droid"
+Current Seali guidance (English, pending translation): download an alpha APK from the [Seali release page](https://github.com/frpboy/Seali/releases). Choose universal if unsure which ABI your device uses. No stable or F-Droid Seali release is claimed. Read the [current status](../SEALI_STATUS.md) before installing.
 
 ## 💬 如何聯繫
 
-誠摯邀請您加入 [Telegram 頻道](https://t.me/FRPboy_Projects) 或 [FrpBoy Projects (Telegram)](https://t.me/FRPboy_Projects)，與我們一同討論、接收最新消息，以及軟體發行！
+Current Seali contact (English, pending translation): [hi@frpboy.in](mailto:hi@frpboy.in) or [FrpBoy Projects on Telegram](https://t.me/FRPboy_Projects). Do not send passwords, cookies or other secrets.
 
 ## 💖 贊助之友
 
+Optional support for Rahul, Seali's current maintainer: [Buy Me a Coffee](https://buymeacoffee.com/frpboy) or [Patreon](https://www.patreon.com/c/FrpBoy).
+
+Historical Seal sponsor acknowledgements, not a list of Seali sponsors:
+
 <p><!-- sponsors --><a href="https://github.com/4kaimar"><img src="https://github.com/4kaimar.png" width="60px" alt="" /></a><a href="https://github.com/gordongw"><img src="https://github.com/gordongw.png" width="60px" alt="Gordon" /></a><a href="https://github.com/t1hta"><img src="https://github.com/t1hta.png" width="60px" alt="t1hta" /></a><a href="https://github.com/nameoneeman"><img src="https://github.com/nameoneeman.png" width="60px" alt="James" /></a><a href="https://github.com/iguanaguy44"><img src="https://github.com/iguanaguy44.png" width="60px" alt="" /></a><!-- sponsors --></p>
-
-
-Seali 永遠提供眾人免費使用並開放原始碼。若您悅納，請考慮[贊助我](https://buymeacoffee.com/frpboy)！
 
 ## 🤝 一同貢獻
 
-永遠歡迎您的貢獻！
-
-您可以在 [Hosted Weblate](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md)，參與 Seali 的翻譯。
-
-
->**備註**
->
->請在回報錯誤、功能請求、求問，或提供任何改進建言之前，先閱讀 [CONTRIBUTING.md](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md) 相關指引。
+Current Seali guidance (English, pending translation): use the [translation contribution guide](../CONTRIBUTING.md#translations) to submit Android string or README changes through a Seali pull request. Seali does not have its own Hosted Weblate project. Do not submit Seali changes to the original project's translation service.
 
 ## ⭐️ Star 歷程
 

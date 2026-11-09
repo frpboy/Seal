@@ -76,36 +76,23 @@ Italiano
 
 ## ⬇️ Download
 
-Per la maggior parte dei dispositivi, é consigliato installare la versione **arm64-v8a** dell'apk.
-
-- Scarica l'ultima versione stabile dalle [release di GitHub](https://github.com/frpboy/Seali/releases)
-  - Installa la versione [pre-release](https://github.com/frpboy/Seali/releases/) per aiutarci a testare nuove funzionalità e trovare bug.
-
-
-<!-- [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-     alt="Get it on F-Droid"
+Current Seali guidance (English, pending translation): download an alpha APK from the [Seali release page](https://github.com/frpboy/Seali/releases). Choose universal if unsure which ABI your device uses. No stable or F-Droid Seali release is claimed. Read the [current status](../SEALI_STATUS.md) before installing.
 
 ## 💬 Contatti
 
-Entra nel nostro [Canale Telegram](https://t.me/FRPboy_Projects) o nel nostro [FrpBoy Projects (Telegram)](https://t.me/FRPboy_Projects) per discussioni, annunci e molto altro!
+Current Seali contact (English, pending translation): [hi@frpboy.in](mailto:hi@frpboy.in) or [FrpBoy Projects on Telegram](https://t.me/FRPboy_Projects). Do not send passwords, cookies or other secrets.
 
 ## 💖 Sponsor
 
+Optional support for Rahul, Seali's current maintainer: [Buy Me a Coffee](https://buymeacoffee.com/frpboy) or [Patreon](https://www.patreon.com/c/FrpBoy).
+
+Historical Seal sponsor acknowledgements, not a list of Seali sponsors:
+
 <p><!-- sponsors --><a href="https://github.com/Marco-9456"><img src="https://github.com/Marco-9456.png" width="60px" alt="mohammed_9456" /></a><a href="https://github.com/Jas0n2k"><img src="https://github.com/Jas0n2k.png" width="60px" alt="Jas0n2k" /></a><a href="https://github.com/4kaimar"><img src="https://github.com/4kaimar.png" width="60px" alt="" /></a><a href="https://github.com/gordongw"><img src="https://github.com/gordongw.png" width="60px" alt="Gordon" /></a><!-- sponsors --></p>
-
-
-Seali rimarra sempre gratis e open-source per tutti. Se ti piace, considera [diventare uno sponsor](https://buymeacoffee.com/frpboy)!
 
 ## 🤝 Contribuire
 
-Tutte le contribuzioni sono ben accette!
-
-Puoi aiutare a tradurre Seali su [Hosted Weblate](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md).
-
-
->**Nota Bene**
->
->Per inviare report di bug, richieste di feature, domande o qualsiasi altra idea per migliorare, perfavore leggi [CONTRIBUTING.md](https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md) per istruzioni e linee guida.
+Current Seali guidance (English, pending translation): use the [translation contribution guide](../CONTRIBUTING.md#translations) to submit Android string or README changes through a Seali pull request. Seali does not have its own Hosted Weblate project. Do not submit Seali changes to the original project's translation service.
 
 ## ⭐️ Storia delle Stelle
 
