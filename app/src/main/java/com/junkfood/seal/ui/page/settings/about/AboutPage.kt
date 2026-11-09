@@ -57,18 +57,16 @@ import com.junkfood.seal.util.AUTO_UPDATE
 import com.junkfood.seal.util.PreferenceUtil
 import com.junkfood.seal.util.ToastUtil
 
-private const val releaseURL = "https://github.com/frpboy/Seal/releases"
-private const val repoUrl = "https://github.com/frpboy/Seal"
+private const val releaseURL = "https://github.com/frpboy/Seali/releases"
+private const val repoUrl = "https://github.com/frpboy/Seali"
 private const val upstreamRepoUrl = "https://github.com/JunkFood02/Seal"
 private const val developerName = "Rahul Muraleedharan"
 private const val portfolioUrl = "https://www.frpboy.in/"
 private const val githubProfileUrl = "https://github.com/frpboy"
 private const val linkedinUrl = "https://www.linkedin.com/in/rahul-muraleedharan-it"
 private const val supportGroupUrl = "https://t.me/FRPboy_Projects"
-const val weblate = "https://hosted.weblate.org/engage/seal/"
+const val translationContributionUrl = "https://github.com/frpboy/Seali/blob/main/CONTRIBUTING.md"
 const val YtdlpRepository = "https://github.com/yt-dlp/yt-dlp"
-private const val githubIssueUrl = "https://github.com/JunkFood02/Seal/issues"
-private const val githubSponsor = "https://github.com/sponsors/JunkFood02"
 private const val TAG = "AboutPage"
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -171,27 +169,19 @@ fun AboutPage(
                         openUrl(releaseURL)
                     }
                 }
-                /*            item {
-                    PreferenceItem(
-                        title = stringResource(R.string.github_issue),
-                        description = stringResource(R.string.github_issue_desc),
-                        icon = Icons.Outlined.ContactSupport,
-                    ) { openUrl(githubIssueUrl) }
-                }*/
                 item {
                     PreferenceItem(
                         title = stringResource(id = R.string.sponsor),
                         description = stringResource(id = R.string.sponsor_desc),
                         icon = Icons.Outlined.VolunteerActivism,
                     ) {
-                        //                    openUrl(githubSponsor)
                         onNavigateToDonatePage()
                     }
                 }
                 item {
                     PreferenceItem(
-                        title = "Based on Seal by JunkFood02",
-                        description = upstreamRepoUrl,
+                        title = stringResource(R.string.original_project_thanks),
+                        description = stringResource(R.string.original_project_thanks_desc),
                         icon = Icons.Outlined.Language,
                     ) {
                         openUrl(upstreamRepoUrl)
@@ -257,7 +247,7 @@ fun AutoUpdateUnavailableDialog(onDismissRequest: () -> Unit = {}) {
         val startIndex = text.indexOf(hyperLinkText)
         val endIndex = startIndex + hyperLinkText.length
         addUrlAnnotation(
-            UrlAnnotation("https://github.com/frpboy/Seal/releases"),
+            UrlAnnotation("https://github.com/frpboy/Seali/releases"),
             start = startIndex,
             end = endIndex,
         )
