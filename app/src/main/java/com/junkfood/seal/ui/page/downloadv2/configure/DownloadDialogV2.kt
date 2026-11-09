@@ -762,8 +762,7 @@ fun ConfigurePagePlaylistVariant(
             useFormatSelection = false,
             onCancel = onDismissRequest,
             onDownload = {
-                onDownload(initialDownloadType)
-                onDismissRequest()
+                submitPlaylistSelection(selectedType, onDownload, onDismissRequest)
             },
             onFetchInfo = { throw IllegalStateException() },
             onTaskStart = { throw IllegalStateException() },
