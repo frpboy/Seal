@@ -463,4 +463,6 @@
         <item quantity="one">%d task</item>
         <item quantity="other">%d tasks</item>
     </plurals>
+    <string name="queue_no_finished_this_session">No finished downloads in this session</string>
+    <string name="queue_saved_history_hint">Saved downloads remain in Downloads. Open Downloads from the navigation menu to view your history.</string>
 </resources>

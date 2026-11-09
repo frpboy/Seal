@@ -32,13 +32,13 @@ fun QueueEmptyState(filter: Filter, onAddLink: () -> Unit, modifier: Modifier = 
         Filter.All -> R.string.you_ll_find_your_downloads_here
         Filter.Downloading -> R.string.seali_empty_active
         Filter.Canceled -> R.string.seali_empty_canceled
-        Filter.Finished -> R.string.seali_empty_finished
+        Filter.Finished -> R.string.queue_no_finished_this_session
     }
     val hint = when (filter) {
         Filter.All -> R.string.seali_empty_action_hint
         Filter.Downloading -> R.string.seali_empty_active_hint
         Filter.Canceled -> R.string.seali_empty_canceled_hint
-        Filter.Finished -> R.string.seali_empty_finished_hint
+        Filter.Finished -> R.string.queue_saved_history_hint
     }
     BoxWithConstraints(modifier) {
         val compact = maxHeight < 400.dp

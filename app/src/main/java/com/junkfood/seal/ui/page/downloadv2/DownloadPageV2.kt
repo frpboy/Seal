@@ -141,9 +141,10 @@ enum class Filter {
             Finished -> stringResource(R.string.status_completed)
         }
 
-    fun predict(entry: Pair<Task, Task.State>): Boolean {
+    fun predict(entry: Pair<Task, Task.State>): Boolean = matches(entry.second.downloadState)
+
+    internal fun matches(state: Task.DownloadState): Boolean {
         if (this == All) return true
-        val state = entry.second.downloadState
         return when (this) {
             Downloading -> {
                 when (state) {
