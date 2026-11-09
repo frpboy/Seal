@@ -9,4 +9,10 @@
     <string name="interface_switch_active">Finish or cancel active downloads before switching the interface</string>
     <string name="interface_switch_explanation">Seali will restart this screen to apply the new interface. Your downloads and settings are kept.</string>
     <string name="interface_switch">Switch</string>
+    <string name="runtime_update_consent_title">Download executable yt-dlp code?</string>
+    <string name="runtime_update_consent_once">This downloads and runs executable yt-dlp code from the yt-dlp or yt-dlp-nightly-builds GitHub releases, according to your selected channel. It bypasses F-Droid review and update checks. Download only if you trust that source. This allows one update, not automatic updates. You can decline and keep using the bundled version.</string>
+    <string name="runtime_update_consent_automatic">This allows periodic downloads and execution of yt-dlp code from the yt-dlp or yt-dlp-nightly-builds GitHub releases, according to your selected channel. These downloads bypass F-Droid review and update checks. Enable only if you trust those sources. You can decline and keep using the bundled version, or turn automatic updates off later in update settings.</string>
+    <string name="runtime_update_allow_once">Download once</string>
+    <string name="runtime_update_allow_automatic">Allow automatic downloads</string>
+    <string name="runtime_update_decline">Do not download</string>
 </resources>

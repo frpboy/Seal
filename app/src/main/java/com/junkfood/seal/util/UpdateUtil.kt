@@ -10,6 +10,7 @@ import com.junkfood.seal.App
 import com.junkfood.seal.App.Companion.context
 import com.junkfood.seal.R
 import com.junkfood.seal.util.FileUtil.getFileProvider
+import com.junkfood.seal.util.PreferenceUtil.getBoolean
 import com.junkfood.seal.util.PreferenceUtil.getInt
 import com.junkfood.seal.util.PreferenceUtil.updateLong
 import com.yausername.youtubedl_android.YoutubeDL
@@ -53,11 +54,17 @@ object UpdateUtil {
 
     private val jsonFormat = Json { ignoreUnknownKeys = true }
 
-    suspend fun updateYtDlp(): YoutubeDL.UpdateStatus? =
+    suspend fun updateYtDlp(manualConsent: Boolean = false): YoutubeDL.UpdateStatus? =
         withContext(Dispatchers.IO) {
             // Google Play builds ship yt-dlp updates with app updates instead of
             // downloading executable code at runtime.
-            if (App.isPlayBuild()) return@withContext null
+            if (!RuntimeUpdatePolicy.mayDownload(
+                    isPlay = App.isPlayBuild(),
+                    isFDroid = App.isFDroidBuild(),
+                    automaticEnabled = YT_DLP_AUTO_UPDATE.getBoolean(),
+                    automaticConsent = FDROID_RUNTIME_AUTO_UPDATE_CONSENT.getBoolean(),
+                    manualConsent = manualConsent,
+                )) return@withContext null
             val channel =
                 when (YT_DLP_UPDATE_CHANNEL.getInt()) {
                     YT_DLP_NIGHTLY -> YoutubeDL.UpdateChannel.NIGHTLY
