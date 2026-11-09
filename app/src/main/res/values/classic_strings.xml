@@ -9,4 +9,9 @@
     <string name="interface_switch_active">Finish or cancel active downloads before switching the interface</string>
     <string name="interface_switch_explanation">Seali will restart this screen to apply the new interface. Your downloads and settings are kept.</string>
     <string name="interface_switch">Switch</string>
+    <string name="interface_v2_summary">Modern default: drawer navigation, filter chips and download cards. Your saved Classic choice stays unchanged.</string>
+    <string name="interface_classic_summary">Compact download list with the familiar Classic layout. Choose this if you prefer a simpler view.</string>
+    <string name="seali_accents">Seali accents</string>
+    <string name="seali_accent_teal">Seali Teal</string>
+    <string name="seali_accent_blue">Seali Blue</string>
 </resources>
