@@ -10,7 +10,7 @@ There is no completed accessibility audit or published conformance report for th
 
 ## Reporting a barrier
 
-Use [Seali issues](https://github.com/frpboy/Seali/issues) for a non-sensitive accessibility report, or email the current maintainer, **Rahul Muraleedharan**, at **hi@frpboy.in**. Do not include private download links, cookies, credentials or personal media.
+Use [Seali issues](https://github.com/frpboy/Seali/issues) for a non-sensitive accessibility report, or email the current maintainer, **Rahul Muraleedharan**, at **frpboy12@gmail.com**. Do not include private download links, cookies, credentials or personal media.
 
 Helpful details include:
 

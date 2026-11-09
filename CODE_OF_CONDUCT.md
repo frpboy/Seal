@@ -58,7 +58,7 @@ representative at an online or offline event.
 
 ## Enforcement
 
-For Seali, email the current maintainer, Rahul Muraleedharan, at [hi@frpboy.in](mailto:hi@frpboy.in). This is the public contact address on [the maintainer's portfolio](https://www.frpboy.in/), not a dedicated security incident service. Do not post sensitive allegations, personal details or private evidence in public issues or groups. The original Seal developer is not responsible for Seali moderation.
+For Seali, email the current maintainer, Rahul Muraleedharan, at [frpboy12@gmail.com](mailto:frpboy12@gmail.com). This address was confirmed by the maintainer. It is not a dedicated security incident service. Do not post sensitive allegations, personal details or private evidence in public issues or groups. The original Seal developer is not responsible for Seali moderation.
 
 Reports received through an agreed channel should be reviewed and investigated promptly and fairly.
 

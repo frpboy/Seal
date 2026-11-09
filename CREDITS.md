@@ -20,4 +20,4 @@ Internal `com.junkfood.seal` Kotlin packages, the color namespace, test selector
 
 The inherited [Seal issue 1399](https://github.com/JunkFood02/Seal/issues/1399) is retained here as a specific upstream technical reference, not a Seali reporting destination. Current Seali bug reporting and contribution links point to this repository. Inherited sponsor-generation and automatic issue-closure workflows remain disabled; they are not activated merely by changing the repository name.
 
-Current contact and optional sponsorship: [hi@frpboy.in](mailto:hi@frpboy.in), [FrpBoy Projects](https://t.me/FRPboy_Projects), [Buy Me a Coffee](https://buymeacoffee.com/frpboy) and [Patreon](https://www.patreon.com/c/FrpBoy).
+Current contact and optional sponsorship: [frpboy12@gmail.com](mailto:frpboy12@gmail.com), [FrpBoy Projects](https://t.me/FRPboy_Projects), [Buy Me a Coffee](https://buymeacoffee.com/frpboy) and [Patreon](https://www.patreon.com/c/FrpBoy).
