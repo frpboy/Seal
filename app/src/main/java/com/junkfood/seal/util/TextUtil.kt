@@ -106,8 +106,9 @@ fun Number?.toBitrateText(): String {
     }
 }
 
+@Suppress("UNUSED_PARAMETER") // Keep callers compatible; URLs must not enter shared diagnostics.
 fun getErrorReport(th: Throwable, url: String): String =
-    App.getVersionReport() + "\nURL: ${url}\n${th.message}"
+    SafeErrorReport.copyReport(App.getVersionReport(), th)
 
 @Deprecated(
     "Use findURLsFromString instead",
