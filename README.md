@@ -72,7 +72,12 @@ For Seali and the maintainer's other projects, use the [FrpBoy Projects Telegram
 
 Public maintainer email: [frpboy12@gmail.com](mailto:frpboy12@gmail.com), confirmed by the maintainer. Do not send passwords, cookies or other secrets.
 
-Optional financial support is separate from help requests: [Buy Me a Coffee](https://buymeacoffee.com/frpboy) or [Patreon](https://www.patreon.com/c/FrpBoy). On main, PR16 keeps these options under the single Sponsor entry. The published alpha predates that cleanup and still has the duplicate About donation rows.
+Optional financial support is separate from help requests.
+
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy_Me_a_Coffee-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=000000)](https://buymeacoffee.com/frpboy)
+[![Support on Patreon](https://img.shields.io/badge/Support_on_Patreon-FF424D?style=for-the-badge&logo=patreon&logoColor=FFFFFF)](https://www.patreon.com/c/FrpBoy)
+
+On main, PR16 keeps these options under the single Sponsor entry. The published alpha predates that cleanup and still has the duplicate About donation rows.
 
 ---
 
