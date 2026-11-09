@@ -447,4 +447,8 @@
         <item quantity="one">%d audio</item>
         <item quantity="other">%d audios</item>
     </plurals>
+    <string name="original_project_thanks">Thanks to JunkFood02</string>
+    <string name="original_project_thanks_desc">Creator of Seal, the original open-source project behind Seali</string>
+    <string name="original_project_credit">Seal by JunkFood02 and contributors</string>
+    <string name="seali_translate_desc">Contribute Seali translations through this project’s contribution guide</string>
 </resources>

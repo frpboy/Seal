@@ -1,17 +1,17 @@
-# Contributing
+# Contributing to Seali
 
 Before reading, you may know what [yt-dlp](https://github.com/yt-dlp/yt-dlp) is and what it does. In short, it's a CLI (Command Line Interface) program written in python, which lets you download videos from [1000+ websites](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md).
 
-For bug reports and feature requests, please search in issues first (including the closed ones). If there're no duplicates, feel free to [submit an issue](https://github.com/JunkFood02/Seal/issues/new) with an issue template.
+For bug reports and feature requests, please search in issues first (including the closed ones). If there're no duplicates, feel free to [submit an issue](https://github.com/frpboy/Seali/issues/new) with an issue template.
 
 **We'll probably ignore and close your issue if it's not using the existing templates or doesn't contain sufficient description.**
 
-For questions or any other ideas to improve, you can join our official [Telegram group](https://t.me/seal_app_group) or [Matrix space](https://matrix.to/#/#seal-space:matrix.org).
+For Seali questions, use the [FrpBoy Projects Telegram group](https://t.me/FRPboy_Projects). Do not post credentials, cookies or private logs. Upstream community spaces are not Seali support channels.
 
 
 ## Disclaimer
 
-This is a toy project I use to learn Android development. Please do not have any expectations or assumptions about the quality of the code.
+Seali is independently maintained by Rahul Muraleedharan and is based on Seal by JunkFood02. Thank you to the original author and contributors. See [CREDITS.md](CREDITS.md). Published alpha builds and unqualified main changes must not be presented as stable or fully tested.
 
 
 ## Bug Report
@@ -22,11 +22,11 @@ When submitting a bug report, please make sure your issue contains **enough** in
 
 ## Feature Request
 
-Seal is and will remain a simple GUI for yt-dlp, providing most of the functionality of yt-dlp as is, without modifications. Thus, **we'll not take requests for features that yt-dlp does not support.**
+Seali builds on Seal's GUI for yt-dlp, providing most of the functionality of yt-dlp as is, without modifications. Thus, **we'll not take requests for features that yt-dlp does not support.**
 
 The app has two download modes: 
 
-- General mode: Save as audio, download playlist, and many other options that can be used individually or combined for normal download tasks. Once the download is complete, Seal will scan the files into the system media library, and store them in the download history.
+- General mode: Save as audio, download playlist, and many other options that can be used individually or combined for normal download tasks. Once the download is complete, Seali will scan the files into the system media library, and store them in the download history.
 - Custom command mode: For advanced usage of yt-dlp, a user can create and store multiple command templates in the app, then select and use one of them directly to execute the yt-dlp command like in a terminal. In this mode, all of the GUI options and features in the general mode will be disabled.
 
 Since most of the functions can be implemented in custom command mode, the "feature request" would be treated as adding a shortcut to the general mode. However, not all feature requests will be accepted and implemented in the app. [Why not add an option for that?](https://neugierig.org/software/blog/2018/07/options.html)
@@ -43,10 +43,21 @@ To avoid multiple pull requests resolving the same issue, let others know you ar
 
 ## New contributors
 
-Scan through our [existing issues](https://github.com/JunkFood02/Seal/issues) to find one that interests you. The [👋 good first issue](https://github.com/JunkFood02/Seal/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) is a good place to start exploring issues that are up-for-grab for newcomers. (Do not hesitate to ask for more details or clarifying questions on the issue!)
+Scan through our [existing issues](https://github.com/frpboy/Seali/issues) to find one that interests you. The [👋 good first issue](https://github.com/frpboy/Seali/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) is a good place to start exploring issues that are up-for-grab for newcomers. (Do not hesitate to ask for more details or clarifying questions on the issue!)
 
 
 
 ## Building From Source
 
-Fork this project, import and compile it with the latest version of [Android Studio Canary](https://developer.android.com/studio/preview). 
+Read [BUILDING.md](BUILDING.md) for the project's actual JDK/SDK requirements, build variants and signing constraints before building.
+
+## Translations
+
+Seali does not currently have its own Hosted Weblate project. To contribute:
+
+1. Fork this Seali repository and create a focused branch.
+2. For Android interface text, edit the matching `app/src/main/res/values-<locale>/strings.xml`. Use `values/strings.xml` as the source of keys and preserve placeholders, XML escaping and formatting arguments. Do not invent translations for technical names or license notices.
+3. For a translated README, edit the matching file under `translations/`. Check the current English README and SEALI_STATUS.md; do not advertise stable, F-Droid or tested features without current evidence. Replace a pending-English guidance block only when the entire block has been accurately translated.
+4. Open a pull request against `frpboy/Seali`, naming the locale and changes. Include screenshots for interface text when a suitable existing build is available, or clearly state that layout is unverified. Maintainer review and applicable checks are required before merging.
+
+Keep original-project credits and licenses. Submit Seali-specific translation changes here, not to the original Seal translation service.

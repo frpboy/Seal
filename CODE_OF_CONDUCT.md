@@ -58,10 +58,9 @@ representative at an online or offline event.
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement at
-junkfood02@proton.me.
-All complaints will be reviewed and investigated promptly and fairly.
+For Seali, email the current maintainer, Rahul Muraleedharan, at [hi@frpboy.in](mailto:hi@frpboy.in). This is the public contact address on [the maintainer's portfolio](https://www.frpboy.in/), not a dedicated security incident service. Do not post sensitive allegations, personal details or private evidence in public issues or groups. The original Seal developer is not responsible for Seali moderation.
+
+Reports received through an agreed channel should be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the
 reporter of any incident.

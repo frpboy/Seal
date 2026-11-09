@@ -29,6 +29,8 @@ This repository continues work based on:
 
 Seali will maintain its own issue triage, roadmap, testing, release process, and documentation. Upstream changes may be reviewed and selectively integrated after compatibility and security checks. An upstream sync must never silently overwrite Seali-specific fixes.
 
-## Current migration note
+## Current identity and compatibility
 
-The initial Seali identity documentation is being introduced separately from the application migration. The inherited Android application ID, display labels, launcher assets, package namespace, release workflows, and external links require a dedicated audit before publishing a Seali-branded binary. Until that work is complete, this branch must not be treated as a finished rebrand or production release.
+The repository is now standalone at [frpboy/Seali](https://github.com/frpboy/Seali). Seali uses the installed application ID `com.frpboy.seali`; the published alpha and later main changes are distinguished in [SEALI_STATUS.md](SEALI_STATUS.md). Detaching or renaming the repository does not replace inherited dependencies or qualify a new binary.
+
+Thank you to JunkFood02 and the original contributors for Seal. Their authorship, history and required notices remain intact. See [CREDITS.md](CREDITS.md). Internal Kotlin namespaces and functional dependency coordinates are retained until a separately reviewed, tested migration; they do not identify Seali as an official upstream release.
