@@ -10,7 +10,7 @@ Thank you to **JunkFood02** and contributors for the original [Seal project](htt
 
 <div align="center">
 <p align="center">
-	<img src="fastlane/metadata/android/en-US/images/icon.png" width=160 height=160 >
+	<img src="../fastlane/metadata/android/en-US/images/icon.png" width=160 height=160 >
 </p>
 <h1 align="center">
 Seali
