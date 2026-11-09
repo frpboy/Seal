@@ -455,7 +455,7 @@ fun DownloadPageImplV2(
                                 Column(Modifier.padding(bottom = 20.dp)) {
                                 VideoCardV2(
                                     modifier = Modifier,
-                                    viewState = this,
+                                    viewState = displayViewState,
                                     actionButton = {
                                         ActionButton(
                                             modifier = Modifier,
