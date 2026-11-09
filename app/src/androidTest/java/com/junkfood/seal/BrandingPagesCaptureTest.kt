@@ -30,6 +30,7 @@ class BrandingPagesCaptureTest {
     @Test fun productionSettingsLabelsAndCallbacks() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
+        println("SEALI_BRANDING_STAGE=native_init")
         check(context.resources.configuration.locales[0].toLanguageTag() == "en-US")
         val output = File(context.filesDir, "branding-capture")
         check(output.mkdirs() || output.isDirectory)
@@ -40,6 +41,7 @@ class BrandingPagesCaptureTest {
                 it.exists() && it.readText() == "OK pid=${Process.myPid()}"
             }
         }
+        println("SEALI_BRANDING_STAGE=assertions")
         val screen = mutableStateOf("about")
         val opened = mutableListOf<String>()
         val uriRecorder = object : UriHandler {
