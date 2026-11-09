@@ -1,0 +1,78 @@
+[
+  {
+    "asset": "queue.png",
+    "capture_date": "2026-11-09",
+    "reported_version": "2.0.0-alpha.6 (200000162)",
+    "exact_installed_source": "unverified",
+    "raw_sha256": "93190b6b365b9cadbe5fd3a233958a09b66fb2a81248c95bdceb8743d02738f3",
+    "raw_dimensions": [
+      784,
+      1599
+    ],
+    "crop_box_xyxy": [
+      0,
+      0,
+      784,
+      1599
+    ],
+    "output_sha256": "085e89e346e6b2c134edaeea2fbfa465fa8372e09707fc919fc519fc75904d9e",
+    "edits": "lossless PNG re-encode, no crop"
+  },
+  {
+    "asset": "navigation.png",
+    "capture_date": "2026-11-09",
+    "reported_version": "2.0.0-alpha.6 (200000162)",
+    "exact_installed_source": "unverified",
+    "raw_sha256": "a6535e8d8715e5cbaea388e1ae48ffcb8df6f6db5d45cbc59153842dbf76a878",
+    "raw_dimensions": [
+      784,
+      1599
+    ],
+    "crop_box_xyxy": [
+      0,
+      115,
+      680,
+      1599
+    ],
+    "output_sha256": "24bdcc5e0749756bd32559dca41056cc627de9a9b40e1acae68bdc3bce47de7c",
+    "edits": "rectangular crop only"
+  },
+  {
+    "asset": "video-options.png",
+    "capture_date": "2026-11-09",
+    "reported_version": "2.0.0-alpha.6 (200000162)",
+    "exact_installed_source": "unverified",
+    "raw_sha256": "fa204e21e878e39bd81b5b0213f1db9fe8c7a5800349fc217d409a014921844b",
+    "raw_dimensions": [
+      784,
+      1599
+    ],
+    "crop_box_xyxy": [
+      0,
+      575,
+      784,
+      1599
+    ],
+    "output_sha256": "4337b5dbbecc92dc982e01b2e31a0ccb19004e5d1897b788f1a8e5c8412ffdda",
+    "edits": "rectangular crop only"
+  },
+  {
+    "asset": "audio-options.png",
+    "capture_date": "2026-11-09",
+    "reported_version": "2.0.0-alpha.6 (200000162)",
+    "exact_installed_source": "unverified",
+    "raw_sha256": "1f48991abff9ed605a7afea45dec237e3e10780956182c2f950c10e0d58fcc6a",
+    "raw_dimensions": [
+      784,
+      1599
+    ],
+    "crop_box_xyxy": [
+      0,
+      475,
+      784,
+      1599
+    ],
+    "output_sha256": "6f3412638310bec04f5750e309bb95270670c671d75149d854ea4cd607a65009",
+    "edits": "rectangular crop only"
+  }
+]

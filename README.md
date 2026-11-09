@@ -26,6 +26,22 @@ Paste a supported video link and tap Download, then choose the desired options. 
 
 Read [BUILDING.md](BUILDING.md) for the JDK 21/SDK 36 setup, real test commands, flavors and signing requirements. [SEALI_STATUS.md](SEALI_STATUS.md) distinguishes published checks from remaining device, storage and review gates.
 
+## Screenshots
+
+Actual user-device captures of **Seali 2.0.0-alpha.6**, supplied on November 9, 2026. The navigation and configuration views are cropped to Seali-only UI for privacy. No UI has been repainted or recreated. These captures show an installed alpha build, not qualification of the latest source or a new public release.
+
+<p>
+  <img src="docs/showcase/alpha6-device/queue.png" width="240" alt="Seali alpha.6 empty download queue, All tab" />
+  <img src="docs/showcase/alpha6-device/navigation.png" width="240" alt="Seali alpha.6 navigation drawer, cropped" />
+</p>
+
+<p>
+  <img src="docs/showcase/alpha6-device/video-options.png" width="300" alt="Seali alpha.6 video configuration controls, cropped" />
+  <img src="docs/showcase/alpha6-device/audio-options.png" width="300" alt="Seali alpha.6 audio configuration and additional settings, cropped" />
+</p>
+
+Queue and navigation above; video and audio configuration below. The empty queue does not demonstrate a successful download. Personal media, links, notifications and error reports are excluded. [Capture scope and provenance](docs/showcase/README.md#user-device-gallery).
+
 ## About
 
 Seali is based on the original Seal application, a Kotlin/Jetpack Compose Android interface for [yt-dlp](https://github.com/yt-dlp/yt-dlp).

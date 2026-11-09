@@ -36,3 +36,11 @@ not newly verified translations. This edit does not submit the app to a store.
 Keep using the existing Fastlane icon/screenshot structure. The nine historical
 images stay unchanged until a real, reviewed Seali capture set can replace them;
 do not pass them off as current screenshots in a listing or README gallery.
+
+## User-device gallery
+
+Four actual user-supplied captures, received November 9, 2026, are stored in `alpha6-device/`. The installed version is reported as 2.0.0-alpha.6 (200000162), Android16/API36; the drawer independently displays 2.0.0-alpha.6. Exact installed APK hash/source commit is not established. These are not captures of PR30, PR38, PR41 or the latest source, and do not close their runtime/visual gates. Public APK release status is unchanged.
+
+The queue image is an empty All tab, not successful-download evidence. The drawer is cropped below the notification and inside its right edge, retaining its actual alpha.6 label. The video and audio images are rectangular crops below the sheet's rounded top corners, excluding the other app behind them. These crops remove the other app, rounded sheet corners, top margin and drag handle while retaining the visible in-sheet chevron glyph and configuration controls. No pixels were painted, redrawn, recolored, selectively blurred or substituted. No personal history, failed-item URL, private media, notification, account detail or raw capture is included.
+
+Pixel crop coordinates and output SHA256 are recorded in `alpha6-device/provenance.json`. Coordinates refer to original784x1599 images. Raw captures remain private, outside the repository. Exported PNGs contain no EXIF/source-image metadata. Historical upstream Fastlane screenshots remain untouched and are not in this gallery; no store screenshot acceptance is claimed.
