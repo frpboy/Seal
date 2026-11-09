@@ -6,6 +6,12 @@ This repository is maintained by [Rahul Muraleedharan (@frpboy)](https://github.
 
 > **Project status:** [Seali 2.0.0-alpha.5](https://github.com/frpboy/Seali/releases/tag/v2.0.0-alpha.5) is available as an alpha prerelease. The app uses the Seali identity and `com.frpboy.seali` package. The final cleanup build still needs device testing; it is not a stable or Play-qualified release. Later changes on main are not automatically included in those published APKs.
 
+## Current maintenance and next release
+
+The current source version is **2.0.0-alpha.6**, but it has not been published. The latest public APKs remain alpha.5. Documentation/contact corrections and merged Classic/About maintenance on main do not update an installed alpha.5 APK. See [current status](SEALI_STATUS.md) and the [Seali changelog](CHANGELOG.md#seali-maintenance-unreleased) for completed source changes and release limits.
+
+The About/contact/translation changes in PR30 and README sponsor-button proposal in PR33 are still separate open work. Native source-build preparation has not replaced the inherited dependencies. A new release needs exact-source signed APKs and the applicable runtime, native/security, source and notice checks; green documentation CI alone is not release qualification.
+
 ## Download and use
 
 Download an APK from the [alpha release page](https://github.com/frpboy/Seali/releases/tag/v2.0.0-alpha.5). It provides universal, ARM64, ARMv7, x86 and x86_64 builds. Choose universal if unsure. Android 7.0 (API 24) or newer is required by the current build configuration. Seali installs separately from upstream Seal; upstream app data does not migrate automatically.

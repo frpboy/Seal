@@ -27,3 +27,10 @@ Preserve the upstream GPL license, credits and meaningful history. Report fork-s
 - Work toward source-built native packages is a source-review checkpoint only. There is no qualified replacement AAR, admitted native build or new published package. See [native dependency provenance](docs/NATIVE_DEPENDENCY_PROVENANCE.md) for the existing payload evidence and remaining limits.
 
 Current status belongs here; dated audits and earlier release notes remain historical records. Passing a documentation build does not close app or release gates.
+
+## Release preparation: 2026-11-09
+
+- Source version is 2.0.0-alpha.6 (base version code 200000160); the latest published build is still alpha.5. No new version has been released.
+- Documentation update PR35 is merged. Its exact-source CI and postmerge CI passed unit tests, release packaging and signature checks. APK uploads and history UI were skipped, with no retained artifacts; these runs are not release or device evidence.
+- A current-main screenshot qualification composition is prepared privately, without an encryption recipient. Capture execution remains paused, with no active capture run or retry watch. Later build success did not prove a fresh fetch of the exact dependency that stopped the last capture.
+- The next release must be built and qualified on its exact source and binaries. Unmerged PR30/PR33 changes, the open duration issue and local native recipes must not be listed as shipped. Replacing inherited dependencies with owned native builds is separate work, not an automatic requirement to include unfinished replacement code in the next release; existing native/security, source and notice obligations still apply.

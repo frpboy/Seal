@@ -1,6 +1,6 @@
 # Seali - current project notice
 
-This inherited translation is not yet fully updated or validated for Seali. Use the [current README](../README.md) and [release page](https://github.com/frpboy/Seali/releases) for current status. No stable or F-Droid Seali release is claimed here. Screenshots and feature descriptions below may describe the original app and are not proof of the current Seali build.
+This inherited translation is not yet fully updated or validated for Seali. Use the [current README](../README.md), [maintenance and qualification status](../SEALI_STATUS.md), and [release page](https://github.com/frpboy/Seali/releases) for current status. No stable or F-Droid Seali release is claimed here. Screenshots and feature descriptions below may describe the original app and are not proof of the current Seali build.
 
 Maintainer: Rahul Muraleedharan. Contact: [frpboy12@gmail.com](mailto:frpboy12@gmail.com). Support: [FrpBoy Projects](https://t.me/FRPboy_Projects). Optional sponsorship: [Buy Me a Coffee](https://buymeacoffee.com/frpboy) or [Patreon](https://www.patreon.com/c/FrpBoy).
 

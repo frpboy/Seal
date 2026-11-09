@@ -10,7 +10,7 @@ Seali bundles native code through the `io.github.junkfood02.youtubedl-android`
 Maven artifacts `library`, `ffmpeg`, and `aria2c`, pinned in
 `gradle/libs.versions.toml`:
 
-- `main` (commit aed0630a2e59816429bdc952f22bd41d17353c8c): version 0.17.3
+- Current main pins version 0.17.3 in `gradle/libs.versions.toml` (the original provenance inspection used commit aed0630a2e59816429bdc952f22bd41d17353c8c).
 - PR #25 head (e30bf3bcd4240618dc08f25d3446a0b2339d6f1e): version 0.18.1
 
 Both artifact POMs declare "GPL-3.0 license" and point their SCM URL at the
@@ -121,6 +121,6 @@ Central version-listing metadata beyond the versions above.
 
 ## Source-build work in progress (2026-11-09)
 
-The provenance findings above describe existing upstream artifacts, not a completed independent replacement. A separately reviewed local source checkpoint contains input/source identity checks, fail-closed build admission, staged-runtime layout checks and a restricted native-entry selector. Ten synthetic tests passed for that checkpoint; synthetic fixtures are not native compilation or Android runtime evidence.
+The provenance findings above describe existing upstream artifacts, not a completed independent replacement. A separately reviewed local source checkpoint contains input/source identity checks, fail-closed build admission, staged-runtime layout checks and a restricted native-entry selector. The later independently reviewed packaging checkpoint passed 22 synthetic tests, covering runtime-view selection and preservation of inherited non-native AAR entries and POM dependency/license metadata. Both build and packaging admission remain false. This is arm64-only preparation with inherited wrapper bytes; future packaging must bind the baseline to pinned authenticated inputs. Synthetic fixtures are not native compilation, real-baseline packaging or Android runtime evidence.
 
 A source-built package still needs the complete static-PIC dependency and capability closure, a secure x265 compatibility implementation, source-built wrapper integration, exact NDK verification, API 24 symbol and 16 KB/PIE checks on final bytes, packaging preservation and actual Android runtime qualification. Library/common/aria2 ownership is not established by renaming coordinates. No new native AAR or package has been published from this work, and existing dependencies are unchanged. Required source, notices and licenses must remain available for any eventual distribution.

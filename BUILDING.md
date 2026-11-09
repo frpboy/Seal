@@ -52,3 +52,11 @@ The published APKs use the Seali package and signer, not upstream Seal's. Upstre
 The release-staging workflow is manual end to end. Routine push and pull request builds of `android_ci.yml` publish no APK artifacts by design. To stage a prerelease: dispatch `android_ci.yml` manually with `publish_apk_artifacts=true` on the intended commit, then dispatch `stage-alpha-release.yml` with that run ID. Staging requires the source run to be a successful same-repository manual dispatch, verifies the exact current-main source SHA, rejects existing tags, validates all five expected APK paths and creates a draft prerelease. It is not a general upload route for arbitrary workflows or commits. Published assets must not be silently replaced for later changes.
 
 Build success and APK signature/checksum checks do not prove device behavior. Runtime tests must still cover downloads, cancellation/restart, playlist titles, storage destinations, interface switching, small/large screens, large fonts and accessibility. Check the release notes and PR evidence for what was actually tested.
+
+## Next prerelease qualification
+
+Source currently names 2.0.0-alpha.6; that is not evidence of a published release. Before staging, freeze the reviewed current-main commit, build all five generic APKs with the existing signer, and verify package/version, ABI version-code offsets, signatures and SHA-256 hashes against the actual retained files. Routine CI runs intentionally retain no APKs and cannot supply release assets.
+
+Run applicable device checks on those exact bytes, including install/upgrade behavior, the changed Classic/About paths, downloads and cancellation/restart, storage destinations and native operations. Record device/API/page-size and any untested paths. A synthetic screenshot harness does not qualify AppEntry navigation or the complete downloader. Preserve current source, notices and dependency provenance; do not treat local replacement recipes as built dependencies. Any unresolved security, source-distribution or native packaging issue must be settled before distributing affected binaries.
+
+After qualification, the existing manual staging route creates a draft prerelease only. Review its exact source, title/tag, notes and all five assets before publishing. Do not publish a documentation-only tag as an app update or reuse alpha.5 APKs under alpha.6.
