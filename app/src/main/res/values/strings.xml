@@ -447,4 +447,36 @@
         <item quantity="one">%d audio</item>
         <item quantity="other">%d audios</item>
     </plurals>
+    <string name="seali_support_and_donate">Support &amp; Donate</string>
+    <string name="seali_add_link">Add a link</string>
+    <string name="seali_empty_active">No downloads running</string>
+    <string name="seali_empty_active_hint">Your active downloads will appear here.</string>
+    <string name="seali_empty_canceled">No canceled or failed downloads</string>
+    <string name="seali_empty_canceled_hint">Downloads that stop or need attention appear here.</string>
+    <string name="seali_empty_finished">No completed downloads yet</string>
+    <string name="seali_empty_finished_hint">Completed downloads will appear here.</string>
+    <string name="seali_empty_action_hint">Add a link, or share a video link to Seali from your browser.</string>
+    <string name="queue_filter_count">%1$s: %2$s</string>
+    <string name="queue_show_list">Show download list</string>
+    <string name="queue_show_grid">Show download cards</string>
+    <plurals name="queue_task_count">
+        <item quantity="one">%d task</item>
+        <item quantity="other">%d tasks</item>
+    </plurals>
+    <string name="queue_no_finished_this_session">No finished downloads in this session</string>
+    <string name="queue_saved_history_hint">Saved downloads remain in Downloads. Open Downloads from the navigation menu to view your history.</string>
+    <string name="queue_progress_percent">%1$d%%</string>
+    <string name="queue_progress_eta">Estimated remaining: %1$s</string>
+    <string name="seali_fetching_options_hint">Checking available formats and download options. Dismissing the sheet requests cancellation.</string>
+    <string name="queue_restore_failed_preserved">The saved queue could not be restored. Its original backup is kept, and download history is unchanged. New queue changes will not be saved until restore succeeds.</string>
+    <string name="queue_failed_or_canceled">Failed / Canceled</string>
+    <string name="queue_chip_count">%1$s (%2$d)</string>
+    <string name="queue_metadata_unavailable">Metadata unavailable</string>
+    <string name="queue_retry">Retry</string>
+    <string name="seali_quick_settings">Quick settings</string>
+    <string name="format_requires_audio_hint">Turn on Save as audio to convert audio, embed metadata or crop artwork.</string>
+    <string name="artwork_requires_metadata_hint">Turn on Embed metadata to crop audio artwork.</string>
+    <string name="video_requires_video_hint">Turn off Save as audio to change video format, video quality or the MKV container.</string>
+    <string name="video_uses_sorting_hint">Format sorting chooses the video format and quality. Turn it off to choose them manually.</string>
+    <string name="advanced_requires_selection_hint">Turn on Format selection to use video clips or merge audio streams.</string>
 </resources>

@@ -180,7 +180,7 @@ android {
     }
     androidResources { generateLocaleConfig = true }
 
-    namespace = "com.junkfood.seal"
+    namespace = "com.frpboy.seali"
 }
 
 tasks.configureEach {
