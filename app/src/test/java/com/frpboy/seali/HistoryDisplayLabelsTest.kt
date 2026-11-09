@@ -13,7 +13,7 @@ class HistoryDisplayLabelsTest {
   assertNull(historyFileExtension("/private/noextension"))
  }
  @Test fun invalidExtensionsAndQueryWithheld() {
-  for(path in listOf("/private/file.mp4?token=secret","/private/file.verylongextension","/private/file.mp4\nsecret","/private/file.","/private/folder/"))
+  for(path in listOf("/private/file.mp4?token=secret","/private/file.mp4?token=abc.def","/private/file.mp4#abc.def","/private/file.verylongextension","/private/file.mp4\nsecret","/private/file.","/private/folder/"))
    assertNull(historyFileExtension(path))
  }
  @Test fun displayOnlyExactYouTubeBrandAndOtherExtractorUntouched() {
