@@ -464,7 +464,7 @@ fun DownloadPageImplV2(
                                 Column(Modifier.padding(bottom = 20.dp)) {
                                 val error = state.downloadState as? Error
                                 if (error != null && thumbnailUrl.isNullOrBlank()) {
-                                    CompactQueueErrorCard(task, this, error,
+                                    CompactQueueErrorCard(task, displayViewState, error,
                                         onActionPost = onActionPost, onShowActions = { showActionSheet(task) })
                                 } else VideoCardV2(
                                     modifier = Modifier,

@@ -12,6 +12,8 @@ class CompactFailureBoundaries(unittest.TestCase):
   s=(S/'ui/page/downloadv2/DownloadPageV2.kt').read_text()
   self.assertEqual(2,s.count('CompactQueueErrorCard(task,'))
   self.assertIn('R.string.queue_failed_or_canceled',s)
+  self.assertNotIn('viewState = this,',s)
+  self.assertNotIn('CompactQueueErrorCard(task, this,',s)
   self.assertIn('taskDownloadStateMap.count { filter.predict(it.toPair()) }',s)
  def test_error_controls_and_no_thumbnail_network(self):
   s=(S/'ui/page/downloadv2/CompactQueueErrorCard.kt').read_text()
