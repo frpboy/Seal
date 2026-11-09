@@ -452,8 +452,9 @@ fun DownloadPageImplV2(
                             val displayViewState =
                                 state.rememberActualFileSize()
                             with(displayViewState) {
+                                Column(Modifier.padding(bottom = 20.dp)) {
                                 VideoCardV2(
-                                    modifier = Modifier.padding(bottom = 20.dp).padding(),
+                                    modifier = Modifier,
                                     viewState = this,
                                     actionButton = {
                                         ActionButton(
@@ -471,6 +472,8 @@ fun DownloadPageImplV2(
                                     },
                                     onButtonClick = { showActionSheet(task) },
                                 )
+                                (state.downloadState as? Running)?.let { QueueRunningProgress(it) }
+                                }
                             }
                         }
                     } else {
@@ -486,10 +489,13 @@ fun DownloadPageImplV2(
                                 modifier = Modifier.padding(bottom = 16.dp),
                                 viewState = displayViewState,
                                 stateIndicator = {
-                                    ListItemStateText(
-                                        modifier = Modifier.padding(top = 3.dp),
-                                        downloadState = state.downloadState,
-                                    )
+                                    Column {
+                                        ListItemStateText(
+                                            modifier = Modifier.padding(top = 3.dp),
+                                            downloadState = state.downloadState,
+                                        )
+                                        (state.downloadState as? Running)?.let { QueueRunningProgress(it) }
+                                    }
                                 },
                                 onButtonClick = { showActionSheet(task) },
                             )
