@@ -467,4 +467,5 @@
     <string name="queue_saved_history_hint">Saved downloads remain in Downloads. Open Downloads from the navigation menu to view your history.</string>
     <string name="queue_progress_percent">%1$d%%</string>
     <string name="queue_progress_eta">Estimated remaining: %1$s</string>
+    <string name="seali_fetching_options_hint">Checking available formats and download options. Dismissing the sheet requests cancellation.</string>
 </resources>
