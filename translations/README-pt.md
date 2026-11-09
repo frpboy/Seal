@@ -2,7 +2,7 @@
 
 This inherited translation is not yet fully updated or validated for Seali. Use the [current README](../README.md) and [release page](https://github.com/frpboy/Seali/releases) for current status. No stable or F-Droid Seali release is claimed here. Screenshots and feature descriptions below may describe the original app and are not proof of the current Seali build.
 
-Maintainer: Rahul Muraleedharan. Contact: [hi@frpboy.in](mailto:hi@frpboy.in). Support: [FrpBoy Projects](https://t.me/FRPboy_Projects). Optional sponsorship: [Buy Me a Coffee](https://buymeacoffee.com/frpboy) or [Patreon](https://www.patreon.com/c/FrpBoy).
+Maintainer: Rahul Muraleedharan. Contact: [frpboy12@gmail.com](mailto:frpboy12@gmail.com). Support: [FrpBoy Projects](https://t.me/FRPboy_Projects). Optional sponsorship: [Buy Me a Coffee](https://buymeacoffee.com/frpboy) or [Patreon](https://www.patreon.com/c/FrpBoy).
 
 Thank you to **JunkFood02** and contributors for the original [Seal project](https://github.com/JunkFood02/Seal). Original authorship and GPL-3.0 notices are preserved. See [CREDITS.md](../CREDITS.md). The links below have been updated for Seali; the inherited translation still needs language review.
 
@@ -102,7 +102,7 @@ Current Seali guidance (English, pending translation): download an alpha APK fro
 
 ## 💬 Contato
 
-Current Seali contact (English, pending translation): [hi@frpboy.in](mailto:hi@frpboy.in) or [FrpBoy Projects on Telegram](https://t.me/FRPboy_Projects). Do not send passwords, cookies or other secrets.
+Current Seali contact (English, pending translation): [frpboy12@gmail.com](mailto:frpboy12@gmail.com) or [FrpBoy Projects on Telegram](https://t.me/FRPboy_Projects). Do not send passwords, cookies or other secrets.
 
 ## 💖 Patrocinadores
 

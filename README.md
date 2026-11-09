@@ -70,7 +70,7 @@ When distributing modified builds, comply with GPL-3.0, including the requiremen
 
 For Seali and the maintainer's other projects, use the [FrpBoy Projects Telegram group](https://t.me/FRPboy_Projects). Search existing repository issues before reporting a reproducible bug. Do not send private links, cookies, credentials or logs containing secrets to a public group.
 
-Public maintainer email: [hi@frpboy.in](mailto:hi@frpboy.in), as listed on the [maintainer's portfolio](https://www.frpboy.in/). Do not send passwords, cookies or other secrets.
+Public maintainer email: [frpboy12@gmail.com](mailto:frpboy12@gmail.com), confirmed by the maintainer. Do not send passwords, cookies or other secrets.
 
 Optional financial support is separate from help requests: [Buy Me a Coffee](https://buymeacoffee.com/frpboy) or [Patreon](https://www.patreon.com/c/FrpBoy). On main, PR16 keeps these options under the single Sponsor entry. The published alpha predates that cleanup and still has the duplicate About donation rows.
 

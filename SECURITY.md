@@ -4,7 +4,7 @@ Seali is an independently maintained Android downloader. It is alpha software, n
 
 ## Reporting a suspected vulnerability
 
-Email **Rahul Muraleedharan** at **hi@frpboy.in**, the public maintainer contact listed at https://www.frpboy.in/. Use a subject such as "Seali security report".
+Email **Rahul Muraleedharan** at **frpboy12@gmail.com**, the address confirmed by the maintainer. Use a subject such as "Seali security report".
 
 Do not open a public issue containing exploit details, private download URLs, cookies, credentials, personal files or logs containing secrets. Start with a brief, redacted description and ask how to share sensitive evidence. This contact is not an encrypted reporting service. Do not send passwords or authentication tokens.
 
