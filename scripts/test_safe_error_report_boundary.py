@@ -13,6 +13,10 @@ class SafeReportRouting(unittest.TestCase):
         for name in ["DownloadPageV2.kt", "classic/ClassicHomePage.kt"]:
             text = (ROOT / "ui/page/downloadv2" / name).read_text()
             self.assertIn("getErrorReport(action.throwable, task.url)", text)
+    def test_legacy_error_state_uses_safe_summary(self):
+        text = (ROOT / "Downloader.kt").read_text()
+        self.assertEqual(2, text.count("errorReport = SafeErrorReport.describe(th)"))
+        self.assertNotIn("th.message.toString()", text)
     def test_configuration_display_and_copy_route(self):
         text = (ROOT / "ui/page/downloadv2/configure/DownloadDialogV2.kt").read_text()
         self.assertIn("SafeErrorReport.describe(state.throwable)", text)
