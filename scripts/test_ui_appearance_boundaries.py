@@ -6,6 +6,7 @@ ROOT=Path(__file__).resolve().parents[1]
 class AppearanceBoundaries(unittest.TestCase):
     def setUp(self): self.s=(ROOT/'app/src/main/java/com/frpboy/seali/ui/page/settings/appearance/AppearancePreferences.kt').read_text()
     def test_existing_switch_guard_and_confirm_preserved(self):
+        self.s=(ROOT/'app/src/main/java/com/frpboy/seali/ui/page/settings/interaction/InterfaceStylePreference.kt').read_text()
         self.assertIn('InterfaceSwitchGuard.hasActiveDownloads(',self.s)
         self.assertIn('else if (selected != currentUiStyle)',self.s)
         self.assertIn('TextButton(onClick = { onSelect(selected) })',self.s)
@@ -18,7 +19,7 @@ class AppearanceBoundaries(unittest.TestCase):
         self.assertEqual(helper.count('PreferenceUtil.switchDynamicColor(enabled = false)'),1)
         self.assertIn('onClick = {',helper)
     def test_large_target_radio_whole_row_and_monochrome_bounds(self):
-        helper=self.s.split('private fun InterfaceChoice(',1)[1]
+        helper=(ROOT/'app/src/main/java/com/frpboy/seali/ui/page/settings/interaction/InterfaceStylePreference.kt').read_text().split('private fun InterfaceChoice(',1)[1]
         self.assertIn('heightIn(min = 64.dp)',helper)
         self.assertIn('role = Role.RadioButton',helper)
         self.assertIn('RadioButton(selected = selected, onClick = null)',helper)

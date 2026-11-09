@@ -248,45 +248,11 @@ fun AppearancePreferences(onNavigateBack: () -> Unit, onNavigateTo: (String) -> 
                 ) {
                     onNavigateTo(Route.LANGUAGES)
                 }
-                val context = LocalContext.current
-                val downloader: DownloaderV2 = koinInject()
-                var showInterfaceDialog by rememberSaveable { mutableStateOf(false) }
-                val currentUiStyle = remember { PreferenceUtil.getUiStyle() }
                 PreferenceItem(
                     title = stringResource(R.string.interface_style),
                     icon = Icons.Outlined.ViewQuilt,
-                    description =
-                        stringResource(
-                            if (currentUiStyle == UI_STYLE_CLASSIC) R.string.interface_classic_summary
-                            else R.string.interface_v2_summary
-                        ),
-                ) {
-                    showInterfaceDialog = true
-                }
-                if (showInterfaceDialog) {
-                    InterfaceStyleDialog(
-                        current = currentUiStyle,
-                        onDismiss = { showInterfaceDialog = false },
-                        onSelect = { selected ->
-                            val active =
-                                InterfaceSwitchGuard.hasActiveDownloads(
-                                    downloader.getTaskStateMap().values.map { it.downloadState }
-                                )
-                            if (active) {
-                                Toast.makeText(
-                                        context,
-                                        R.string.interface_switch_active,
-                                        Toast.LENGTH_LONG,
-                                    )
-                                    .show()
-                            } else if (selected != currentUiStyle) {
-                                PreferenceUtil.updateUiStyle(selected)
-                                (context as? Activity)?.recreate()
-                            }
-                            showInterfaceDialog = false
-                        },
-                    )
-                }
+                    description = stringResource(R.string.seali_interface_location_hint),
+                ) { onNavigateTo(Route.INTERACTION) }
             }
         },
     )
@@ -383,48 +349,6 @@ fun RowScope.ColorButtonImpl(
 }
 
 @Composable
-private fun InterfaceStyleDialog(
-    current: Int,
-    onDismiss: () -> Unit,
-    onSelect: (Int) -> Unit,
-) {
-    var selected by rememberSaveable(current) { mutableIntStateOf(current) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.interface_style)) },
-        text = {
-            Column(Modifier.verticalScroll(rememberScrollState())) {
-                InterfaceChoice(
-                    title = stringResource(R.string.interface_v2),
-                    description = stringResource(R.string.interface_v2_summary),
-                    selected = selected == UI_STYLE_V2,
-                    onSelect = { selected = UI_STYLE_V2 },
-                )
-                InterfaceChoice(
-                    title = stringResource(R.string.interface_classic),
-                    description = stringResource(R.string.interface_classic_summary),
-                    selected = selected == UI_STYLE_CLASSIC,
-                    onSelect = { selected = UI_STYLE_CLASSIC },
-                )
-                Text(
-                    text = stringResource(R.string.interface_switch_explanation),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onSelect(selected) }) {
-                Text(stringResource(R.string.interface_switch))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
-        },
-    )
-}
-
-@Composable
 private fun CuratedAccent(seed: Color, label: String) {
     FilterChip(
         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
@@ -438,21 +362,4 @@ private fun CuratedAccent(seed: Color, label: String) {
         label = { Text(label) },
         leadingIcon = { Box(Modifier.size(18.dp).clip(CircleShape).background(seed)) },
     )
-}
-
-@Composable
-private fun InterfaceChoice(title: String, description: String, selected: Boolean, onSelect: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp)
-            .selectable(selected = selected, role = Role.RadioButton, onClick = onSelect)
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(selected = selected, onClick = null)
-        Column(Modifier.weight(1f).padding(start = 12.dp)) {
-            Text(title, style = MaterialTheme.typography.titleSmall)
-            Text(description, style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-    }
 }
