@@ -1,5 +1,7 @@
 # Seali
 
+<img src="fastlane/metadata/android/en-US/images/icon.png" width="112" height="112" alt="Seali app logo" />
+
 <img src="https://komarev.com/ghpvc/?username=frpboy-seali&amp;label=README%20VIEWS&amp;color=0e75b6&amp;style=for-the-badge" alt="Seali README views" />
 
 <sub>Badge requests counted by Komarev, not unique visitors or historical GitHub traffic.</sub>
@@ -14,7 +16,7 @@ This repository is maintained by [Rahul Muraleedharan (@frpboy)](https://github.
 
 The current source version is **2.0.0-alpha.6**, but it has not been published. The latest public APKs remain alpha.5. Documentation/contact corrections and merged Classic/About maintenance on main do not update an installed alpha.5 APK. See [current status](SEALI_STATUS.md) and the [Seali changelog](CHANGELOG.md#seali-maintenance-unreleased) for completed source changes and release limits.
 
-The About/contact/translation changes in PR30 and README sponsor-button proposal in PR33 are still separate open work. Native source-build preparation has not replaced the inherited dependencies. A new release needs exact-source signed APKs and the applicable runtime, native/security, source and notice checks; green documentation CI alone is not release qualification.
+The About/contact/translation changes in PR30 and queue-clarity changes in PR38 remain unmerged and await visual checks. The README sponsor buttons (PR33) and view-counter/safe-CI changes (PR39) are merged source maintenance, not new app releases. Native source-build preparation has not replaced the inherited dependencies. A new release needs exact-source signed APKs and the applicable runtime, native/security, source and notice checks; green documentation CI alone is not release qualification.
 
 ## Download and use
 
