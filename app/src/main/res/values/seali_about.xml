@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="seali_developer">Developer</string>
+    <string name="seali_github" translatable="false">GitHub</string>
+    <string name="seali_linkedin" translatable="false">LinkedIn</string>
+    <string name="seali_support_requests">Support requests</string>
+    <string name="seali_upstream_credit">Based on Seal by JunkFood02</string>
+    <string name="seali_sponsor_desc">Support Seali&#8217;s development</string>
+</resources>
