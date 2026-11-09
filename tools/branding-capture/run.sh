@@ -10,9 +10,9 @@ report_failure() {
       settings) failure_class=settings ;;
       instrumentation)
         failure_class=instrumentation_launch_or_process
-        if grep -Fqx 'SEALI_BRANDING_STAGE=assertions' "$RUNNER_TEMP/seali-branding-instrumentation.txt"; then
+        if grep -s -Fqx 'SEALI_BRANDING_STAGE=assertions' "$RUNNER_TEMP/seali-branding-instrumentation.txt"; then
           failure_class=test_assertion_or_process
-        elif grep -Fqx 'SEALI_BRANDING_STAGE=native_init' "$RUNNER_TEMP/seali-branding-instrumentation.txt"; then
+        elif grep -s -Fqx 'SEALI_BRANDING_STAGE=native_init' "$RUNNER_TEMP/seali-branding-instrumentation.txt"; then
           failure_class=native_init_gate_or_process
         fi
         ;;
