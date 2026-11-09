@@ -12,7 +12,9 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.hasScrollToIndexAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.performScrollToNode
 import androidx.test.platform.app.InstrumentationRegistry
 import com.junkfood.seal.ui.page.settings.about.AboutPage
 import com.junkfood.seal.ui.page.settings.about.CreditsPage
@@ -89,13 +91,23 @@ class BrandingPagesCaptureTest {
         capture("about-top")
         compose.onNodeWithText("Developer").performClick()
         compose.runOnIdle { assertEquals(listOf("https://www.frpboy.in/"), opened) }
-        compose.onNodeWithText(label(R.string.original_project_thanks)).performScrollTo().assertIsDisplayed()
-        compose.onNodeWithText(label(R.string.credits)).performScrollTo().assertIsDisplayed()
+        compose.onNode(hasScrollToIndexAction())
+            .performScrollToNode(hasText(label(R.string.original_project_thanks)))
+        compose.onNodeWithText(label(R.string.original_project_thanks)).assertIsDisplayed()
+        compose.onNode(hasScrollToIndexAction())
+            .performScrollToNode(hasText(label(R.string.credits)))
+        compose.onNodeWithText(label(R.string.credits)).assertIsDisplayed()
         capture("about-credits")
-        compose.onNodeWithText(label(R.string.original_project_thanks)).performClick()
+        compose.onNode(hasScrollToIndexAction())
+            .performScrollToNode(hasText(label(R.string.original_project_thanks)))
+        compose.onNodeWithText(label(R.string.original_project_thanks)).assertIsDisplayed().performClick()
         compose.runOnIdle { assertEquals("https://github.com/JunkFood02/Seal", opened.last()) }
-        compose.onNodeWithText(label(R.string.credits)).performClick()
-        compose.onNodeWithText(label(R.string.original_project_credit)).performScrollTo().assertIsDisplayed()
+        compose.onNode(hasScrollToIndexAction())
+            .performScrollToNode(hasText(label(R.string.credits)))
+        compose.onNodeWithText(label(R.string.credits)).assertIsDisplayed().performClick()
+        compose.onNode(hasScrollToIndexAction())
+            .performScrollToNode(hasText(label(R.string.original_project_credit)))
+        compose.onNodeWithText(label(R.string.original_project_credit)).assertIsDisplayed()
         capture("credits")
         compose.onNodeWithContentDescription(label(R.string.back)).performClick()
         compose.runOnIdle { assertEquals("about", screen.value); screen.value = "language" }
