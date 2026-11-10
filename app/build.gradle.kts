@@ -99,6 +99,10 @@ android {
 
     androidComponents {
         onVariants { variant ->
+            if (variant.productFlavors.any { it.second == "uiOnly" }) {
+                variant.applicationId.set("com.frpboy.seali.uipreview")
+                variant.resValues.put(variant.makeResValueKey("string", "app_name"), com.android.build.api.variant.ResValue("Seali UI Preview", "Separate offline UI-only preview"))
+            }
             variant.outputs.forEach { output ->
                 val name =
                     if (splitApks) {
@@ -143,6 +147,12 @@ android {
         create("generic") {
             dimension = "publishChannel"
             isDefault = true
+        }
+
+        create("uiOnly") {
+            dimension = "publishChannel"
+            applicationId = "com.frpboy.seali.uipreview"
+            resValue("string", "app_name", "Seali UI Preview")
         }
 
         create("githubPreview") {
@@ -238,7 +248,15 @@ dependencies {
 
     implementation(libs.okhttp)
 
-    implementation(libs.bundles.youtubedlAndroid)
+    "uiOnlyImplementation"(files("libs/ui-preview/common-wrapper-only.aar", "libs/ui-preview/library-wrapper-only.aar", "libs/ui-preview/ffmpeg-wrapper-only.aar", "libs/ui-preview/aria2c-wrapper-only.aar"))
+    compileOnly(libs.bundles.youtubedlAndroid)
+    listOf("generic", "githubPreview", "fdroid", "play").forEach { flavor ->
+        add("${flavor}Implementation", libs.bundles.youtubedlAndroid)
+    }
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.11.1")
+    implementation("com.fasterxml.jackson.core:jackson-annotations:2.11.1")
+    implementation("commons-io:commons-io:2.5")
+    implementation("org.apache.commons:commons-compress:1.12")
 
     implementation(libs.mmkv)
 

@@ -1,51 +1,70 @@
-name: Classic history UI qualification
+name: UI-only preview guest verification
 on:
   workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: Exact independently reviewed source commit SHA
+        required: true
+        type: string
 permissions:
   contents: read
 jobs:
-  history-ui:
-    runs-on: ubuntu-latest
-    timeout-minutes: 35
+  ui-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
+          ref: ${{ github.sha }}
           persist-credentials: false
-      - uses: actions/setup-java@v4
+      - name: Bind reviewed source
+        env:
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+        run: |
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          printf 'UI_SOURCE_SHA=%s\n' "$EXPECTED_SHA"
+          test ! -e keystore.properties
+          test ! -e app/seali.jks
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
         with:
           distribution: temurin
           java-version: '21'
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3
         with:
           packages: platform-tools platforms;android-36 build-tools;36.0.0
-      - uses: gradle/actions/setup-gradle@v3
+      - name: Prepare and build only the UI variant
+        run: |
+          set -euo pipefail
+          python3 scripts/prepare-ui-preview.py
+          chmod +x gradlew
+          ./gradlew :app:assembleUiOnlyDebug :app:assembleUiOnlyDebugAndroidTest -PnoSplits '-PABI_FILTERS=arm64-v8a;x86_64' --no-configuration-cache --no-daemon --max-workers=2
+          python3 scripts/ui-only-guest-check.py
       - name: Enable standard runner KVM
         run: |
+          test -c /dev/kvm
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-      - uses: reactivecircus/android-emulator-runner@v2
+      - uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2
         with:
           api-level: 35
+          target: default
           arch: x86_64
           profile: pixel_2
+          emulator-boot-timeout: 300
           disable-animations: true
-          script: |
-            chmod +x gradlew
-            ./gradlew assembleGenericDebug assembleGenericDebugAndroidTest
-            find app/build/outputs/apk/generic/debug -name '*x86_64*.apk' -print -quit | xargs adb install -r
-            find app/build/outputs/apk/androidTest/generic/debug -name '*.apk' -print -quit | xargs adb install -r
-            adb shell am instrument -w -r -e class com.frpboy.seali.ClassicHomeHistoryTest com.frpboy.seali.debug.test/androidx.test.runner.AndroidJUnitRunner | tee instrumentation-result.txt
-            grep -F 'OK (2 tests)' instrumentation-result.txt
-            ! grep -E 'FAILURES|INSTRUMENTATION_FAILED|shortMsg=' instrumentation-result.txt
-            adb exec-out run-as com.frpboy.seali.debug cat files/classic-history.png > classic-history.png
-            test -s classic-history.png
-      - uses: actions/upload-artifact@v4
-        if: always()
+          script: bash scripts/ui-only-guest-run.sh
+      - name: Encrypt tested candidate for authorized review
+        run: bash scripts/ui-only-encrypt-candidate.sh
+      - name: Retain ciphertext only for one day
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: classic-history-ui-evidence
-          path: |
-            classic-history.png
-            instrumentation-result.txt
-            app/build/reports/androidTests/connected/
-            app/build/outputs/androidTest-results/connected/
+          name: ui-only-encrypted-candidate
+          path: candidate-ciphertext/ui-candidate.cms
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+      - name: Remove transient test files
+        if: always()
+        run: rm -rf app/build/outputs/apk ui-only-guest-pixels ui-only-instrumentation.txt candidate-ciphertext "$RUNNER_TEMP/ui-custody-private" "$RUNNER_TEMP/ui-candidate.tar"

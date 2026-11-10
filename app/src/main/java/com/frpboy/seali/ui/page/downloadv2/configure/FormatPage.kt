@@ -117,7 +117,7 @@ import org.koin.compose.koinInject
 
 private const val TAG = "FormatPage"
 
-private data class FormatConfig(
+internal data class FormatConfig(
     val formatList: List<Format>,
     val videoClips: List<VideoClip>,
     val splitByChapter: Boolean,
@@ -285,7 +285,7 @@ fun FormatPagePreview() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun FormatPageImpl(
+internal fun FormatPageImpl(
     modifier: Modifier = Modifier,
     videoInfo: VideoInfo = VideoInfo(),
     audioOnly: Boolean = false,

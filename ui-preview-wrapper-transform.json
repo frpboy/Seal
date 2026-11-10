@@ -1,0 +1,73 @@
+[
+  {
+    "component": "common",
+    "original_sha256": "92b33cdab9f5451a6258416db5b1034487641132bf3b40ff4ee9507e444ba198",
+    "output_sha256": "40728ad3a31a74d86738bd5f98166bd76e9e177c67ea4e8924f5c9fdaa472a67",
+    "removed": []
+  },
+  {
+    "component": "library",
+    "original_sha256": "9d29b148187242d6e754fb59f126b62dde5c1c7fcadaa29d14dbe13659495e4c",
+    "output_sha256": "f7e2aeca5411289f2185411e308c45223ad6ecceee7265765f1396860b625472",
+    "removed": [
+      "res/raw/ytdlp",
+      "jni/",
+      "jni/arm64-v8a/",
+      "jni/arm64-v8a/libpython.so",
+      "jni/arm64-v8a/libpython.zip.so",
+      "jni/armeabi-v7a/",
+      "jni/armeabi-v7a/libpython.so",
+      "jni/armeabi-v7a/libpython.zip.so",
+      "jni/x86/",
+      "jni/x86/libpython.so",
+      "jni/x86/libpython.zip.so",
+      "jni/x86_64/",
+      "jni/x86_64/libpython.so",
+      "jni/x86_64/libpython.zip.so"
+    ]
+  },
+  {
+    "component": "ffmpeg",
+    "original_sha256": "e12402803f7a61802fded6bd021422688cb7a03e924068a1aec983dae88ea3c1",
+    "output_sha256": "a8e3c3336a803a84a7e15b65c09864dfa6d40468da6c60a63c0c94cddcc7253e",
+    "removed": [
+      "jni/",
+      "jni/arm64-v8a/",
+      "jni/arm64-v8a/libffmpeg.so",
+      "jni/arm64-v8a/libffmpeg.zip.so",
+      "jni/arm64-v8a/libffprobe.so",
+      "jni/armeabi-v7a/",
+      "jni/armeabi-v7a/libffmpeg.so",
+      "jni/armeabi-v7a/libffmpeg.zip.so",
+      "jni/armeabi-v7a/libffprobe.so",
+      "jni/x86/",
+      "jni/x86/libffmpeg.so",
+      "jni/x86/libffmpeg.zip.so",
+      "jni/x86/libffprobe.so",
+      "jni/x86_64/",
+      "jni/x86_64/libffmpeg.so",
+      "jni/x86_64/libffmpeg.zip.so",
+      "jni/x86_64/libffprobe.so"
+    ]
+  },
+  {
+    "component": "aria2c",
+    "original_sha256": "c755e7be481ee6a2f74d42a9aa89f09ad42cfc0fd66c3d894609845e11d05cfa",
+    "output_sha256": "9c864369fea1b6657e9b331c433239371623bdabad5db095e8bae9d2ecd95baf",
+    "removed": [
+      "jni/",
+      "jni/arm64-v8a/",
+      "jni/arm64-v8a/libaria2c.so",
+      "jni/arm64-v8a/libaria2c.zip.so",
+      "jni/armeabi-v7a/",
+      "jni/armeabi-v7a/libaria2c.so",
+      "jni/armeabi-v7a/libaria2c.zip.so",
+      "jni/x86/",
+      "jni/x86/libaria2c.so",
+      "jni/x86/libaria2c.zip.so",
+      "jni/x86_64/",
+      "jni/x86_64/libaria2c.so",
+      "jni/x86_64/libaria2c.zip.so"
+    ]
+  }
+]
