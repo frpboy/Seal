@@ -117,7 +117,7 @@ object DownloadUtil {
                     }
                 }
             }
-            execute(request, playlistURL).out.run {
+            execute(request.enforceNativeManifestDownloads(), playlistURL).out.run {
                 val playlistInfo = jsonFormat.decodeFromString<PlaylistResult>(this)
                 if (playlistInfo.type != "playlist") {
                     jsonFormat.decodeFromString<VideoInfo>(this)
@@ -132,7 +132,7 @@ object DownloadUtil {
     ): Result<VideoInfo> =
         request.runCatching {
             val response: YoutubeDLResponse =
-                YoutubeDL.getInstance().execute(request, taskKey, null)
+                YoutubeDL.getInstance().execute(request.enforceNativeManifestDownloads(), taskKey, null)
             jsonFormat.decodeFromString(response.out)
         }
 
@@ -798,7 +798,7 @@ object DownloadUtil {
                 }
                 .runCatching {
                     YoutubeDL.getInstance()
-                        .execute(request = this, processId = taskId, callback = progressCallback)
+                        .execute(request = enforceNativeManifestDownloads(), processId = taskId, callback = progressCallback)
                 }
                 .onFailure { th ->
                     return if (
@@ -909,7 +909,7 @@ object DownloadUtil {
 
         return runCatching {
             YoutubeDL.getInstance()
-                .execute(request = request, processId = taskId, callback = progressCallback)
+                .execute(request = request.enforceNativeManifestDownloads(), processId = taskId, callback = progressCallback)
         }
     }
 
@@ -951,7 +951,7 @@ object DownloadUtil {
             withContext(Dispatchers.Main) { onTaskStarted(template, url) }
             runCatching {
                     val response =
-                        YoutubeDL.getInstance().execute(request = request, processId = taskId) {
+                        YoutubeDL.getInstance().execute(request = request.enforceNativeManifestDownloads(), processId = taskId) {
                             progress,
                             _,
                             text ->
