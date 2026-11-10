@@ -20,7 +20,7 @@ class OwnedNamespaceBoundaries(unittest.TestCase):
         self.assertIn('applicationId = "com.frpboy.seali"',app)
         self.assertIn('applicationIdSuffix = ".debug"',app)
         self.assertIn('applicationIdSuffix = ".preview"',app)
-        self.assertIn('versionCode = 200_000_160',app)
+        self.assertIn('versionCode = 200_000_170',app)
         self.assertIn('namespace = "com.frpboy.seali.color"',(ROOT/'color/build.gradle.kts').read_text())
     def test_real_legacy_receiver_and_supported_activity_aliases(self):
         app=ET.parse(ROOT/'app/src/main/AndroidManifest.xml').getroot().find('application')
