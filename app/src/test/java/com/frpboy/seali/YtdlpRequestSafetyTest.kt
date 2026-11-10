@@ -31,6 +31,24 @@ class YtdlpRequestSafetyTest {
         assertSame(request, request.enforceNativeManifestDownloads())
         assertEquals(listOf("https://example.invalid/1", "https://example.invalid/2"),request.buildCommand().takeLast(2))
     }
+    @Test fun nativeFenceIsLastDownloaderOverrideAndPreservesOtherOptions() {
+        val urls = listOf("https://example.invalid/1", "https://example.invalid/2")
+        val request = YoutubeDLRequest(urls)
+            .addOption("--external-downloader", "libaria2c.so")
+            .addOption("--downloader", "aria2c")
+            .addOption("--no-mtime")
+            .enforceNativeManifestDownloads()
+
+        val command = request.buildCommand()
+        val lastDownloader = command.indexOfLast { it == "--downloader" }
+        assertTrue(lastDownloader >= 0)
+        assertEquals("dash,m3u8:native", command[lastDownloader + 1])
+        assertTrue(command.indexOf("--external-downloader") < lastDownloader)
+        assertTrue(command.indexOf("--no-mtime") < lastDownloader)
+        assertEquals(1, command.count { it == "dash,m3u8:native" })
+        assertEquals(urls, command.takeLast(urls.size))
+    }
+
     @Test fun repeatedFenceRemainsSafeAndDoesNotDropOptions() {
         val request = YoutubeDLRequest("https://example.invalid/media").addOption("--no-mtime")
         request.enforceNativeManifestDownloads().enforceNativeManifestDownloads()
