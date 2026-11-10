@@ -23,7 +23,7 @@ jobs:
           set -euo pipefail
           test "$GITHUB_REPOSITORY" = frpboy/Seali
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
-          test "$(sha256sum scripts/native-mincut/build-minimal-ffmpeg.sh | cut -d ' ' -f1)" = ffc8ac51aa65b4c590a4effb2119a4de0ab1cdbdd32f78bb43abb3ac1a6b30a5
+          test "$(sha256sum scripts/native-mincut/build-minimal-ffmpeg.sh | cut -d ' ' -f1)" = fe8ae3f8edca38cf7d2fa2668e4316baf896e0d836b657ebf4630e44d02b4396
           echo "SOURCE_SHA=$EXPECTED_SHA" >> "$GITHUB_ENV"
       - name: Read-only inputs and host preflight, safe source preparation
         id: prepare

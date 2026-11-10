@@ -14,9 +14,10 @@ PY
 [[ "$STAGE_LIMIT_SECONDS" =~ ^[1-9][0-9]*$ ]] || exit 64
 [[ ! -e "$BUILD_ROOT" && ! -L "$BUILD_ROOT" ]] || exit 64
 [[ "$(uname -sm)" = 'Linux x86_64' ]] || exit 64
+ffmpeg_arch_flags=()
 case "$TARGET_ABI" in
  arm64-v8a) triple=aarch64-linux-android; arch=aarch64 ;;
- x86_64) triple=x86_64-linux-android; arch=x86_64 ;;
+ x86_64) triple=x86_64-linux-android; arch=x86_64; ffmpeg_arch_flags=(--disable-x86asm) ;;
  *) exit 64 ;;
 esac
 for p in "$BUILD_ROOT" "$ANDROID_NDK_HOME" "$FFMPEG_SOURCE" "$LAME_SOURCE" "$OPUS_SOURCE"; do
@@ -67,7 +68,7 @@ bounded "$FFMPEG_SOURCE/configure" --prefix=/usr --target-os=android --arch="$ar
  "--extra-ldflags=-L$prefix/lib $LDFLAGS" \
  --enable-shared --disable-static --disable-autodetect --disable-doc --disable-debug \
  --disable-ffplay --disable-vulkan --disable-indevs --disable-outdevs --enable-indev=lavfi \
- --disable-network --enable-zlib --enable-libmp3lame --enable-libopus
+ --disable-network --enable-zlib --enable-libmp3lame --enable-libopus "${ffmpeg_arch_flags[@]}"
 bounded make -j1
 bounded make DESTDIR="$BUILD_ROOT/stage" install
 cp config.h config_components.h ffbuild/config.mak "$BUILD_ROOT/"
