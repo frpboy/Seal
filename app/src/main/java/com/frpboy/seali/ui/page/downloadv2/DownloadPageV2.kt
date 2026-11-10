@@ -326,8 +326,8 @@ fun DownloadPageImplV2(
     downloadCallback: () -> Unit = {},
     pasteCallback: () -> Unit = {},
     onMenuOpen: (() -> Unit) = {},
-    onActionPost: (Task, UiAction) -> Unit,
     previewReservedBottomSpace: Dp = 0.dp,
+    onActionPost: (Task, UiAction) -> Unit,
 ) {
     var activeFilter by remember { mutableStateOf(Filter.All) }
     val filteredMap by
