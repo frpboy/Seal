@@ -19,3 +19,10 @@ local.properties
 .kotlin
 # Private Seali Play upload keystore (never commit)
 /app/seali-upload-key.jks
+
+# Candidate payloads are derived from public pins on the private build runner.
+/app/libs/functional-alpha/
+/app/src/main/jniLibs/
+/app/src/main/assets/functional-engine/
+/functional-alpha-wrapper-manifest.json
+/functional-alpha-payload-manifest.json

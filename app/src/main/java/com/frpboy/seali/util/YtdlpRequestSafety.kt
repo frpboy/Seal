@@ -3,11 +3,9 @@ package com.frpboy.seali.util
 import com.yausername.youtubedl_android.YoutubeDLRequest
 
 /**
- * GHSA-vx4q-3cr2-7cg2: never pass fragmented manifest URLs to aria2c.
- * Enforced at every execution boundary, including custom-config requests and
- * when the aria2 preference is off. Direct-file downloader choice is preserved.
- * Commands follow wrapper options, so this protocol override is last on the CLI.
- * This is one advisory workaround, not a claim that bundled yt-dlp is current.
+ * The functional alpha contains no aria2 binary and no FFmpeg network support.
+ * Fence every execution boundary, including prior custom downloader overrides.
+ * Commands follow wrapper options, so the native downloader is last on the CLI.
  */
 internal fun YoutubeDLRequest.enforceNativeManifestDownloads(): YoutubeDLRequest =
-    addCommands(listOf("--downloader", "dash,m3u8:native"))
+    addCommands(listOf("--downloader", "native", "--downloader", "http,ftp,dash,m3u8:native", "--no-break-match-filters", "--break-match-filters", "!is_live & !is_upcoming & live_status!=?is_live & live_status!=?is_upcoming & live_status!=?post_live"))

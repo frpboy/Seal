@@ -43,6 +43,10 @@ if (hasAnySigningValue && !signingConfigured) {
     )
 }
 
+// This isolated branch is a functional phone-alpha candidate, never a production fallback.
+check(project.hasProperty("functionalAlphaCandidate")) {
+    "This candidate requires -PfunctionalAlphaCandidate; do not merge this branch into production."
+}
 val splitApks = !project.hasProperty("noSplits")
 
 val abiFilterList = (properties["ABI_FILTERS"] as String).split(';')
@@ -177,6 +181,7 @@ android {
     packaging {
         resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" }
         jniLibs.useLegacyPackaging = true
+        jniLibs.keepDebugSymbols += "**/*.so" // Do not mutate independently reviewed payload bytes.
     }
     androidResources { generateLocaleConfig = true }
 
@@ -238,7 +243,11 @@ dependencies {
 
     implementation(libs.okhttp)
 
-    implementation(libs.bundles.youtubedlAndroid)
+    implementation(files("libs/functional-alpha/common-wrapper.aar", "libs/functional-alpha/library-wrapper.aar", "libs/functional-alpha/ffmpeg-wrapper.aar"))
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.11.1")
+    implementation("com.fasterxml.jackson.core:jackson-annotations:2.11.1")
+    implementation("commons-io:commons-io:2.5")
+    implementation("org.apache.commons:commons-compress:1.12")
 
     implementation(libs.mmkv)
 

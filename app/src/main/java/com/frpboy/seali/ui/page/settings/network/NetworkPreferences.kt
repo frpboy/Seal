@@ -56,7 +56,6 @@ fun NetworkPreferences(navigateToCookieProfilePage: () -> Unit = {}, onNavigateB
     var showConcurrentDownloadDialog by remember { mutableStateOf(false) }
     var showRateLimitDialog by remember { mutableStateOf(false) }
     var showProxyDialog by remember { mutableStateOf(false) }
-    var aria2c by remember { mutableStateOf(ARIA2C.getBoolean()) }
     var proxy by PROXY.booleanState
     var isCookiesEnabled by COOKIES.booleanState
     var forceIpv4 by FORCE_IPV4.booleanState
@@ -74,6 +73,9 @@ fun NetworkPreferences(navigateToCookieProfilePage: () -> Unit = {}, onNavigateB
             val isCustomCommandEnabled by CUSTOM_COMMAND.booleanState
 
             LazyColumn(contentPadding = it) {
+                item {
+                    PreferenceInfo(text = "Functional alpha: native downloads only. Aria2, custom commands, live streams and time-range downloads are unavailable. FFmpeg works on local media only.")
+                }
                 if (isCustomCommandEnabled)
                     item {
                         PreferenceInfo(
@@ -117,18 +119,6 @@ fun NetworkPreferences(navigateToCookieProfilePage: () -> Unit = {}, onNavigateB
 
                 item { PreferenceSubtitle(text = stringResource(id = R.string.advanced_settings)) }
 
-                item {
-                    PreferenceSwitch(
-                        title = stringResource(R.string.aria2),
-                        icon = Icons.Outlined.Bolt,
-                        description = stringResource(R.string.aria2_desc),
-                        isChecked = aria2c,
-                        onClick = {
-                            aria2c = !aria2c
-                            updateValue(ARIA2C, aria2c)
-                        },
-                    )
-                }
                 item {
                     PreferenceSwitchWithDivider(
                         title = stringResource(id = R.string.proxy),

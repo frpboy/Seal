@@ -1,51 +1,86 @@
-name: Classic history UI qualification
+name: Private functional ARM64 alpha build measurement
 on:
   workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: Exact reviewed candidate source SHA
+        required: true
+        type: string
 permissions:
   contents: read
 jobs:
-  history-ui:
-    runs-on: ubuntu-latest
-    timeout-minutes: 35
+  private-arm64-app:
+    if: github.repository == 'frpboy/Seali' && github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 110
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
-      - uses: actions/setup-java@v4
+      - name: Bind reviewed source and native recipe
+        env:
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          test "$(sha256sum scripts/native-mincut/build-minimal-ffmpeg.sh | cut -d ' ' -f1)" = fe8ae3f8edca38cf7d2fa2668e4316baf896e0d836b657ebf4630e44d02b4396
+          test ! -e keystore.properties
+          test ! -d app/src/main/jniLibs
+          test ! -d app/libs/functional-alpha
+          echo "SOURCE_SHA=$EXPECTED_SHA" >> "$GITHUB_ENV"
+      - name: Prepare exact native inputs
+        id: prepare
+        run: timeout --signal=TERM --kill-after=30s 600 python3 scripts/native-mincut/prepare-native-job.py
+      - name: Rebuild native inputs within unchanged native bounds
+        id: native
+        run: timeout --signal=TERM --kill-after=30s 3600 bash scripts/native-mincut/build-minimal-ffmpeg.sh
+      - name: Capture native evidence
+        run: bash scripts/native-mincut/postbuild-evidence.sh
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
         with:
           distribution: temurin
           java-version: '21'
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407
         with:
           packages: platform-tools platforms;android-36 build-tools;36.0.0
-      - uses: gradle/actions/setup-gradle@v3
-      - name: Enable standard runner KVM
+      - name: Derive private app inputs solely from pinned public inputs
+        id: payload
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-      - uses: reactivecircus/android-emulator-runner@v2
+          set -euo pipefail
+          timeout --signal=TERM --kill-after=30s 300 python3 scripts/fetch-functional-inputs.py
+          python3 scripts/prepare-functional-wrappers.py --input-dir "$CUSTODY_ROOT/app-inputs" --root .
+          python3 scripts/prune-functional-python.py --library-aar "$CUSTODY_ROOT/app-inputs/library-0.17.3.aar" --out "$CUSTODY_ROOT/python-pruned" > "$CUSTODY_ROOT/evidence/python-prune.stdout.json"
+          python3 scripts/verify-functional-python-closure.py --root "$CUSTODY_ROOT/python-pruned" --ndk "$ANDROID_NDK_HOME"
+          python3 scripts/test-functional-engine-filter.py --source "$CUSTODY_ROOT/app-inputs/yt-dlp.tar.gz" --out "$CUSTODY_ROOT/evidence/engine-filter.json"
+          python3 scripts/prepare-functional-payload.py --stage "$BUILD_ROOT/stage" --python-pruned "$CUSTODY_ROOT/python-pruned" --root .
+      - name: Private debug APK, unit tests and instrumentation compilation only
+        id: app
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          timeout --signal=TERM --kill-after=30s 1500 ./gradlew --no-daemon --max-workers=2 -Dorg.gradle.jvmargs=-Xmx3072m -Pkotlin.compiler.execution.strategy=in-process -PfunctionalAlphaCandidate -PnoSplits -PABI_FILTERS=arm64-v8a :app:testGenericDebugUnitTest :app:assembleGenericDebug :app:assembleGenericDebugAndroidTest
+      - name: Verify actual APK bytes and test-only identity
+        run: python3 scripts/verify-functional-apk.py
+      - name: Collect private build evidence, not runtime claims
+        if: always() && steps.prepare.outcome == 'success'
+        run: python3 scripts/collect-functional-app-custody.py
+      - name: Encrypt full native and app custody before any upload
+        id: encrypt
+        if: always() && steps.prepare.outcome == 'success'
+        env:
+          BUILD_OUTCOME: ${{ steps.native.outcome }}
+          APP_BUILD_OUTCOME: ${{ steps.app.outcome }}
+        run: timeout --signal=TERM --kill-after=30s 300 python3 scripts/native-mincut/encrypt-native-custody.py
+      - name: Retain bounded ciphertext only
+        if: always() && steps.encrypt.outcome == 'success'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          api-level: 35
-          arch: x86_64
-          profile: pixel_2
-          disable-animations: true
-          script: |
-            chmod +x gradlew
-            ./gradlew assembleGenericDebug assembleGenericDebugAndroidTest
-            find app/build/outputs/apk/generic/debug -name '*x86_64*.apk' -print -quit | xargs adb install -r
-            find app/build/outputs/apk/androidTest/generic/debug -name '*.apk' -print -quit | xargs adb install -r
-            adb shell am instrument -w -r -e class com.frpboy.seali.ClassicHomeHistoryTest com.frpboy.seali.debug.test/androidx.test.runner.AndroidJUnitRunner | tee instrumentation-result.txt
-            grep -F 'OK (2 tests)' instrumentation-result.txt
-            ! grep -E 'FAILURES|INSTRUMENTATION_FAILED|shortMsg=' instrumentation-result.txt
-            adb exec-out run-as com.frpboy.seali.debug cat files/classic-history.png > classic-history.png
-            test -s classic-history.png
-      - uses: actions/upload-artifact@v4
+          name: private-functional-arm64-app-encrypted
+          path: ${{ runner.temp }}/native-build.cms
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+      - name: Remove transient app and native data
         if: always()
-        with:
-          name: classic-history-ui-evidence
-          path: |
-            classic-history.png
-            instrumentation-result.txt
-            app/build/reports/androidTests/connected/
-            app/build/outputs/androidTest-results/connected/
+        run: rm -rf "$RUNNER_TEMP/seali-native-job" "$RUNNER_TEMP/seali-native-build.tar.gz" "$RUNNER_TEMP/native-build.cms" "$RUNNER_TEMP/native-build.cms.tmp" app/build app/libs/functional-alpha app/src/main/jniLibs app/src/main/assets/functional-engine

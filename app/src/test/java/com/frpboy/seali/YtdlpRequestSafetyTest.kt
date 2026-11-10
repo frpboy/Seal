@@ -6,25 +6,25 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class YtdlpRequestSafetyTest {
-    @Test fun aria2StillWorksForDirectFilesButFenceIsLast() {
+    @Test fun removedAria2PreferenceIsOverriddenForDirectFiles() {
         val request = YoutubeDLRequest("https://example.invalid/media")
             .addOption("--downloader", "libaria2c.so")
             .enforceNativeManifestDownloads()
-        assertEquals(listOf("--downloader", "libaria2c.so", "--downloader", "dash,m3u8:native",
-            "https://example.invalid/media"), request.buildCommand())
+        assertTrue(request.buildCommand().containsAll(listOf("native", "http,ftp,dash,m3u8:native", "--break-match-filters")))
+        assertEquals("https://example.invalid/media", request.buildCommand().last())
     }
     @Test fun customConfigIsFencedEvenWithoutAria2Preference() {
         val request = YoutubeDLRequest("https://example.invalid/media")
             .addOption("--config-locations", "/fixture/config")
             .enforceNativeManifestDownloads()
-        assertEquals(listOf("--downloader", "dash,m3u8:native"), request.buildCommand().takeLast(3).take(2))
+        assertEquals(listOf("--downloader", "native", "--downloader", "http,ftp,dash,m3u8:native"), request.buildCommand().dropLast(1).takeLast(7).take(4))
     }
     @Test fun priorExplicitProtocolAndCustomTokensCannotOverrideFinalFence() {
         val request = YoutubeDLRequest("https://example.invalid/media")
             .addOption("--downloader", "dash,m3u8:libaria2c.so")
             .addCommands(listOf("--downloader", "dash,m3u8:aria2c"))
             .enforceNativeManifestDownloads()
-        assertEquals(listOf("--downloader", "dash,m3u8:native"), request.buildCommand().takeLast(3).take(2))
+        assertEquals(listOf("--downloader", "native", "--downloader", "http,ftp,dash,m3u8:native"), request.buildCommand().dropLast(1).takeLast(7).take(4))
     }
     @Test fun chainingPreservesSameRequestAndUrls() {
         val request = YoutubeDLRequest(listOf("https://example.invalid/1", "https://example.invalid/2"))
@@ -35,6 +35,6 @@ class YtdlpRequestSafetyTest {
         val request = YoutubeDLRequest("https://example.invalid/media").addOption("--no-mtime")
         request.enforceNativeManifestDownloads().enforceNativeManifestDownloads()
         assertTrue(request.buildCommand().contains("--no-mtime"))
-        assertEquals(2,request.buildCommand().count { it == "dash,m3u8:native" })
+        assertEquals(2,request.buildCommand().count { it == "http,ftp,dash,m3u8:native" })
     }
 }

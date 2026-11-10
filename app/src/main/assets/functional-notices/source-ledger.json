@@ -1,0 +1,123 @@
+[
+  {
+    "component": "openssl-3.3.2",
+    "license": "Apache-2.0",
+    "source": "https://raw.githubusercontent.com/openssl/openssl/openssl-3.3.2/LICENSE.txt",
+    "sha256": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a",
+    "binding": "retained version/SONAME plus inspected Termux recipe; producer recipe not asserted uniform"
+  },
+  {
+    "component": "expat-2.6.3",
+    "license": "MIT",
+    "source": "https://raw.githubusercontent.com/libexpat/libexpat/R_2_6_3/expat/COPYING",
+    "sha256": "122f2c27000472a201d337b9b31f7eb2b52d091b02857061a8880371612d9534",
+    "binding": "retained version/SONAME plus inspected Termux recipe; producer recipe not asserted uniform"
+  },
+  {
+    "component": "libffi-3.4.6",
+    "license": "MIT",
+    "source": "https://raw.githubusercontent.com/libffi/libffi/v3.4.6/LICENSE",
+    "sha256": "67894089811f93fca47a76f85e017da6f8582d4ba0905963c6e0f1ad6df7a195",
+    "binding": "retained version/SONAME plus inspected Termux recipe; producer recipe not asserted uniform"
+  },
+  {
+    "component": "sqlite-3.46.1",
+    "license": "Public Domain",
+    "source": "https://raw.githubusercontent.com/sqlite/sqlite/version-3.46.1/LICENSE.md",
+    "sha256": "9c6479123f32a1ed50d9a0af203dfe8972e65035b0cdeef436b5f8d0924517fe",
+    "binding": "retained version/SONAME plus inspected Termux recipe; producer recipe not asserted uniform"
+  },
+  {
+    "component": "bzip2-1.0.8",
+    "license": "bzip2 license",
+    "source": "https://raw.githubusercontent.com/libarchive/bzip2/bzip2-1.0.8/LICENSE",
+    "sha256": "c6dbbf828498be844a89eaa3b84adbab3199e342eb5cb2ed2f0d4ba7ec0f38a3",
+    "binding": "retained version/SONAME plus inspected Termux recipe; producer recipe not asserted uniform"
+  },
+  {
+    "component": "ncurses-6.5.20240831",
+    "license": "ncurses permissive",
+    "source": "https://raw.githubusercontent.com/ThomasDickey/ncurses-snapshots/a480458efb0662531287f0c75116c0e91fe235cb/COPYING",
+    "sha256": "b2feb54f39529abe226f709a292584fde48a2e5721559fee417d2cdd51cb7cc1",
+    "binding": "retained version/SONAME plus inspected Termux recipe; producer recipe not asserted uniform"
+  },
+  {
+    "component": "zlib-1.3.1",
+    "license": "Zlib",
+    "source": "https://raw.githubusercontent.com/madler/zlib/v1.3.1/LICENSE",
+    "sha256": "845efc77857d485d91fb3e0b884aaa929368c717ae8186b66fe1ed2495753243",
+    "binding": "retained version/SONAME plus inspected Termux recipe; producer recipe not asserted uniform"
+  },
+  {
+    "component": "python-3.11.10",
+    "license": "PSF + included third-party notices",
+    "source": "https://www.python.org/ftp/python/3.11.10/Python-3.11.10.tar.xz",
+    "sha256": "3b2f81fe21d181c499c59a256c8e1968455d6689d269aa85373bfb6af41da3bf",
+    "binding": "official hash verified archive; shipped stdlib source comparison617/618 with tempfile adaptation; retain component security review"
+  },
+  {
+    "component": "liblzma-5.6.2",
+    "license": "0BSD for shipped liblzma, not aggregate package GPL/LGPL",
+    "source": "https://github.com/tukaani-project/xz/releases/download/v5.6.2/xz-5.6.2.tar.xz",
+    "binding": "actual filename5.6.2+hashverifiedsourceCOPYINGexplicitliblzma"
+  },
+  {
+    "component": "libcrypt",
+    "file": "LICENSE",
+    "url": "https://raw.githubusercontent.com/termux/termux-packages/2cb1f4277481e4c6a74d39f057580c82adadf372/packages/libcrypt/LICENSE",
+    "sha256": "311ad021879eeb7713e27e8d894950068689feafc198a236a95c2494710e3a1a"
+  },
+  {
+    "component": "libcrypt",
+    "file": "build.sh",
+    "url": "https://raw.githubusercontent.com/termux/termux-packages/2cb1f4277481e4c6a74d39f057580c82adadf372/packages/libcrypt/build.sh",
+    "sha256": "bedf98276e9d84f8c00860b74519d371b3a9d46368b1bb81b2103049c1647891"
+  },
+  {
+    "component": "libcrypt",
+    "file": "crypt3.c",
+    "url": "https://raw.githubusercontent.com/termux/termux-packages/2cb1f4277481e4c6a74d39f057580c82adadf372/packages/libcrypt/crypt3.c",
+    "sha256": "65009358f59f91b6118fc456bfe8186fc432d6c06af86c2346096e56079593c0"
+  },
+  {
+    "component": "libandroid-posix-semaphore",
+    "file": "LICENSE",
+    "url": "https://raw.githubusercontent.com/termux/termux-packages/2cb1f4277481e4c6a74d39f057580c82adadf372/packages/libandroid-posix-semaphore/LICENSE",
+    "sha256": "e239ef69c9c4eead9406bdc6a34f2bd1220c3dcd3b17c8377cb2fb73fdaf0d38"
+  },
+  {
+    "component": "libandroid-posix-semaphore",
+    "file": "build.sh",
+    "url": "https://raw.githubusercontent.com/termux/termux-packages/2cb1f4277481e4c6a74d39f057580c82adadf372/packages/libandroid-posix-semaphore/build.sh",
+    "sha256": "063f2e0d0eae189b12fe98b0356eaffe9256ac2e90b03a7425b28027459f2c47"
+  },
+  {
+    "component": "libandroid-posix-semaphore",
+    "file": "semaphore.c",
+    "url": "https://raw.githubusercontent.com/termux/termux-packages/2cb1f4277481e4c6a74d39f057580c82adadf372/packages/libandroid-posix-semaphore/semaphore.c",
+    "sha256": "333e0027667d8a82568fbe5617b1ef381a8c6a920d1a44a07570fb695a302253"
+  },
+  {
+    "component": "libandroid-support",
+    "file": "build.sh",
+    "url": "https://raw.githubusercontent.com/termux/termux-packages/2cb1f4277481e4c6a74d39f057580c82adadf372/packages/libandroid-support/build.sh",
+    "sha256": "1f88db1f66fd8bf4fac3e610f51904c11915d56d53853802102bfc7d3ecf22dc"
+  },
+  {
+    "component": "termux/libandroid-support",
+    "file": "LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/termux/libandroid-support/v29/LICENSE.txt",
+    "sha256": "76fc4416b6b20b4223bee8cc5b1ab41e1066a55ee23454f857c74bfbd9c3c2d5"
+  },
+  {
+    "component": "termux/wcwidth",
+    "file": "LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/termux/wcwidth/v4/LICENSE.txt",
+    "sha256": "80786a6b45d7dc1a4e604c85f779af6b1069bf900eda37684045463d81627314"
+  },
+  {
+    "file": "openssl-3.3.2/AUTHORS.md",
+    "source": "https://raw.githubusercontent.com/openssl/openssl/openssl-3.3.2/AUTHORS.md",
+    "sha256": "5076ca441daef7fb35e904c2ac070880c7b3d58300a5a6aecac41e8f525f4412"
+  }
+]
