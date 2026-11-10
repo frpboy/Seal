@@ -19,11 +19,15 @@ jobs:
         with:
           packages: platform-tools platforms;android-36 build-tools;36.0.0
       - uses: gradle/actions/setup-gradle@v3
-      - name: Enable standard runner KVM
+      # Fail closed rather than changing host device permissions.
+      - name: Check KVM availability
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
+          set -euo pipefail
+          if [ ! -c /dev/kvm ] || [ ! -r /dev/kvm ] || [ ! -w /dev/kvm ]; then
+            echo "::error::This qualification requires runner-provided readable/writable /dev/kvm. The workflow will not change host device permissions."
+            exit 1
+          fi
+          ls -l /dev/kvm
       - uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
