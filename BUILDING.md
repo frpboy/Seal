@@ -55,7 +55,7 @@ Build success and APK signature/checksum checks do not prove device behavior. Ru
 
 ## Next prerelease qualification
 
-Source currently names 2.0.0-alpha.6; that is not evidence of a published release. Before staging, freeze the reviewed current-main commit, build all five generic APKs with the existing signer, and verify package/version, ABI version-code offsets, signatures and SHA-256 hashes against the actual retained files. Routine CI runs intentionally retain no APKs and cannot supply release assets.
+Source currently names 2.0.0-alpha.7; that is not evidence of a published release. The installed private alpha.6 is the required upgrade baseline. Before staging, freeze the reviewed current-main commit, build all five generic APKs with the existing signer, and verify package/version, ABI version-code offsets, signatures and SHA-256 hashes against the actual retained files. Routine CI runs intentionally retain no APKs and cannot supply release assets.
 
 Run applicable device checks on those exact bytes, including install/upgrade behavior, the changed Classic/About paths, downloads and cancellation/restart, storage destinations and native operations. Record device/API/page-size and any untested paths. A synthetic screenshot harness does not qualify AppEntry navigation or the complete downloader. Preserve current source, notices and dependency provenance; do not treat local replacement recipes as built dependencies. Any unresolved security, source-distribution or native packaging issue must be settled before distributing affected binaries.
 
