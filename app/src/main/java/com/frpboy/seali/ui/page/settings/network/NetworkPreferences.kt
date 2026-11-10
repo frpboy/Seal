@@ -138,7 +138,7 @@ fun NetworkPreferences(navigateToCookieProfilePage: () -> Unit = {}, onNavigateB
                         title = stringResource(id = R.string.concurrent_download),
                         description = stringResource(R.string.concurrent_download_desc),
                         icon = Icons.Outlined.OfflineBolt,
-                        enabled = !aria2c && !isCustomCommandEnabled,
+                        enabled = !isCustomCommandEnabled,
                     ) {
                         showConcurrentDownloadDialog = true
                     }

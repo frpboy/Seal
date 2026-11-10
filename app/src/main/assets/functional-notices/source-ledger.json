@@ -1,17 +1,17 @@
 [
   {
-    "component": "openssl-3.3.2",
+    "component": "openssl-3.5.9",
     "license": "Apache-2.0",
-    "source": "https://raw.githubusercontent.com/openssl/openssl/openssl-3.3.2/LICENSE.txt",
-    "sha256": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a",
-    "binding": "retained version/SONAME plus inspected Termux recipe; producer recipe not asserted uniform"
+    "source": "https://github.com/openssl/openssl/releases/download/openssl-3.5.9/openssl-3.5.9.tar.gz",
+    "sha256": "603f5602e2eef00d77fbd429d34dcd5822bb301757a1bc9cdb24c670f1eb859a",
+    "binding": "Exact pinned rebuilt source archive; actual staged ELF and source/relink custody independently reviewed"
   },
   {
-    "component": "expat-2.6.3",
+    "component": "expat-2.10.0",
     "license": "MIT",
-    "source": "https://raw.githubusercontent.com/libexpat/libexpat/R_2_6_3/expat/COPYING",
-    "sha256": "122f2c27000472a201d337b9b31f7eb2b52d091b02857061a8880371612d9534",
-    "binding": "retained version/SONAME plus inspected Termux recipe; producer recipe not asserted uniform"
+    "source": "https://github.com/libexpat/libexpat/releases/download/R_2_10_0/expat-2.10.0.tar.xz",
+    "sha256": "c624ba2998fc65df1163a49641ff3f9ab73138b11641d92c86bee0fb01b1bc7f",
+    "binding": "Exact pinned rebuilt source archive; actual staged ELF and source/relink custody independently reviewed"
   },
   {
     "component": "libffi-3.4.6",

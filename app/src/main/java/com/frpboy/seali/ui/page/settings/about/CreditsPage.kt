@@ -1,5 +1,15 @@
 package com.frpboy.seali.ui.page.settings.about
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
@@ -75,7 +85,7 @@ fun CreditsPage(onNavigateBack: () -> Unit) {
             Credit("Read You", GPL_V3, readYou),
             Credit("youtubedl-android", GPL_V3, youtubedlAndroidUrl),
             Credit("Termux", GPL_V3, termux),
-            Credit("FFmpeg", GPL_V3_OR_LATER, FFmpeg),
+            Credit("FFmpeg (bundled native alpha build)", "GNU Lesser General Public License, version 2.1 or later", FFmpeg),
             Credit("Android Jetpack", APACHE_V2, jetpack),
             Credit("Kotlin", APACHE_V2, kotlin),
             Credit("dvd", GPL_V3, dvd),
@@ -86,7 +96,7 @@ fun CreditsPage(onNavigateBack: () -> Unit) {
             Credit("Material color utilities", APACHE_V2, materialColor),
             Credit("MMKV", BSD, mmkv),
             Credit("Coil", APACHE_V2, coil),
-            Credit("aria2", GPL_V2, aria2),
+            Credit("aria2 (historical upstream credit, not bundled in this alpha)", GPL_V2, aria2),
             Credit("OkHttp", APACHE_V2, okhttp),
             Credit("material-motion-compose", APACHE_V2, materialMotionCompose),
             Credit("unDraw", null, unDraw),
@@ -96,6 +106,23 @@ fun CreditsPage(onNavigateBack: () -> Unit) {
                 icons8,
             ),
         )
+    val context = LocalContext.current
+    var showNativeNotices by remember { mutableStateOf(false) }
+    val nativeNotices = remember {
+        val base = "functional-notices/"
+        val names = context.assets.open(base + "notice-index.txt").bufferedReader().use { it.readLines() }.filter { it.isNotBlank() }
+        names.joinToString("\n\n") { name ->
+            name + "\n\n" + context.assets.open(base + name).bufferedReader().use { it.readText() }
+        }
+    }
+    if (showNativeNotices) {
+        AlertDialog(
+            onDismissRequest = { showNativeNotices = false },
+            title = { Text("Bundled native component notices") },
+            text = { SelectionContainer { Text(nativeNotices, modifier = Modifier.verticalScroll(rememberScrollState())) } },
+            confirmButton = { TextButton(onClick = { showNativeNotices = false }) { Text("Close") } },
+        )
+    }
     val uriHandler = LocalUriHandler.current
     fun openUrl(url: String) {
         uriHandler.openUri(url)
@@ -128,6 +155,11 @@ fun CreditsPage(onNavigateBack: () -> Unit) {
                             contentDescription = null,
                             modifier = Modifier.padding(horizontal = 72.dp, vertical = 48.dp),
                         )
+                    }
+                }
+                item {
+                    CreditItem(title = "Bundled native component notices", license = "CPython and retained libraries, OpenSSL 3.5.9, Expat 2.10.0") {
+                        showNativeNotices = true
                     }
                 }
                 items(creditsList) { item ->
