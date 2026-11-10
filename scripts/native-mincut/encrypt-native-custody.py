@@ -2,7 +2,7 @@
 """Finite encrypted custody of source and complete native-build outputs, no APK."""
 import hashlib,json,os,pathlib,shutil,subprocess,tarfile
 root=pathlib.Path(os.environ['CUSTODY_ROOT']);e=root/'evidence'
-(e/'outcome.json').write_text(json.dumps({'build_outcome':os.environ['BUILD_OUTCOME'],'source_sha':os.environ['SOURCE_SHA'],'target':'arm64-v8a','runtime_tested':False,'apk_built':False,'publication_ready':False},indent=2))
+(e/'outcome.json').write_text(json.dumps({'build_outcome':os.environ['BUILD_OUTCOME'],'source_sha':os.environ['SOURCE_SHA'],'target':'x86_64','runtime_tested':False,'apk_built':False,'publication_ready':False},indent=2))
 recipes=root/'recipes';shutil.copytree('scripts/native-mincut',recipes)
 # No NDK binary/archive, environment dump, credential, token or private key.
 allow=['inputs','sources','evidence','recipes']+(['build'] if (root/'build').exists() else [])

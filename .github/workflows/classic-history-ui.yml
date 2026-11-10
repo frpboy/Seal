@@ -1,4 +1,4 @@
-name: Bounded ARM64 functional native build
+name: Bounded x86_64 functional native build
 on:
   workflow_dispatch:
     inputs:
@@ -9,7 +9,7 @@ on:
 permissions:
   contents: read
 jobs:
-  native-arm64:
+  native-x86_64:
     runs-on: ubuntu-24.04
     timeout-minutes: 75
     steps:
@@ -28,7 +28,7 @@ jobs:
       - name: Read-only inputs and host preflight, safe source preparation
         id: prepare
         run: timeout --signal=TERM --kill-after=30s 600 python3 scripts/native-mincut/prepare-native-job.py
-      - name: Measure one ARM64 native build only
+      - name: Measure one x86_64 native build only
         id: build
         run: timeout --signal=TERM --kill-after=30s 3600 bash scripts/native-mincut/build-minimal-ffmpeg.sh
       - name: Capture exact ELF and relink evidence
@@ -44,7 +44,7 @@ jobs:
         if: always() && steps.encrypt.outcome == 'success'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: functional-native-arm64-encrypted
+          name: functional-native-x86_64-encrypted
           path: ${{ runner.temp }}/native-build.cms
           if-no-files-found: error
           retention-days: 1
