@@ -1,4 +1,4 @@
-name: Bounded ARM64 functional native build
+name: Bounded two shared Python components build only
 on:
   workflow_dispatch:
     inputs:
@@ -6,49 +6,60 @@ on:
         description: Exact reviewed source commit
         required: true
         type: string
+      target_abi:
+        description: Single reviewed ABI, dispatch next only after prior verified custody and artifact deletion
+        required: true
+        type: choice
+        options:
+          - arm64-v8a
+          - x86_64
 permissions:
   contents: read
 jobs:
-  native-arm64:
+  components:
     runs-on: ubuntu-24.04
-    timeout-minutes: 75
+    timeout-minutes: 90
+    env:
+      TARGET_ABI: ${{ inputs.target_abi }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
-      - name: Bind exact reviewed build source
+      - name: Bind exact reviewed public build source
         env:
           EXPECTED_SHA: ${{ inputs.expected_sha }}
+          REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
         run: |
           set -euo pipefail
           test "$GITHUB_REPOSITORY" = frpboy/Seali
+          test "$REPOSITORY_PRIVATE" = false
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
-          test "$(sha256sum scripts/native-mincut/build-minimal-ffmpeg.sh | cut -d ' ' -f1)" = ffc8ac51aa65b4c590a4effb2119a4de0ab1cdbdd32f78bb43abb3ac1a6b30a5
+          test "$(sha256sum scripts/python-components/build-two-components.sh | cut -d ' ' -f1)" = 6b7227349495b6dd24c93634717094d68a7bdaaee37d16486559c2e601db215d
           echo "SOURCE_SHA=$EXPECTED_SHA" >> "$GITHUB_ENV"
-      - name: Read-only inputs and host preflight, safe source preparation
+      - name: Pinned source and NDK archive tree verification and measured host admission
         id: prepare
-        run: timeout --signal=TERM --kill-after=30s 600 python3 scripts/native-mincut/prepare-native-job.py
-      - name: Measure one ARM64 native build only
+        run: timeout --signal=TERM --kill-after=30s 600 python3 scripts/python-components/prepare.py
+      - name: One bounded ABI build only
         id: build
-        run: timeout --signal=TERM --kill-after=30s 3600 bash scripts/native-mincut/build-minimal-ffmpeg.sh
-      - name: Capture exact ELF and relink evidence
+        run: timeout --signal=TERM --kill-after=30s 3600 bash scripts/python-components/build-two-components.sh
+      - name: Actual generated macro and consumer symbol compatibility checks and complete inventory
         if: success()
-        run: bash scripts/native-mincut/postbuild-evidence.sh
-      - name: Encrypt full build custody for review
+        run: timeout --signal=TERM --kill-after=30s 300 python3 scripts/python-components/postbuild.py
+      - name: Encrypt full sources objects archives and relink custody
         id: encrypt
         if: always() && steps.prepare.outcome == 'success'
         env:
           BUILD_OUTCOME: ${{ steps.build.outcome }}
-        run: python3 scripts/native-mincut/encrypt-native-custody.py
+        run: timeout --signal=TERM --kill-after=30s 300 python3 scripts/python-components/encrypt.py
       - name: Retain ciphertext only
         if: always() && steps.encrypt.outcome == 'success'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: functional-native-arm64-encrypted
-          path: ${{ runner.temp }}/native-build.cms
+          name: python-components-${{ inputs.target_abi }}-encrypted
+          path: ${{ runner.temp }}/components-build.cms
           if-no-files-found: error
           retention-days: 1
           compression-level: 0
-      - name: Remove transient custody data
+      - name: Remove transient build custody
         if: always()
-        run: rm -rf "$RUNNER_TEMP/seali-native-job" "$RUNNER_TEMP/seali-native-build.tar.gz" "$RUNNER_TEMP/native-build.cms" "$RUNNER_TEMP/native-build.cms.tmp"
+        run: rm -rf "$RUNNER_TEMP/seali-python-components-job" "$RUNNER_TEMP/seali-components-build.tar.gz" "$RUNNER_TEMP/components-build.cms" "$RUNNER_TEMP/components-build.cms.tmp"
