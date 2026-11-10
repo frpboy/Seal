@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import os,pathlib,shutil,subprocess,json,hashlib,zipfile
 root=pathlib.Path(os.environ['CUSTODY_ROOT']);out=root/'app-qualification';out.mkdir(exist_ok=True)
+sdk_evidence=pathlib.Path(os.environ['RUNNER_TEMP'])/'seali-sdk-diagnostics/evidence'
+if sdk_evidence.exists():shutil.copytree(sdk_evidence,out/'sdk-preparation',dirs_exist_ok=True)
 for path in ['app/build/outputs','app/build/test-results','app/build/reports/tests']:
  p=pathlib.Path(path)
  if p.exists():shutil.copytree(p,out/p.name,dirs_exist_ok=True)

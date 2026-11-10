@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Private synthetic guest qualification. No user media, credentials or public artifacts."""
-import os,pathlib,subprocess,time,json,signal,re,tempfile
+import os,pathlib,subprocess,time,json,signal,re,tempfile,socket,stat
 root=pathlib.Path(os.environ['CUSTODY_ROOT']);out=root/'app-qualification/runtime';out.mkdir(parents=True)
-sdk=pathlib.Path(os.environ['ANDROID_HOME']);adb=str(sdk/'platform-tools/adb');manager=str(sdk/'cmdline-tools/latest/bin/sdkmanager');avd=str(sdk/'cmdline-tools/latest/bin/avdmanager');image='system-images;android-34;google_apis;x86_64';emulator=None
-deadline=time.monotonic()+4200  # Absolute seventy-minute work cap, then separately bounded cleanup.
+sdk=pathlib.Path(os.environ['ANDROID_HOME']);adb=str(sdk/'platform-tools/adb');manager=str(sdk/'cmdline-tools/16.0/bin/sdkmanager');avd=str(sdk/'cmdline-tools/16.0/bin/avdmanager');image='system-images;android-34;google_apis;x86_64';emulator=None
+deadline=time.monotonic()+3600  # Absolute sixty-minute work cap, then separately bounded cleanup.
 receipt={'scope':'private x86_64 API34 synthetic guest only; not ARM/API24/16KB/real-site execution','runtime_pass':False,'required_screenshot_bytes_complete':False,'screenshot_png_decode_and_pixels_verified':False}
 (out/'receipt.json').write_text(json.dumps(receipt,indent=2))
 def cmd(args,timeout=60,filename=None,input=None,check=True):
@@ -17,12 +17,36 @@ def cmd(args,timeout=60,filename=None,input=None,check=True):
  if check and p.returncode:raise RuntimeError('step failed: '+str(args[0])+' exit '+str(p.returncode))
  return data
 try:
- cmd([manager,'emulator',image],timeout=600,filename='sdk-install.txt')
- cmd([manager,'--list_installed'],filename='sdk-installed.txt')
+ prepared=pathlib.Path(os.environ['RUNNER_TEMP'])/'seali-sdk-diagnostics/evidence/receipt.json'
+ bound=json.loads(prepared.read_text());assert bound['sdk_install_properties_pass'] is True and bound['host_loader_pass'] is True and bound['sdk_setup_pass'] is True
+ assert bound['source_sha']==os.environ['SOURCE_SHA'] and bound['metadata_exact_pins_pass'] is True
+ def props(p):
+  rows={}
+  for line in p.read_text().splitlines():
+   if '=' not in line or line.lstrip().startswith('#'):continue
+   k,v=line.split('=',1);k=k.strip();assert k not in rows;rows[k]=v.strip()
+  return rows
+ assert props(sdk/'cmdline-tools/16.0/source.properties')['Pkg.Revision']=='16.0'
+ assert cmd([manager,'--version'],filename='sdkmanager-version.txt').decode().strip()=='16.0'
+ assert props(sdk/'emulator/source.properties')['Pkg.Revision']=='37.2.13'
+ image_props=props(sdk/'system-images/android-34/google_apis/x86_64/source.properties')
+ assert image_props['Pkg.Revision']=='14' and image_props['AndroidVersion.ApiLevel']=='34' and image_props['SystemImage.Abi']=='x86_64'
+ assert bound['tools']['sdkmanager']==str(pathlib.Path(manager).resolve()) and bound['tools']['avdmanager']==str(pathlib.Path(avd).resolve())
+ (out/'prepared-sdk-receipt.json').write_text(json.dumps(bound,indent=2))
+ # Consume prepared exact image; no second SDK install or package mutation here.
+ guest_root=pathlib.Path(os.environ['RUNNER_TEMP'])/'seali-functional-runtime-guest'
+ assert not guest_root.exists() and not guest_root.resolve().is_relative_to(root.resolve())
+ guest_root.mkdir(mode=0o700)
+ for key,folder in [('ANDROID_AVD_HOME','runtime-avd'),('ANDROID_USER_HOME','runtime-user'),('ANDROID_EMULATOR_HOME','runtime-emulator')]:
+  p=guest_root/folder;assert not p.exists();p.mkdir();os.environ[key]=str(p.resolve())
+ os.environ['ANDROID_SERIAL']='emulator-5558'
+ assert b'emulator-5558' not in cmd([adb,'devices'],timeout=15,filename='devices-before.txt')
+ for port in [5558,5559]:
+  with socket.socket() as probe:probe.bind(('127.0.0.1',port))
  cmd([avd,'create','avd','--force','--name','seali-functional-private','--package',image,'--device','pixel_6'],input=b'no\n',filename='avd-create.txt')
- kvm=pathlib.Path('/dev/kvm');accel='on' if kvm.exists() and os.access(kvm,os.R_OK|os.W_OK) else 'off';receipt['acceleration']=accel
+ kvm=pathlib.Path('/dev/kvm');accel='on' if kvm.exists() and stat.S_ISCHR(kvm.stat().st_mode) and os.access(kvm,os.R_OK|os.W_OK) else 'off';receipt['acceleration']=accel
  # Existing access only. No sudo, chmod, host permissions changes or paid runner.
- log=(out/'emulator.txt').open('wb');emulator=subprocess.Popen([str(sdk/'emulator/emulator'),'-avd','seali-functional-private','-no-window','-no-audio','-no-boot-anim','-gpu','swiftshader_indirect','-no-snapshot','-accel',accel],stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+ log=(out/'emulator.txt').open('wb');emulator=subprocess.Popen([str(sdk/'emulator/emulator'),'-avd','seali-functional-private','-no-window','-no-audio','-no-boot-anim','-gpu','swiftshader_indirect','-no-snapshot','-accel',accel,'-port','5558'],stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
  end=time.monotonic()+1500
  while time.monotonic()<end:
   if emulator.poll() is not None:raise RuntimeError('emulator exited')
@@ -124,4 +148,13 @@ finally:
     with emulator_log.open('rb') as f:f.seek(-1024*1024,2);tail=f.read()
     emulator_log.write_bytes(tail);receipt['emulator_log_tail_only']=True
   except Exception as error:receipt['log_cap_error']=type(error).__name__
+  import shutil
+  guest_root=pathlib.Path(os.environ['RUNNER_TEMP'])/'seali-functional-runtime-guest'
+  try:
+   if guest_root.exists():shutil.rmtree(guest_root)
+   assert not guest_root.exists()
+   receipt['guest_private_dirs_removed']=True
+  except Exception as error:
+   receipt['guest_private_dirs_removed']=False;receipt['guest_cleanup_error']=type(error).__name__;receipt['runtime_pass']=False
+  if receipt.get('shutdown_error'):receipt['runtime_pass']=False
   (out/'receipt.json').write_text(json.dumps(receipt,indent=2))

@@ -19,6 +19,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Bind reviewed source and native recipe
+        timeout-minutes: 1
         env:
           EXPECTED_SHA: ${{ inputs.expected_sha }}
         run: |
@@ -31,42 +32,6 @@ jobs:
           test ! -d app/src/main/jniLibs
           test ! -d app/libs/functional-alpha
           echo "SOURCE_SHA=$EXPECTED_SHA" >> "$GITHUB_ENV"
-      - name: Prepare exact native inputs
-        id: prepare
-        run: timeout --signal=TERM --kill-after=30s 600 python3 scripts/x86-guest/prepare-native.py
-      - name: Rebuild native inputs within unchanged native bounds
-        id: native
-        run: timeout --signal=TERM --kill-after=30s 3600 bash scripts/native-mincut/build-minimal-ffmpeg.sh
-      - name: Capture native evidence
-        timeout-minutes: 2
-        run: bash scripts/native-mincut/postbuild-evidence.sh
-      - name: Save original native custody routing
-        id: routing
-        run: |
-          echo "FFMPEG_CUSTODY_ROOT=$CUSTODY_ROOT" >> "$GITHUB_ENV"
-          echo "FFMPEG_BUILD_ROOT=$BUILD_ROOT" >> "$GITHUB_ENV"
-          echo "FFMPEG_NDK_HOME=$ANDROID_NDK_HOME" >> "$GITHUB_ENV"
-      - name: Prepare pinned x86 Python component sources and host
-        id: component_prepare
-        env:
-          TARGET_ABI: x86_64
-        run: timeout --signal=TERM --kill-after=30s 600 python3 scripts/python-components/prepare.py
-      - name: Build reviewed x86 shared component source recipe
-        id: component_build
-        env:
-          TARGET_ABI: x86_64
-        run: timeout --signal=TERM --kill-after=30s 3600 bash scripts/python-components/build-two-components.sh
-      - name: Verify actual x86 component macros SONAME and consumer exports
-        id: component_verify
-        env:
-          TARGET_ABI: x86_64
-        run: timeout --signal=TERM --kill-after=30s 300 python3 scripts/python-components/postbuild.py
-      - name: Restore original native custody routing
-        if: always() && steps.routing.outcome == 'success'
-        run: |
-          echo "CUSTODY_ROOT=$FFMPEG_CUSTODY_ROOT" >> "$GITHUB_ENV"
-          echo "BUILD_ROOT=$FFMPEG_BUILD_ROOT" >> "$GITHUB_ENV"
-          echo "ANDROID_NDK_HOME=$FFMPEG_NDK_HOME" >> "$GITHUB_ENV"
       - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
         timeout-minutes: 3
         with:
@@ -75,7 +40,57 @@ jobs:
       - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407
         timeout-minutes: 5
         with:
+          cmdline-tools-version: 12266719
+          accept-android-sdk-licenses: true
+          log-accepted-android-sdk-licenses: false
           packages: platform-tools platforms;android-36 build-tools;36.0.0
+      - name: Prepare exact proven SDK and loader before native or App builds
+        id: sdkprep
+        timeout-minutes: 24
+        run: python3 scripts/x86-guest/prepare-sdk.py
+      - name: Prepare exact native inputs
+        timeout-minutes: 11
+        id: prepare
+        run: timeout --signal=TERM --kill-after=30s 600 python3 scripts/x86-guest/prepare-native.py
+      - name: Rebuild native inputs within narrowed native bounds
+        timeout-minutes: 46
+        id: native
+        run: timeout --signal=TERM --kill-after=30s 2700 bash scripts/native-mincut/build-minimal-ffmpeg.sh
+      - name: Capture native evidence
+        timeout-minutes: 2
+        run: bash scripts/native-mincut/postbuild-evidence.sh
+      - name: Save original native custody routing
+        timeout-minutes: 1
+        id: routing
+        run: |
+          echo "FFMPEG_CUSTODY_ROOT=$CUSTODY_ROOT" >> "$GITHUB_ENV"
+          echo "FFMPEG_BUILD_ROOT=$BUILD_ROOT" >> "$GITHUB_ENV"
+          echo "FFMPEG_NDK_HOME=$ANDROID_NDK_HOME" >> "$GITHUB_ENV"
+      - name: Prepare pinned x86 Python component sources and host
+        timeout-minutes: 11
+        id: component_prepare
+        env:
+          TARGET_ABI: x86_64
+        run: timeout --signal=TERM --kill-after=30s 600 python3 scripts/python-components/prepare.py
+      - name: Build reviewed x86 shared component source recipe
+        timeout-minutes: 46
+        id: component_build
+        env:
+          TARGET_ABI: x86_64
+        run: timeout --signal=TERM --kill-after=30s 2700 bash scripts/python-components/build-two-components.sh
+      - name: Verify actual x86 component macros SONAME and consumer exports
+        timeout-minutes: 6
+        id: component_verify
+        env:
+          TARGET_ABI: x86_64
+        run: timeout --signal=TERM --kill-after=30s 300 python3 scripts/python-components/postbuild.py
+      - name: Restore original native custody routing
+        timeout-minutes: 1
+        if: always() && steps.routing.outcome == 'success'
+        run: |
+          echo "CUSTODY_ROOT=$FFMPEG_CUSTODY_ROOT" >> "$GITHUB_ENV"
+          echo "BUILD_ROOT=$FFMPEG_BUILD_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=$FFMPEG_NDK_HOME" >> "$GITHUB_ENV"
       - name: Derive private app inputs solely from pinned public inputs
         timeout-minutes: 8
         id: payload
@@ -89,6 +104,7 @@ jobs:
           python3 scripts/test-functional-engine-filter.py --source "$CUSTODY_ROOT/app-inputs/yt-dlp.tar.gz" --out "$CUSTODY_ROOT/evidence/engine-filter.json"
           python3 scripts/x86-guest/prepare-payload.py --stage "$BUILD_ROOT/stage" --python-pruned "$CUSTODY_ROOT/python-pruned" --root .
       - name: Private debug APK, unit tests and instrumentation compilation only
+        timeout-minutes: 26
         id: app
         run: |
           set -euo pipefail
@@ -99,7 +115,7 @@ jobs:
         run: python3 scripts/x86-guest/verify-apk.py
       - name: Bounded private x86 guest runtime and screenshots
         id: runtime
-        timeout-minutes: 75
+        timeout-minutes: 65
         run: python3 scripts/x86-guest/runtime.py
       - name: Collect private build evidence, not runtime claims
         timeout-minutes: 3
@@ -112,6 +128,7 @@ jobs:
           RUNTIME_OUTCOME: ${{ steps.runtime.outcome }}
         run: python3 scripts/x86-guest/collect.py
       - name: Encrypt full native and app custody before any upload
+        timeout-minutes: 6
         id: encrypt
         if: always() && steps.prepare.outcome == 'success'
         env:
@@ -120,6 +137,7 @@ jobs:
           RUNTIME_OUTCOME: ${{ steps.runtime.outcome }}
         run: timeout --signal=TERM --kill-after=30s 300 python3 scripts/x86-guest/encrypt.py
       - name: Encrypt separate full component source and relink custody
+        timeout-minutes: 6
         id: component_encrypt
         if: always() && steps.component_prepare.outcome == 'success'
         env:
@@ -147,6 +165,22 @@ jobs:
           if-no-files-found: error
           retention-days: 1
           compression-level: 0
+      - name: Encrypt SDK diagnostics only when no native custody route exists
+        id: sdkencrypt
+        if: always() && steps.prepare.outcome != 'success'
+        timeout-minutes: 1
+        run: python3 scripts/x86-guest/encrypt-sdk.py
+      - name: Retain mutually exclusive bounded SDK diagnostics only
+        if: always() && steps.sdkencrypt.outcome == 'success'
+        timeout-minutes: 2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: private-functional-x86-sdk-diagnostics-encrypted
+          path: ${{ runner.temp }}/seali-sdk-diagnostics/sdk-diagnostics.cms
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
       - name: Remove transient app and native data
+        timeout-minutes: 2
         if: always()
-        run: rm -rf "$RUNNER_TEMP/seali-native-job" "$RUNNER_TEMP/seali-native-build.tar.gz" "$RUNNER_TEMP/native-build.cms" "$RUNNER_TEMP/native-build.cms.tmp" app/build app/libs/functional-alpha app/src/main/jniLibs app/src/main/assets/functional-engine "$RUNNER_TEMP/seali-python-components-job" "$RUNNER_TEMP/seali-components-build.tar.gz" "$RUNNER_TEMP/components-build.cms" "$RUNNER_TEMP/components-build.cms.tmp"
+        run: rm -rf "$RUNNER_TEMP/seali-native-job" "$RUNNER_TEMP/seali-native-build.tar.gz" "$RUNNER_TEMP/native-build.cms" "$RUNNER_TEMP/native-build.cms.tmp" app/build app/libs/functional-alpha app/src/main/jniLibs app/src/main/assets/functional-engine "$RUNNER_TEMP/seali-python-components-job" "$RUNNER_TEMP/seali-components-build.tar.gz" "$RUNNER_TEMP/components-build.cms" "$RUNNER_TEMP/components-build.cms.tmp" "$RUNNER_TEMP/seali-sdk-diagnostics" "$RUNNER_TEMP/seali-functional-runtime-guest"

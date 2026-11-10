@@ -6,9 +6,20 @@ root=pathlib.Path(os.environ['CUSTODY_ROOT']);e=root/'evidence'
 recipes=root/'recipes';shutil.copytree('scripts/native-mincut',recipes)
 # No NDK binary/archive, environment dump, credential, token or private key.
 allow=[n for n in ['inputs','sources','evidence','recipes','app-qualification','python-pruned','build'] if (root/n).exists()]
+# Fail closed if an accidental runtime image or symlink enters custody. Guest dirs
+# are a RUNNER_TEMP sibling outside root, even if shutdown/removal fails.
+for folder in ['app-qualification','evidence']:
+ for p in (root/folder).rglob('*'):
+  assert not p.is_symlink(),'custody symlink forbidden'
+  assert not any(x.endswith('.avd') or x in ['runtime-avd','runtime-user','runtime-emulator','seali-functional-runtime-guest'] for x in p.relative_to(root).parts),'guest directory forbidden'
+  assert p.suffix.lower() not in ['.img','.qcow2','.qcow'],'guest disk forbidden'
 archive=root.parent/'seali-native-build.tar.gz'
 with tarfile.open(archive,'w:gz') as t:
  for name in allow:t.add(root/name,arcname=name,recursive=True)
+with tarfile.open(archive) as t:
+ for m in t.getmembers():
+  assert not any(x.endswith('.avd') or x in ['runtime-avd','runtime-user','runtime-emulator','seali-functional-runtime-guest'] for x in pathlib.PurePosixPath(m.name).parts),'guest directory in archive'
+  assert pathlib.PurePosixPath(m.name).suffix.lower() not in ['.img','.qcow2','.qcow'],'guest disk in archive'
 recipient=pathlib.Path('scripts/native-mincut/recipient.pem')
 if hashlib.sha256(recipient.read_bytes()).hexdigest()!='033aa324ba76e6d67ef28a0f2d0dc336e00823b3e023d6b87129f283660b8cc3':raise RuntimeError('recipient drift')
 cipher=root.parent/'native-build.cms'
