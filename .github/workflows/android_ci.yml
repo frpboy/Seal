@@ -64,8 +64,8 @@ jobs:
       - name: Grant execute permission for Gradle wrapper
         run: chmod +x gradlew
 
-      - name: Run generic debug unit tests
-        run: ./gradlew testGenericDebugUnitTest
+      - name: Compile generic debug app and instrumentation APKs
+        run: ./gradlew testGenericDebugUnitTest assembleGenericDebug assembleGenericDebugAndroidTest
 
       - name: Run buildSrc unit tests
         run: ./gradlew -p buildSrc test --console=plain
