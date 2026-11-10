@@ -2,7 +2,7 @@ name: Android CI
 
 on:
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "seali/explicit-paste-format-summary" ]
   push:
     branches: [ "main" ]
     tags: [ "v*" ]
@@ -46,6 +46,11 @@ jobs:
           echo "::error::Public APK upload requires the explicit build_release input and separate distribution approval."
           exit 1
 
+      - name: Run Python source-boundary suites
+        run: |
+          python3 -m unittest discover -s scripts -p 'test_*.py' -v
+          python3 -m unittest discover -s scripts/ci -p 'test_*.py' -v
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -64,8 +69,8 @@ jobs:
       - name: Grant execute permission for Gradle wrapper
         run: chmod +x gradlew
 
-      - name: Run generic debug unit tests
-        run: ./gradlew testGenericDebugUnitTest
+      - name: Compile generic debug app and instrumentation APKs
+        run: ./gradlew testGenericDebugUnitTest assembleGenericDebug assembleGenericDebugAndroidTest
 
       - name: Run buildSrc unit tests
         run: ./gradlew -p buildSrc test --console=plain
@@ -430,7 +435,7 @@ jobs:
             ./gradlew assembleGenericDebug assembleGenericDebugAndroidTest
             find app/build/outputs/apk/generic/debug -name '*x86_64*.apk' -print -quit | xargs adb install -r
             find app/build/outputs/apk/androidTest/generic/debug -name '*.apk' -print -quit | xargs adb install -r
-            adb shell am instrument -w -r -e class com.junkfood.seal.ClassicHomeHistoryTest com.frpboy.seali.debug.test/androidx.test.runner.AndroidJUnitRunner | tee instrumentation-result.txt
+            adb shell am instrument -w -r -e class com.frpboy.seali.ClassicHomeHistoryTest com.frpboy.seali.debug.test/androidx.test.runner.AndroidJUnitRunner | tee instrumentation-result.txt
             grep -F 'OK (2 tests)' instrumentation-result.txt
             ! grep -E 'FAILURES|INSTRUMENTATION_FAILED|shortMsg=' instrumentation-result.txt
             adb exec-out run-as com.frpboy.seali.debug cat files/classic-history.png > classic-history.png

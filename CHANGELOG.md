@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Seali maintenance (unreleased)
 
-The current source identifies itself as 2.0.0-alpha.6. No alpha.6 release or download is published. The existing [alpha.5 prerelease](https://github.com/frpboy/Seali/releases/tag/v2.0.0-alpha.5) remains separate from later main changes.
+The current source identifies itself as 2.0.0-alpha.7. No alpha.7 release or download is published. The existing [alpha.5 prerelease](https://github.com/frpboy/Seali/releases/tag/v2.0.0-alpha.5) remains separate from later main changes.
 
 - Current maintainer contact is frpboy12@gmail.com; community documentation, contribution/translation guidance, security reporting and accessibility limits are updated.
 - Classic correctness and compact-header source changes are merged through PR14 and PR21. About donation-row cleanup is merged through PR16. These source changes are not retroactively included in alpha.5.

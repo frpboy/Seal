@@ -2,7 +2,7 @@
 
 ## Published alpha
 
-[Seali 2.0.0-alpha.5](https://github.com/frpboy/Seali/releases/tag/v2.0.0-alpha.5) is the first public prerelease from this fork. Its package is `com.frpboy.seali`; the launcher branding and developer/support identity have been changed to Seali. Source packages still use `com.junkfood.seal` internally for compatibility and attribution. The README's earlier migration-in-progress wording predates this release.
+[Seali 2.0.0-alpha.5](https://github.com/frpboy/Seali/releases/tag/v2.0.0-alpha.5) is the first public prerelease from this fork. Its package is `com.frpboy.seali`; the launcher branding and developer/support identity have been changed to Seali. That published build used the earlier internal source namespace. Current source preparation moves owned packages to `com.frpboy.seali` while retaining only necessary upgrade bridges; it does not change the application ID or qualify an installed update. See [namespace migration notes](docs/migration/owned-namespace-migration.md).
 
 The five actual public APKs were downloaded after publication and checked against GitHub's SHA256 asset digests, the Seali signing certificate, package/version and 16KB ZIP alignment. The known embedded upstream credential fragments were absent from those APKs. These targeted checks are not a complete security audit.
 
@@ -30,7 +30,7 @@ Current status belongs here; dated audits and earlier release notes remain histo
 
 ## Release preparation: 2026-11-09
 
-- Source version is 2.0.0-alpha.6 (base version code 200000160); the latest published build is still alpha.5. No new version has been released.
+- Candidate source version is 2.0.0-alpha.7 (base version code 200000170); the latest published build remains alpha.5. The installed private alpha.6 (ARM64 versionCode 200000162) is the upgrade baseline. No alpha.7 release has been published.
 - Documentation update PR35 is merged. Its exact-source CI and postmerge CI passed unit tests, release packaging and signature checks. APK uploads and history UI were skipped, with no retained artifacts; these runs are not release or device evidence.
 - A current-main screenshot qualification composition is prepared privately, without an encryption recipient. Capture execution remains paused, with no active capture run or retry watch. Later build success did not prove a fresh fetch of the exact dependency that stopped the last capture.
 - The next release must be built and qualified on its exact source and binaries. Unmerged PR30/PR33 changes, the open duration issue and local native recipes must not be listed as shipped. Replacing inherited dependencies with owned native builds is separate work, not an automatic requirement to include unfinished replacement code in the next release; existing native/security, source and notice obligations still apply.

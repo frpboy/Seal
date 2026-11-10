@@ -16,11 +16,11 @@ on:
       tag:
         description: "Release tag (created only if and when the draft is published)"
         required: true
-        default: "v2.0.0-alpha.6"
+        default: "v2.0.0-alpha.7"
       title:
         description: "Draft release title"
         required: true
-        default: "Seali 2.0.0-alpha.6 (alpha prerelease)"
+        default: "Seali 2.0.0-alpha.7 (alpha prerelease)"
       target:
         description: "Commit the release targets"
         required: true

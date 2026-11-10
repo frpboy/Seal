@@ -14,7 +14,7 @@ This repository is maintained by [Rahul Muraleedharan (@frpboy)](https://github.
 
 ## Current maintenance and next release
 
-The current source version is **2.0.0-alpha.6**, but it has not been published. The latest public APKs remain alpha.5. Documentation/contact corrections and merged Classic/About maintenance on main do not update an installed alpha.5 APK. See [current status](SEALI_STATUS.md) and the [Seali changelog](CHANGELOG.md#seali-maintenance-unreleased) for completed source changes and release limits.
+The current source candidate is **2.0.0-alpha.7**, but it has not been published. The latest public APKs remain alpha.5. Documentation/contact corrections and merged Classic/About maintenance on main do not update an installed alpha.5 APK. See [current status](SEALI_STATUS.md) and the [Seali changelog](CHANGELOG.md#seali-maintenance-unreleased) for completed source changes and release limits.
 
 The About/contact/translation changes in PR30 and queue-clarity changes in PR38 remain unmerged and await visual checks. The README sponsor buttons (PR33) and view-counter/safe-CI changes (PR39) are merged source maintenance, not new app releases. Native source-build preparation has not replaced the inherited dependencies. A new release needs exact-source signed APKs and the applicable runtime, native/security, source and notice checks; green documentation CI alone is not release qualification.
 
@@ -78,7 +78,7 @@ Seali is an independent community continuation and is not an official release of
 
 ## Development
 
-The project uses Kotlin, Jetpack Compose and Gradle. Internal source packages retain `com.junkfood.seal`; that is not the installed application identifier. See [BUILDING.md](BUILDING.md) before changing build or signing configuration.
+The project uses Kotlin, Jetpack Compose and Gradle. Owned source packages use `com.frpboy.seali`. The installed application ID remains `com.frpboy.seali`; debug/preview suffixes are unchanged. Minimal legacy type IDs and Android component bridges remain for upgrade compatibility, not branding. See [namespace migration notes](docs/migration/owned-namespace-migration.md) for the remaining qualification gates. See [BUILDING.md](BUILDING.md) before changing build or signing configuration.
 
 Before submitting changes:
 

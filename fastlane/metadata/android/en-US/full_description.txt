@@ -1,7 +1,7 @@
 Seali is an independently maintained Android video and audio downloader based on Seal and yt-dlp.
 
 <b>Alpha status</b>
-The latest public Seali APKs are 2.0.0-alpha.5. Current source is 2.0.0-alpha.6 and has not been released. Changes on the main branch are not automatically included in published APKs. See the repository README and status document for version-specific verification limits.
+The latest public Seali APKs are 2.0.0-alpha.5. Current source is 2.0.0-alpha.7 and has not been released. Changes on the main branch are not automatically included in published APKs. See the repository README and status document for version-specific verification limits.
 
 <b>Inherited capabilities</b>
 Download video and audio from websites supported by yt-dlp.
