@@ -1,4 +1,4 @@
-name: Private functional ARM64 alpha build measurement
+name: Private functional x86 guest functional qualification
 on:
   workflow_dispatch:
     inputs:
@@ -9,10 +9,10 @@ on:
 permissions:
   contents: read
 jobs:
-  private-arm64-app:
+  private-x86-guest:
     if: github.repository == 'frpboy/Seali' && github.event.repository.private == false
     runs-on: ubuntu-24.04
-    timeout-minutes: 220
+    timeout-minutes: 300
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         timeout-minutes: 2
@@ -33,7 +33,7 @@ jobs:
           echo "SOURCE_SHA=$EXPECTED_SHA" >> "$GITHUB_ENV"
       - name: Prepare exact native inputs
         id: prepare
-        run: timeout --signal=TERM --kill-after=30s 600 python3 scripts/native-mincut/prepare-native-job.py
+        run: timeout --signal=TERM --kill-after=30s 600 python3 scripts/x86-guest/prepare-native.py
       - name: Rebuild native inputs within unchanged native bounds
         id: native
         run: timeout --signal=TERM --kill-after=30s 3600 bash scripts/native-mincut/build-minimal-ffmpeg.sh
@@ -46,20 +46,20 @@ jobs:
           echo "FFMPEG_CUSTODY_ROOT=$CUSTODY_ROOT" >> "$GITHUB_ENV"
           echo "FFMPEG_BUILD_ROOT=$BUILD_ROOT" >> "$GITHUB_ENV"
           echo "FFMPEG_NDK_HOME=$ANDROID_NDK_HOME" >> "$GITHUB_ENV"
-      - name: Prepare pinned ARM Python component sources and host
+      - name: Prepare pinned x86 Python component sources and host
         id: component_prepare
         env:
-          TARGET_ABI: arm64-v8a
+          TARGET_ABI: x86_64
         run: timeout --signal=TERM --kill-after=30s 600 python3 scripts/python-components/prepare.py
-      - name: Build reviewed ARM shared component source recipe
+      - name: Build reviewed x86 shared component source recipe
         id: component_build
         env:
-          TARGET_ABI: arm64-v8a
+          TARGET_ABI: x86_64
         run: timeout --signal=TERM --kill-after=30s 3600 bash scripts/python-components/build-two-components.sh
-      - name: Verify actual ARM component macros SONAME and consumer exports
+      - name: Verify actual x86 component macros SONAME and consumer exports
         id: component_verify
         env:
-          TARGET_ABI: arm64-v8a
+          TARGET_ABI: x86_64
         run: timeout --signal=TERM --kill-after=30s 300 python3 scripts/python-components/postbuild.py
       - name: Restore original native custody routing
         if: always() && steps.routing.outcome == 'success'
@@ -84,19 +84,23 @@ jobs:
           timeout --signal=TERM --kill-after=30s 300 python3 scripts/fetch-functional-inputs.py
           python3 scripts/prepare-functional-wrappers.py --input-dir "$CUSTODY_ROOT/app-inputs" --root .
           python3 scripts/prune-functional-python.py --library-aar "$CUSTODY_ROOT/app-inputs/library-0.17.3.aar" --out "$CUSTODY_ROOT/python-pruned" > "$CUSTODY_ROOT/evidence/python-prune.stdout.json"
-          python3 scripts/replace-functional-python-components.py --root "$CUSTODY_ROOT/python-pruned" --stage "$RUNNER_TEMP/seali-python-components-job/build/stage" --abi arm64-v8a --lock functional-python-components-lock.json --readelf "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf"
+          python3 scripts/replace-functional-python-components.py --root "$CUSTODY_ROOT/python-pruned" --stage "$RUNNER_TEMP/seali-python-components-job/build/stage" --abi x86_64 --lock functional-python-components-lock.json --readelf "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf"
           python3 scripts/verify-functional-python-closure.py --root "$CUSTODY_ROOT/python-pruned" --ndk "$ANDROID_NDK_HOME"
           python3 scripts/test-functional-engine-filter.py --source "$CUSTODY_ROOT/app-inputs/yt-dlp.tar.gz" --out "$CUSTODY_ROOT/evidence/engine-filter.json"
-          python3 scripts/prepare-functional-payload.py --stage "$BUILD_ROOT/stage" --python-pruned "$CUSTODY_ROOT/python-pruned" --root .
+          python3 scripts/x86-guest/prepare-payload.py --stage "$BUILD_ROOT/stage" --python-pruned "$CUSTODY_ROOT/python-pruned" --root .
       - name: Private debug APK, unit tests and instrumentation compilation only
         id: app
         run: |
           set -euo pipefail
           chmod +x gradlew
-          timeout --signal=TERM --kill-after=30s 1500 ./gradlew --no-daemon --max-workers=2 -Dorg.gradle.jvmargs=-Xmx3072m -Pkotlin.compiler.execution.strategy=in-process -PfunctionalAlphaCandidate -PnoSplits -PABI_FILTERS=arm64-v8a :app:testGenericDebugUnitTest :app:assembleGenericDebug :app:assembleGenericDebugAndroidTest
+          timeout --signal=TERM --kill-after=30s 1500 ./gradlew --no-daemon --max-workers=2 -Dorg.gradle.jvmargs=-Xmx3072m -Pkotlin.compiler.execution.strategy=in-process -PfunctionalAlphaCandidate -PnoSplits -PABI_FILTERS=x86_64 :app:testGenericDebugUnitTest :app:assembleGenericDebug :app:assembleGenericDebugAndroidTest
       - name: Verify actual APK bytes and test-only identity
         timeout-minutes: 2
-        run: python3 scripts/verify-functional-apk.py
+        run: python3 scripts/x86-guest/verify-apk.py
+      - name: Bounded private x86 guest runtime and screenshots
+        id: runtime
+        timeout-minutes: 75
+        run: python3 scripts/x86-guest/runtime.py
       - name: Collect private build evidence, not runtime claims
         timeout-minutes: 3
         if: always() && steps.prepare.outcome == 'success'
@@ -105,20 +109,22 @@ jobs:
           COMPONENT_OUTCOME: ${{ steps.component_build.outcome }}
           COMPONENT_VERIFY_OUTCOME: ${{ steps.component_verify.outcome }}
           APP_OUTCOME: ${{ steps.app.outcome }}
-        run: python3 scripts/collect-functional-app-custody.py
+          RUNTIME_OUTCOME: ${{ steps.runtime.outcome }}
+        run: python3 scripts/x86-guest/collect.py
       - name: Encrypt full native and app custody before any upload
         id: encrypt
         if: always() && steps.prepare.outcome == 'success'
         env:
           BUILD_OUTCOME: ${{ steps.native.outcome }}
           APP_BUILD_OUTCOME: ${{ steps.app.outcome }}
-        run: timeout --signal=TERM --kill-after=30s 300 python3 scripts/native-mincut/encrypt-native-custody.py
+          RUNTIME_OUTCOME: ${{ steps.runtime.outcome }}
+        run: timeout --signal=TERM --kill-after=30s 300 python3 scripts/x86-guest/encrypt.py
       - name: Encrypt separate full component source and relink custody
         id: component_encrypt
         if: always() && steps.component_prepare.outcome == 'success'
         env:
           CUSTODY_ROOT: ${{ runner.temp }}/seali-python-components-job
-          TARGET_ABI: arm64-v8a
+          TARGET_ABI: x86_64
           BUILD_OUTCOME: ${{ steps.component_build.outcome }}
         run: timeout --signal=TERM --kill-after=30s 300 python3 scripts/python-components/encrypt.py
       - name: Retain separate bounded component ciphertext only
@@ -126,7 +132,7 @@ jobs:
         if: always() && steps.component_encrypt.outcome == 'success'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: private-functional-arm64-components-encrypted
+          name: private-functional-x86-guest-components-encrypted
           path: ${{ runner.temp }}/components-build.cms
           if-no-files-found: error
           retention-days: 1
@@ -136,7 +142,7 @@ jobs:
         if: always() && steps.encrypt.outcome == 'success'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: private-functional-arm64-app-encrypted
+          name: private-functional-x86-guest-app-encrypted
           path: ${{ runner.temp }}/native-build.cms
           if-no-files-found: error
           retention-days: 1

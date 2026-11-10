@@ -48,7 +48,20 @@
       "usr/lib/libexpat.so.1.9.3": "167f8cb9ca1dd3a8794f8f4736666c4505c3c6c0fa5a3e0739c63913f8cc8428",
       "usr/lib/libcrypto.so.3": "33fb397dda1292dc1e87cf9ce70b2fbc062d70f522b963a68b0d3c7ad22c3288"
     },
-    "new_libraries": {},
-    "build_run": null
+    "new_libraries": {
+      "libssl.so.3": {
+        "physical_file": "usr/lib/libssl.so.3",
+        "sha256": "a95a057084b780d1ef168baf5afbd3900e94d1d6ff09f16cd50bada1c2abb49d"
+      },
+      "libcrypto.so.3": {
+        "physical_file": "usr/lib/libcrypto.so.3",
+        "sha256": "f4b9427ed708f906d77c3898dd9cede6131c2d7affa2a235eaa43214590258be"
+      },
+      "libexpat.so.1": {
+        "physical_file": "usr/lib/libexpat.so.1.13.1",
+        "sha256": "47e7de5765a06e098d4851f3dca7aa381237c84f78840c7bf9d8b9363b269cd0"
+      }
+    },
+    "build_run": "https://github.com/frpboy/Seali/actions/runs/42885488271"
   }
 }
