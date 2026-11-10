@@ -3,7 +3,7 @@
 import os,pathlib,json,time,subprocess,hashlib,signal,tempfile,xml.etree.ElementTree as ET,stat,socket
 sdk=pathlib.Path(os.environ['ANDROID_HOME']);root=pathlib.Path(os.environ['RUNNER_TEMP'])/'seali-sdk-diagnostics';assert not root.exists();root.mkdir(mode=0o700);out=root/'evidence';out.mkdir()
 manager=sdk/'cmdline-tools/16.0/bin/sdkmanager';avd=sdk/'cmdline-tools/16.0/bin/avdmanager';adb=sdk/'platform-tools/adb';image='system-images;android-34;google_apis;x86_64';end=time.monotonic()+2700;emulator=None
-receipt={'sdk_setup_pass':False,'guest_boot_pass':False,'app_runtime_tested':False,'source_sha':os.environ.get('GITHUB_SHA'),'scope':'SDK/API34 x86_64 4KB synthetic boot only; no App or native build'}
+receipt={'sdk_install_properties_pass':False,'host_loader_pass':False,'sdk_setup_pass':False,'guest_boot_pass':False,'app_runtime_tested':False,'source_sha':os.environ.get('GITHUB_SHA'),'scope':'SDK/API34 x86_64 4KB synthetic boot only; no App or native build'}
 os.environ['ANDROID_AVD_HOME']=str(root/'avd');os.environ['ANDROID_USER_HOME']=str(root/'android-user');os.environ['ANDROID_EMULATOR_HOME']=str(root/'emulator-home');os.environ['ANDROID_SERIAL']='emulator-5558'
 for n in ['avd','android-user','emulator-home']:(root/n).mkdir()
 def save(): (out/'receipt.json').write_text(json.dumps(receipt,indent=2))
@@ -54,6 +54,20 @@ try:
  archive=next(x for x in package.findall('archives/archive') if x.findtext('host-os')=='linux' and x.findtext('host-arch')=='x64');complete=archive.find('complete')
  assert complete.findtext('size')=='349658551' and complete.findtext('checksum')=='f41f9e31eb5ca64926603c03265c50bbc0ff4172' and complete.findtext('url')=='emulator-linux_x64-16740729.zip'
  receipt['metadata_exact_pins_pass']=True;save()
+ # Runner-local privileged package mutation only: no source, account, billing or host-image change.
+ assert properties(pathlib.Path('/etc/os-release'))['VERSION_ID']=='"24.04"'
+ assert cmd(['dpkg','--print-architecture'],name='host-architecture.txt').decode().strip()=='amd64'
+ cmd(['apt-cache','policy','libpulse0:amd64'],name='libpulse-policy-before.txt')
+ cmd(['sudo','-n','apt-get','-o','Acquire::Retries=0','-o','Acquire::http::Timeout=30','-o','Acquire::https::Timeout=30','update'],timeout=120,name='apt-update.txt')
+ cmd(['apt-cache','policy','libpulse0:amd64'],name='libpulse-policy-after.txt')
+ install=['apt-get','-o','Acquire::Retries=0','-o','Acquire::http::Timeout=30','-o','Acquire::https::Timeout=30','--yes','--no-install-recommends','--no-upgrade','--no-remove','install','libpulse0:amd64=1:16.1+dfsg1-2ubuntu10.1']
+ plan=cmd(['env','LC_ALL=C',*install[:1],'--simulate',*install[1:]],timeout=30,name='libpulse-install-plan.txt').decode()
+ assert not any(line.startswith('Remv ') or (line.startswith('Inst ') and '[' in line.split(' (',1)[0]) for line in plan.splitlines()),'package upgrade/removal plan forbidden'
+ cmd(['sudo','-n','env','LC_ALL=C','DEBIAN_FRONTEND=noninteractive',*install],timeout=180,name='libpulse-install.txt')
+ installed=cmd(['dpkg-query','-W','-f=${Package} ${Architecture} ${Version} ${db:Status-Status}\n','libpulse0:amd64'],name='libpulse-installed.txt').decode().strip()
+ assert installed=='libpulse0 amd64 1:16.1+dfsg1-2ubuntu10.1 installed'
+ cmd(['dpkg-query','-L','libpulse0:amd64'],name='libpulse-files.txt')
+
  # Explicit chosen v16 for both tools, verbose diagnostic install. No claim of raw ZIP integrity
  # when sdkmanager does not retain its download. Capture any surviving temp archive below.
  cmd([manager,'--verbose','--channel=0','emulator',image],timeout=600,name='sdkmanager-install-verbose.txt')
@@ -61,7 +75,13 @@ try:
   p=sdk/rel/'source.properties';text=p.read_text();assert properties(p)['Pkg.Revision']==version;(out/(rel.replace('/','_')+'-source.properties')).write_text(text)
  img=sdk/'system-images/android-34/google_apis/x86_64';assert (img/'system.img').is_file() and (img/'system.img').stat().st_size>0
  assert properties(img/'source.properties')['AndroidVersion.ApiLevel']=='34' and properties(img/'source.properties')['SystemImage.Abi']=='x86_64'
- cmd([manager,'--list_installed'],name='sdk-installed.txt');cmd([sdk/'emulator/emulator','-version'],name='emulator-version.txt')
+ cmd([manager,'--list_installed'],name='sdk-installed.txt')
+ receipt['sdk_install_properties_pass']=True;save()
+ qemu=sdk/'emulator/qemu/linux-x86_64/qemu-system-x86_64'
+ loader=cmd(['env','LD_LIBRARY_PATH='+str(sdk/'emulator/lib64'),'ldd',qemu],name='emulator-loader.txt').decode()
+ assert 'not found' not in loader
+ cmd([sdk/'emulator/emulator','-version'],name='emulator-version.txt')
+ receipt['host_loader_pass']=True
  receipt['sdk_setup_pass']=True;save()
  assert b'emulator-5558' not in cmd([adb,'devices'],timeout=15,name='devices-before.txt')
  for port in [5558,5559]:
