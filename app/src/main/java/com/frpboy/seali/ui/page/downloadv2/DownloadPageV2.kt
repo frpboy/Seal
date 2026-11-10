@@ -327,6 +327,7 @@ fun DownloadPageImplV2(
     pasteCallback: () -> Unit = {},
     onMenuOpen: (() -> Unit) = {},
     onActionPost: (Task, UiAction) -> Unit,
+    previewReservedBottomSpace: Dp = 0.dp,
 ) {
     var activeFilter by remember { mutableStateOf(Filter.All) }
     val filteredMap by
@@ -455,7 +456,9 @@ fun DownloadPageImplV2(
                         modifier = Modifier.fillMaxSize().padding(bottom = 96.dp),
                     )
                 } else LazyVerticalGrid(
-                    modifier = Modifier,
+                    // The preview banner reduces the viewport. Reserve the FAB area
+                    // outside scrollable sample cards; production keeps its default.
+                    modifier = Modifier.padding(bottom = previewReservedBottomSpace),
                     state = lazyListState,
                     columns = GridCells.Adaptive(240.dp),
                     contentPadding =

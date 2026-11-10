@@ -10,7 +10,7 @@ adb shell am instrument -w -r -e class com.frpboy.seali.UiOnlyPreviewTest com.fr
 grep -F 'OK (1 test)' ui-only-instrumentation.txt
 ! grep -E 'FAILURES|INSTRUMENTATION_FAILED|shortMsg=|Process crashed' ui-only-instrumentation.txt
 mkdir -p ui-only-guest-pixels
-for screen in classic v2 formats; do
+for screen in classic v2 v2-completed formats; do
   adb exec-out run-as com.frpboy.seali.uipreview cat "files/ui-preview-$screen.png" > "ui-only-guest-pixels/$screen.png"
 done
 python3 - <<'PY'

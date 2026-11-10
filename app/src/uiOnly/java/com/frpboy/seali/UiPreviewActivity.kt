@@ -59,9 +59,9 @@ fun UiOnlyPreview() {
     val sampleInfo = remember {
         VideoInfo(id = "preview", title = "Sample video - UI preview", uploader = "Sample creator",
             duration = 180.0, formats = listOf(
-                Format(formatId="v1080", ext="mp4", vcodec="avc1", acodec="none", width=1920.0, height=1080.0, fps=30.0, formatNote="1080p", fileSize=24000000.0),
-                Format(formatId="v720", ext="mp4", vcodec="avc1", acodec="none", width=1280.0, height=720.0, fps=30.0, formatNote="720p", fileSize=12000000.0),
-                Format(formatId="a128", ext="m4a", vcodec="none", acodec="mp4a", abr=128.0, fileSize=3000000.0)
+                Format(formatId="v1080", ext="mp4", vcodec="avc1", acodec="none", width=1920.0, height=1080.0, fps=30.0, formatNote="1080p", format="1080p MP4 video", resolution="1920x1080", tbr=1067.0, fileSize=24000000.0),
+                Format(formatId="v720", ext="mp4", vcodec="avc1", acodec="none", width=1280.0, height=720.0, fps=30.0, formatNote="720p", format="720p MP4 video", resolution="1280x720", tbr=533.0, fileSize=12000000.0),
+                Format(formatId="a128", ext="m4a", vcodec="none", acodec="mp4a", abr=128.0, tbr=128.0, format="128 kbps M4A audio", formatNote="128 kbps audio", resolution="audio only", fileSize=3000000.0)
             ))
     }
     val samples = remember {
@@ -95,7 +95,7 @@ fun UiOnlyPreview() {
                     onMenuOpen={message="Use Classic, V2 queue and Formats above to switch preview screens."},
                     onDownload={message="Preview only. Your link was not opened or downloaded."},
                     onActionPost={_,_->message="Preview only. Sample queue action; no task or file was changed."})
-                1 -> DownloadPageImplV2(taskDownloadStateMap=samples,
+                1 -> DownloadPageImplV2(taskDownloadStateMap=samples, previewReservedBottomSpace=96.dp,
                     downloadCallback={message="Preview only. No download will run."},
                     pasteCallback={message="Preview only. No link processing will run. Classic has the real Paste field."},
                     onMenuOpen={message="Use the preview tabs above."},
