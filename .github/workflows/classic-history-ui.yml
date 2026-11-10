@@ -1,4 +1,4 @@
-name: Private SDK setup and synthetic boot diagnostics only
+name: Private synthetic APK install diagnostic only
 on:
   workflow_dispatch:
     inputs:
@@ -37,16 +37,16 @@ jobs:
           cmdline-tools-version: 12266719
           accept-android-sdk-licenses: true
           log-accepted-android-sdk-licenses: false
-          packages: platform-tools
-      - name: Selected v16 SDK preparation then synthetic API34 x86 boot only
+          packages: platform-tools platforms;android-34 build-tools;36.0.0
+      - name: Selected SDK and single harmless synthetic install probe
         timeout-minutes: 50
         id: diagnostics
-        run: python3 scripts/sdk-diagnostics/prepare-and-boot.py
+        run: python3 scripts/install-probe/probe.py
       - name: Encrypt diagnostics only even after setup or boot failure
         if: always()
         timeout-minutes: 1
         id: encrypt
-        run: python3 scripts/sdk-diagnostics/encrypt.py
+        run: python3 scripts/install-probe/encrypt.py
       - name: Retain private bounded diagnostics ciphertext
         if: always() && steps.encrypt.outcome == 'success'
         timeout-minutes: 2
