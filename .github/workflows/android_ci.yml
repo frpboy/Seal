@@ -46,6 +46,11 @@ jobs:
           echo "::error::Public APK upload requires the explicit build_release input and separate distribution approval."
           exit 1
 
+      - name: Run Python source-boundary suites
+        run: |
+          python3 -m unittest discover -s scripts -p 'test_*.py' -v
+          python3 -m unittest discover -s scripts/ci -p 'test_*.py' -v
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
