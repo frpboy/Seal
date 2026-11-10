@@ -78,7 +78,15 @@ try:
  cmd([manager,'--list_installed'],name='sdk-installed.txt')
  receipt['sdk_install_properties_pass']=True;save()
  qemu=sdk/'emulator/qemu/linux-x86_64/qemu-system-x86_64'
- loader=cmd(['env','LD_LIBRARY_PATH='+str(sdk/'emulator/lib64'),'ldd',qemu],name='emulator-loader.txt').decode()
+ # The non-headless backend links bundled Qt. Model the launcher Qt path too,
+ # rather than treating bundled Qt as missing host packages.
+ qt=sdk/'emulator/lib64/qt/lib';assert qt.is_dir()
+ qt_inventory=[]
+ for soname in ['libQt6WebChannelAndroidEmu.so.6','libQt6WebEngineWidgetsAndroidEmu.so.6','libQt6WebSocketsAndroidEmu.so.6','libQt6NetworkAndroidEmu.so.6','libQt6WebEngineCoreAndroidEmu.so.6','libQt6SvgAndroidEmu.so.6','libQt6SvgWidgetsAndroidEmu.so.6','libQt6WidgetsAndroidEmu.so.6','libQt6CoreAndroidEmu.so.6','libQt6GuiAndroidEmu.so.6']:
+  p=qt/soname;assert p.is_file() and p.stat().st_size>0
+  qt_inventory.append({'name':soname,'bytes':p.stat().st_size,'resolved':str(p.resolve())})
+ (out/'bundled-qt-inventory.json').write_text(json.dumps(qt_inventory,indent=2))
+ loader=cmd(['env','LD_LIBRARY_PATH='+str(qt)+':'+str(sdk/'emulator/lib64'),'ldd',qemu],name='emulator-loader.txt').decode()
  assert 'not found' not in loader
  cmd([sdk/'emulator/emulator','-version'],name='emulator-version.txt')
  receipt['host_loader_pass']=True
