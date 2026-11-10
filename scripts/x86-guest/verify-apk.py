@@ -15,13 +15,13 @@ with zipfile.ZipFile(apk) as z:
   assert hashlib.sha256(z.read(name)).hexdigest()=='e51e69e89489f199530f13d32a4342da3ddb2cf34842f364603a066db05afbf3',name
 bt=pathlib.Path(os.environ['ANDROID_HOME'])/'build-tools/36.0.0'
 badging=subprocess.check_output([str(bt/'aapt'),'dump','badging',str(apk)],text=True)
-assert "package: name='com.frpboy.seali.debug' versionCode='200000162' versionName='2.0.0-alpha.6-debug'" in badging,badging[:300]
+assert "package: name='com.frpboy.seali.debug' versionCode='200000164' versionName='2.0.0-alpha.6-debug'" in badging,badging[:300]
 manifest=subprocess.check_output([str(bt/'aapt'),'dump','xmltree',str(apk),'AndroidManifest.xml'],text=True)
 assert 'extractNativeLibs(0x010104ea)=(type 0x12)0xffffffff' in manifest
 assert 'debuggable(0x0101000f)=(type 0x12)0xffffffff' in manifest
 cert=subprocess.check_output([str(bt/'apksigner'),'verify','--verbose','--print-certs',str(apk)],text=True)
 (out/'apk-badging.txt').write_text(badging);(out/'apk-manifest.txt').write_text(manifest);(out/'apk-debug-cert.txt').write_text(cert)
-(out/'apk-payload-check.json').write_text(json.dumps({'apk_sha256':hashlib.sha256(apk.read_bytes()).hexdigest(),'bytes':apk.stat().st_size,'native_byte_exact':rows,'engine_raw_and_asset_sha256':'e51e69e89489f199530f13d32a4342da3ddb2cf34842f364603a066db05afbf3','identity':'com.frpboy.seali.debug / 200000162 / 2.0.0-alpha.6-debug','target_runtime_tested':False,'public_release_ready':False},indent=2))
+(out/'apk-payload-check.json').write_text(json.dumps({'apk_sha256':hashlib.sha256(apk.read_bytes()).hexdigest(),'bytes':apk.stat().st_size,'native_byte_exact':rows,'engine_raw_and_asset_sha256':'e51e69e89489f199530f13d32a4342da3ddb2cf34842f364603a066db05afbf3','identity':'com.frpboy.seali.debug / 200000164 / 2.0.0-alpha.6-debug','target_runtime_tested':False,'public_release_ready':False},indent=2))
 
 import re
 certs=re.findall(r'^Signer #\d+ certificate SHA-256 digest: ([0-9a-f]+)$',cert,re.M)
