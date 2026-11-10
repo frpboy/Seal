@@ -39,7 +39,7 @@ class VersionTest {
 
     @Test
     fun `current version matches the guarded versionCode in app build file`() {
-        assertEquals(200_000_160L, currentVersion.code)
+        assertEquals(200_000_170L, currentVersion.code)
         assertEquals("2.0.0-alpha.6", currentVersion.name)
     }
 }
