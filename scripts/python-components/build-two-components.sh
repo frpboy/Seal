@@ -23,6 +23,17 @@ export CC="$TC/bin/${triple}24-clang" AR="$TC/bin/llvm-ar" RANLIB="$TC/bin/llvm-
 unset CFLAGS CXXFLAGS CPPFLAGS LDFLAGS CMAKE_TOOLCHAIN_FILE CMAKE_PREFIX_PATH
 mkdir -m 700 "$BUILD_ROOT"; mkdir "$BUILD_ROOT/openssl" "$BUILD_ROOT/evidence"
 bounded() { timeout --signal=TERM --kill-after=30s 1800 "$@"; }
+# Deterministic disclosed Android SONAME patch after pristine source-tree verification.
+python3 - "$OPENSSL_SOURCE/Configurations/15-android.conf" "$BUILD_ROOT/evidence/openssl-android-soname-patch.json" <<'PYSONAME'
+import pathlib,hashlib,json,sys
+p=pathlib.Path(sys.argv[1]);b=p.read_bytes()
+assert hashlib.sha256(b).hexdigest()=='b4d3aaca9c7b3cb779d37997ca4ea8a081982868bc693482c7caadec70d0e4ad'
+old=b'        shared_extension => ".so",'
+new=b'        shared_extension => ".so.\\$(SHLIB_VERSION_NUMBER)",'
+assert b.count(old)==1
+updated=b.replace(old,new);p.write_bytes(updated)
+pathlib.Path(sys.argv[2]).write_text(json.dumps({'file':str(p),'original_sha256':hashlib.sha256(b).hexdigest(),'patched_sha256':hashlib.sha256(updated).hexdigest(),'change':'Android shared extension .so to .so.$(SHLIB_VERSION_NUMBER), preserving ABI-major SONAME'},indent=2)+'\n')
+PYSONAME
 cd "$BUILD_ROOT/openssl"
 bounded perl "$OPENSSL_SOURCE/Configure" "$target" -D__ANDROID_API__=24 \
  --prefix=/usr --openssldir=/usr/etc/tls --libdir=lib shared \
@@ -39,7 +50,7 @@ bounded cmake -S "$EXPAT_SOURCE" -B "$BUILD_ROOT/expat" \
  -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
  -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=lib \
  '-DCMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384' \
- -DEXPAT_SHARED_LIBS=ON -DEXPAT_BUILD_TOOLS=OFF -DEXPAT_BUILD_TESTS=OFF \
+ -DCMAKE_PLATFORM_NO_VERSIONED_SONAME=OFF -DEXPAT_SHARED_LIBS=ON -DEXPAT_BUILD_TOOLS=OFF -DEXPAT_BUILD_TESTS=OFF \
  -DEXPAT_BUILD_EXAMPLES=OFF -DEXPAT_BUILD_DOCS=OFF -DEXPAT_BUILD_FUZZERS=OFF \
  -DEXPAT_DTD=OFF -DEXPAT_GE=OFF -DEXPAT_NS=ON -DEXPAT_CHAR_TYPE=char \
  -DEXPAT_WITH_ARC4RANDOM=OFF -DEXPAT_WITH_ARC4RANDOM_BUF=OFF \

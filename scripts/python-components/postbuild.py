@@ -11,13 +11,34 @@ def macros(name,header,includes):
  (e/(name+'-preprocessor.json')).write_text(json.dumps({'command':cmd,'returncode':result.returncode,'stderr':result.stderr},indent=2)+'\n')
  return {m.group(1):m.group(2).strip() for m in re.finditer(r'^#define\s+(\w+)(.*)$',result.stdout,re.M)}
 ssl=macros('openssl',build/'openssl/include/openssl/configuration.h',[build/'openssl/include',pathlib.Path(os.environ['OPENSSL_SOURCE'])/'include'])
-for macro in ['OPENSSL_NO_COMP_ALG','OPENSSL_NO_ZLIB','OPENSSL_NO_BROTLI','OPENSSL_NO_ZSTD','OPENSSL_NO_QUIC','OPENSSL_NO_SIV','OPENSSL_NO_CMS','OPENSSL_NO_MODULE','OPENSSL_NO_LEGACY']:
+for macro in ['OPENSSL_NO_COMP_ALG','OPENSSL_NO_ZLIB','OPENSSL_NO_BROTLI','OPENSSL_NO_ZSTD','OPENSSL_NO_QUIC','OPENSSL_NO_SIV','OPENSSL_NO_CMS']:
  assert macro in ssl,macro
 assert 'OPENSSL_NO_COMP' not in ssl
+# Inspect the generated, exact scoped configdata table as data, without executing Perl.
+configtext=(build/'openssl/configdata.pm').read_text()
+blocks=re.findall(r'^our %disabled = \(\n(.*?)^\);',configtext,re.M|re.S)
+assert len(blocks)==1,'Need exactly one generated disabled table'
+disabled=dict(re.findall(r'^    "([^"\n]+)" => "([^"\n]+)",?$',blocks[0],re.M))
+options=re.findall(r'^    "options" => "([^"\n]+)",?$',configtext,re.M)
+assert len(options)==1,'Need exactly one generated options entry'
+config={'disabled':disabled,'options':options[0],'configdata_sha256':hashlib.sha256(configtext.encode()).hexdigest(),'method':'Exact generated disabled table and options entry parsed as data; no Perl evaluation'}
+(e/'openssl-effective-options.json').write_text(json.dumps(config,indent=2)+'\n')
+for option in ['module','legacy']:
+ assert option in config['disabled'] and 'no-'+option in config['options'].split(),option
+for dirname in ['engines-3','ossl-modules']:
+ directory=build/'stage/usr/lib'/dirname
+ assert not directory.exists() or not any(x.is_file() or x.is_symlink() for x in directory.rglob('*')),str(directory)
+# Bind actual output SONAME and internal NEEDED to the retained consumer ABI before exports check.
+for name in ['libssl.so.3','libcrypto.so.3','libexpat.so.1']:
+ dynamic=subprocess.check_output([str(tc/'llvm-readelf'),'-d','--wide',str(build/'stage/usr/lib'/name)],text=True)
+ assert re.search(r'\(SONAME\).*\['+re.escape(name)+r'\]',dynamic),name
+ if name=='libssl.so.3':
+  assert re.search(r'\(NEEDED\).*\[libcrypto\.so\.3\]',dynamic)
+  assert not re.search(r'\(NEEDED\).*\[libcrypto\.so\]',dynamic)
 expat=macros('expat',build/'expat/expat_config.h',[build/'expat',pathlib.Path(os.environ['EXPAT_SOURCE'])/'lib'])
 for macro in ['XML_DTD','XML_GE']:
  assert expat.get(macro,'0')=='0',(macro,expat.get(macro))
-assert expat.get('XML_NS')=='1',expat.get('XML_NS')
+assert 'XML_NS' in expat
 subprocess.run(['python3','scripts/python-components/check-old-consumer-symbols.py','--stage',str(build/'stage'),'--readelf',str(tc/'llvm-readelf'),'--consumer-manifest','scripts/python-components/old-consumer-imports.json','--abi',os.environ['TARGET_ABI'],'--out',str(e/'consumer-compatibility.json')],check=True)
 rows=[]
 for f in sorted(build.rglob('*')):

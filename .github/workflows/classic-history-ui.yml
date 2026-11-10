@@ -34,7 +34,7 @@ jobs:
           test "$GITHUB_REPOSITORY" = frpboy/Seali
           test "$REPOSITORY_PRIVATE" = false
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
-          test "$(sha256sum scripts/python-components/build-two-components.sh | cut -d ' ' -f1)" = 6b7227349495b6dd24c93634717094d68a7bdaaee37d16486559c2e601db215d
+          test "$(sha256sum scripts/python-components/build-two-components.sh | cut -d ' ' -f1)" = 07a437d742c736a32766b6ed28363edb25ed8845c7403e5776725f8ac8d6de0e
           echo "SOURCE_SHA=$EXPECTED_SHA" >> "$GITHUB_ENV"
       - name: Pinned source and NDK archive tree verification and measured host admission
         id: prepare
