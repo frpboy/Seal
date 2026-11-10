@@ -2,6 +2,9 @@
 """Generated configuration, all native ELF/static archive metadata and custody inventory, no native execution."""
 import os,pathlib,json,hashlib,subprocess,re
 root=pathlib.Path(os.environ['CUSTODY_ROOT']);build=root/'build';e=build/'evidence';tc=pathlib.Path(os.environ['ANDROID_NDK_HOME'])/'toolchains/llvm/prebuilt/linux-x86_64/bin';e.mkdir(exist_ok=True)
+epoch,header_sha={'arm64-v8a':(1794338241,'7833b1345772f15bf541cad3d142ceda413e4ed7fe2850813f8454cd1f46acd4'),'x86_64':(1794338954,'03aa6ce4078e9501c747fb806b78862116b7051e336ad6a25442c2f8ac7586a3')}[os.environ['TARGET_ABI']]
+assert hashlib.sha256((build/'openssl/crypto/buildinf.h').read_bytes()).hexdigest()==header_sha
+(e/'openssl-build-epoch.json').write_text(json.dumps({'abi':os.environ['TARGET_ABI'],'source_date_epoch':epoch,'actual_buildinf_header_sha256':header_sha,'binding':'Exact previous qualified header hash, not a normalized ELF hash'},indent=2)+'\n')
 triple={'arm64-v8a':'aarch64-linux-android','x86_64':'x86_64-linux-android'}[os.environ['TARGET_ABI']]
 cc=tc/(triple+'24-clang')
 def macros(name,header,includes):

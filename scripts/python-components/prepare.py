@@ -39,7 +39,7 @@ for name,rel,dirname in [('openssl','openssl.tar.gz','openssl-3.5.9'),('expat','
 # Evidence-bound build-stage admission, never asserts runtime or publication ready.
 recipe=script/'build-two-components.sh'
 recipe_sha=hashlib.sha256(recipe.read_bytes()).hexdigest()
-if recipe_sha!='07a437d742c736a32766b6ed28363edb25ed8845c7403e5776725f8ac8d6de0e':raise RuntimeError('recipe hash mismatch')
+if recipe_sha!='9632284f2de3eb788eca75533903068743d68857780aa8b1ee59114e094732a5':raise RuntimeError('recipe hash mismatch')
 if os.environ['TARGET_ABI'] not in ['arm64-v8a','x86_64']:raise RuntimeError('ABI scope')
 for cmd in ['cmake','make','perl','timeout','openssl','unzip']:
  if not shutil.which(cmd):raise RuntimeError('missing host tool: '+cmd)

@@ -11,10 +11,11 @@ PY
 [[ ! -e "$BUILD_ROOT" && ! -L "$BUILD_ROOT" && "$BUILD_ROOT" = /* ]]
 [[ "$(uname -sm)" = 'Linux x86_64' ]]
 case "$TARGET_ABI" in
- arm64-v8a) target=android-arm64; triple=aarch64-linux-android ;;
- x86_64) target=android-x86_64; triple=x86_64-linux-android ;;
+ arm64-v8a) target=android-arm64; triple=aarch64-linux-android; epoch=1794338241; header_sha=7833b1345772f15bf541cad3d142ceda413e4ed7fe2850813f8454cd1f46acd4 ;;
+ x86_64) target=android-x86_64; triple=x86_64-linux-android; epoch=1794338954; header_sha=03aa6ce4078e9501c747fb806b78862116b7051e336ad6a25442c2f8ac7586a3 ;;
  *) exit 64 ;;
 esac
+export SOURCE_DATE_EPOCH="$epoch"
 export ANDROID_NDK_ROOT="$ANDROID_NDK_HOME"
 TC="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64"
 export PATH="$TC/bin:$PATH"
@@ -40,6 +41,7 @@ bounded perl "$OPENSSL_SOURCE/Configure" "$target" -D__ANDROID_API__=24 \
  no-apps no-tests no-zlib no-brotli no-zstd no-quic no-siv no-cms no-module no-legacy \
  -O2 -fPIC -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384
 bounded make -j1
+[[ "$(sha256sum crypto/buildinf.h | cut -d ' ' -f1)" = "$header_sha" ]] || exit 68
 bounded make DESTDIR="$BUILD_ROOT/stage" install_sw
 # no no-engine: old CPython _ssl may import ENGINE compatibility functions.
 # Default provider is in libcrypto; no legacy/engine module bytes are carried over.

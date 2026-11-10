@@ -26,7 +26,7 @@ jobs:
           [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
           test "$(sha256sum scripts/native-mincut/build-minimal-ffmpeg.sh | cut -d ' ' -f1)" = fe8ae3f8edca38cf7d2fa2668e4316baf896e0d836b657ebf4630e44d02b4396
-          test "$(sha256sum scripts/python-components/build-two-components.sh | cut -d ' ' -f1)" = 07a437d742c736a32766b6ed28363edb25ed8845c7403e5776725f8ac8d6de0e
+          test "$(sha256sum scripts/python-components/build-two-components.sh | cut -d ' ' -f1)" = 9632284f2de3eb788eca75533903068743d68857780aa8b1ee59114e094732a5
           test ! -e keystore.properties
           test ! -d app/src/main/jniLibs
           test ! -d app/libs/functional-alpha
