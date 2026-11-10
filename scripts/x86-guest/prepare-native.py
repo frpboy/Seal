@@ -3,13 +3,14 @@
 import hashlib,json,os,pathlib,posixpath,subprocess,tarfile,urllib.request,zipfile
 root=pathlib.Path(os.environ['RUNNER_TEMP'])/'seali-native-job'
 root.mkdir(mode=0o700); inputs=root/'inputs';inputs.mkdir();sources=root/'sources';sources.mkdir();evidence=root/'evidence';evidence.mkdir()
-locks=[('ffmpeg-source.tar.xz','https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz','8c3850283eb25fa026482078a04051e0be17347b09ef81a0849bec15a96e002e'),('sources/libmp3lame/source.tar','https://downloads.sourceforge.net/project/lame/lame/4.0/lame-4.0.tar.gz','3df5124d5ad3a98312ffd7ba6a9b36230e4f8a3e66d3ce0f425e336c32d216eb'),('sources/libopus/source.tar','https://ftp.osuosl.org/pub/xiph/releases/opus/opus-1.6.1.tar.gz','6ffcb593207be92584df15b32466ed64bbec99109f007c82205f0194572411a1'),('ndk.zip','https://dl.google.com/android/repository/android-ndk-r28c-linux.zip','dfb20d396df28ca02a8c708314b814a4d961dc9074f9a161932746f815aa552f')]
+locks=[('ffmpeg-source.tar.xz','https://mirrors.kernel.org/slackware/slackware-current/source/l/ffmpeg/ffmpeg-9.0.2.tar.xz','8c3850283eb25fa026482078a04051e0be17347b09ef81a0849bec15a96e002e'),('sources/libmp3lame/source.tar','https://downloads.sourceforge.net/project/lame/lame/4.0/lame-4.0.tar.gz','3df5124d5ad3a98312ffd7ba6a9b36230e4f8a3e66d3ce0f425e336c32d216eb'),('sources/libopus/source.tar','https://ftp.osuosl.org/pub/xiph/releases/opus/opus-1.6.1.tar.gz','6ffcb593207be92584df15b32466ed64bbec99109f007c82205f0194572411a1'),('ndk.zip','https://dl.google.com/android/repository/android-ndk-r28c-linux.zip','dfb20d396df28ca02a8c708314b814a4d961dc9074f9a161932746f815aa552f')]
 for rel,url,want in locks:
  p=inputs/rel;p.parent.mkdir(parents=True,exist_ok=True);h=hashlib.sha256()
  with urllib.request.urlopen(url,timeout=60) as r,p.open('wb') as f:
   for b in iter(lambda:r.read(1048576),b''):h.update(b);f.write(b)
  if h.hexdigest()!=want:raise RuntimeError('input hash mismatch: '+rel)
  print('PINNED_INPUT',rel,p.stat().st_size,want)
+ (evidence/('input-'+rel.replace('/','_')+'.json')).write_text(json.dumps({'file':rel,'url':url,'sha256':want,'bytes':p.stat().st_size},indent=2))
 ndk_archive=inputs/'ndk.zip'
 ndk_sha1=hashlib.sha1(ndk_archive.read_bytes()).hexdigest()
 if ndk_archive.stat().st_size!=722261334 or ndk_sha1!='a7b54a5de87fecd125a17d54f73c446199e72a64':raise RuntimeError('official NDK archive size/SHA1 mismatch')
