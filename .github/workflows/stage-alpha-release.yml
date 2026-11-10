@@ -20,7 +20,7 @@ on:
       title:
         description: "Draft release title"
         required: true
-        default: "Seali 2.0.0-alpha.6 (alpha prerelease)"
+        default: "Seali 2.0.0-alpha.7 (alpha prerelease)"
       target:
         description: "Commit the release targets"
         required: true
