@@ -41,6 +41,8 @@ class VerificationBoundaryTest(unittest.TestCase):
     def test_actual_unit_commands_remain_before_key_staging(self):
         self.assertLess(self.source.index("./gradlew testGenericDebugUnitTest"), self.source.index("id: signing"))
         self.assertIn("./gradlew testGenericDebugUnitTest assembleGenericDebug assembleGenericDebugAndroidTest", self.source)
+        self.assertIn("python3 -m unittest discover -s scripts -p 'test_*.py' -v", self.source)
+        self.assertIn("python3 -m unittest discover -s scripts/ci -p 'test_*.py' -v", self.source)
         self.assertLess(self.source.index("./gradlew -p buildSrc test"), self.source.index("id: signing"))
         self.assertIn("persist-credentials: false", self.source)
 
