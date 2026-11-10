@@ -2,7 +2,7 @@ name: Android CI
 
 on:
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "seali/explicit-paste-format-summary" ]
   push:
     branches: [ "main" ]
     tags: [ "v*" ]
