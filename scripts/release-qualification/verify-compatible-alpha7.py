@@ -31,8 +31,21 @@ with zipfile.ZipFile(apk) as z:
     assert {n for n in z.namelist() if n.startswith('lib/')} == set(want)
     for name, expected in want.items():
         assert hashlib.sha256(z.read(name)).hexdigest() == expected, name
-    for name in ['assets/functional-engine/yt-dlp', 'res/raw/ytdlp']:
+    # Release resource optimization may rename the ZIP member. Resolve the exact
+    # default raw/ytdlp resource through the APK table, never by scanning for a hash.
+    resources = subprocess.check_output([str(bt/'aapt2'), 'dump', 'resources', str(apk)], text=True)
+    matches = list(re.finditer(r'^    resource (0x[0-9a-fA-F]+) raw/ytdlp\s*\n((?:      .*\n?)*)', resources, re.M))
+    assert len(matches) == 1, 'exactly one raw/ytdlp resource required'
+    raw_id = int(matches[0][1], 16)
+    assert raw_id >> 24 == 0x7f, 'application resource ID required'
+    paths = re.findall(r'^      \(\) \(file\) (\S+)\s*$', matches[0][2], re.M)
+    assert len(paths) == 1 and len(matches[0][2].strip().splitlines()) == 1, 'one default raw engine, no alternate configs'
+    raw_path = paths[0]
+    assert raw_path.startswith('res/') and '..' not in pathlib.PurePosixPath(raw_path).parts
+    assert raw_path != 'assets/functional-engine/yt-dlp'
+    for name in ['assets/functional-engine/yt-dlp', raw_path]:
         assert hashlib.sha256(z.read(name)).hexdigest() == 'e51e69e89489f199530f13d32a4342da3ddb2cf34842f364603a066db05afbf3'
+(out/'alpha7-resource-table.txt').write_text(resources)
 for name, text in [('alpha7-badging.txt',badging),('alpha7-manifest.txt',manifest),('alpha7-cert.txt',cert)]:
     (out/name).write_text(text)
-(out/'alpha7-static-check.json').write_text(json.dumps({'apk_sha256':hashlib.sha256(apk.read_bytes()).hexdigest(),'bytes':apk.stat().st_size,'package':'com.frpboy.seali','name':'2.0.0-alpha.7','code':200000172,'signer_sha256':'88774e5211b61f7827db0ba6991a668000ceab9a9e9490648054b8a19b6e070f','native_sha256':want,'runtime_tested':False,'upgrade_tested':False,'download_tested':False,'public_release_ready':False},indent=2)+'\n')
+(out/'alpha7-static-check.json').write_text(json.dumps({'apk_sha256':hashlib.sha256(apk.read_bytes()).hexdigest(),'bytes':apk.stat().st_size,'package':'com.frpboy.seali','name':'2.0.0-alpha.7','code':200000172,'signer_sha256':'88774e5211b61f7827db0ba6991a668000ceab9a9e9490648054b8a19b6e070f','native_sha256':want,'raw_engine_resource_id':hex(raw_id),'raw_engine_zip_path':raw_path,'runtime_tested':False,'upgrade_tested':False,'download_tested':False,'public_release_ready':False},indent=2)+'\n')
