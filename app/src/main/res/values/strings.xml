@@ -447,4 +447,5 @@
         <item quantity="one">%d audio</item>
         <item quantity="other">%d audios</item>
     </plurals>
+    <string name="seali_fetching_options_hint">Checking available formats and download options. Dismissing the sheet requests cancellation.</string>
 </resources>
