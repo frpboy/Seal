@@ -1,4 +1,4 @@
-name: SOURCE PREPARATION ONLY - compatible alpha7 build
+name: Private compatible alpha7 qualification
 on:
   workflow_dispatch:
     inputs:
@@ -10,7 +10,7 @@ permissions:
   contents: read
 jobs:
   private-arm64-app:
-    if: false # PREPARATION ONLY. No run admission; native QuickJS source integration pending.
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 220
     steps:
@@ -27,6 +27,7 @@ jobs:
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
           test "$(sha256sum scripts/native-mincut/build-minimal-ffmpeg.sh | cut -d ' ' -f1)" = fe8ae3f8edca38cf7d2fa2668e4316baf896e0d836b657ebf4630e44d02b4396
           test "$(sha256sum scripts/python-components/build-two-components.sh | cut -d ' ' -f1)" = 9632284f2de3eb788eca75533903068743d68857780aa8b1ee59114e094732a5
+          test "$(sha256sum scripts/quickjs-source-preparation/build-ejs-only-android.sh | cut -d ' ' -f1)" = f5ca8a586b2a798b338b45ae1bdf2bedbb44fd932ceffd90bf757099a0e6cf57
           test ! -e keystore.properties
           test ! -d app/src/main/jniLibs
           test ! -d app/libs/functional-alpha
@@ -88,17 +89,17 @@ jobs:
           python3 scripts/verify-functional-python-closure.py --root "$CUSTODY_ROOT/python-pruned" --ndk "$ANDROID_NDK_HOME"
           python3 scripts/test-functional-engine-filter.py --source "$CUSTODY_ROOT/app-inputs/yt-dlp.tar.gz" --out "$CUSTODY_ROOT/evidence/engine-filter.json"
           python3 scripts/prepare-functional-payload.py --stage "$BUILD_ROOT/stage" --python-pruned "$CUSTODY_ROOT/python-pruned" --root .
-      # SOURCE PROPOSAL ONLY: jobfalse plus recipeexit78 remain hard execution blockers.
+      # Restricted reviewed core-only recipe. No target execution or public APK upload.
       # Entire QuickJS inputs/source/objects/out/static evidence stay under existing custody
       # allowlisted inputs/ and build/ roots. No opaque prebuilt fallback; no runtime lane.
-      - name: Prepare exact EJS-only runtime inputs (disabled source proposal)
+      - name: Prepare exact EJS-only runtime inputs
         timeout-minutes: 3
         run: |
           set -euo pipefail
           mkdir -p "$CUSTODY_ROOT/inputs/quickjs"
           curl --fail --location --max-time 120 --output "$CUSTODY_ROOT/inputs/quickjs/original.tar.xz" https://bellard.org/quickjs/quickjs-2026-06-04.tar.xz
           python3 scripts/quickjs-source-preparation/stage-reviewed-inputs.py --archive "$CUSTODY_ROOT/inputs/quickjs/original.tar.xz" --patch scripts/quickjs-source-preparation/quickjs-june-maintenance.patch --driver scripts/quickjs-source-preparation/seali-ejs-runner.c --out "$CUSTODY_ROOT/inputs/quickjs/staged"
-      - name: Build only the restricted EJS driver (recipe still exits78)
+      - name: Build only the restricted EJS driver
         id: qjs
         timeout-minutes: 11
         env:
@@ -120,7 +121,7 @@ jobs:
         run: |
           set -euo pipefail
           chmod +x gradlew
-          timeout --signal=TERM --kill-after=30s 1500 ./gradlew --no-daemon --max-workers=2 -Dorg.gradle.jvmargs=-Xmx3072m -Pkotlin.compiler.execution.strategy=in-process -PfunctionalAlphaCandidate -PnoSplits -PABI_FILTERS=arm64-v8a :app:testGenericDebugUnitTest :app:assembleGenericDebug :app:assembleGenericDebugAndroidTest
+          timeout --signal=TERM --kill-after=30s 1500 ./gradlew --no-daemon --max-workers=2 -Dorg.gradle.jvmargs=-Xmx3072m -Pkotlin.compiler.execution.strategy=in-process -PfunctionalAlphaCandidate -PnoSplits -PABI_FILTERS=arm64-v8a :frpboy-library:testDebugUnitTest :app:testGenericDebugUnitTest :app:assembleGenericDebug :app:assembleGenericDebugAndroidTest
       - name: Build compatible alpha7 using existing production identity
         id: release_app
         timeout-minutes: 26
@@ -142,24 +143,17 @@ jobs:
           COMPONENT_VERIFY_OUTCOME: ${{ steps.component_verify.outcome }}
           APP_OUTCOME: ${{ steps.release_app.outcome }}
         run: python3 scripts/collect-functional-app-custody.py
-      - name: Encrypt full native and app custody before any upload
+      - name: Encrypt complete native component and app custody into two bounded volumes
         id: encrypt
-        if: always() && steps.prepare.outcome == 'success'
+        if: always() && steps.prepare.outcome == 'success' && steps.component_prepare.outcome == 'success'
         env:
           BUILD_OUTCOME: ${{ steps.native.outcome }}
           APP_BUILD_OUTCOME: ${{ steps.release_app.outcome }}
-        run: timeout --signal=TERM --kill-after=30s 300 python3 scripts/native-mincut/encrypt-native-custody.py
-      - name: Encrypt separate full component source and relink custody
-        id: component_encrypt
-        if: always() && steps.component_prepare.outcome == 'success'
-        env:
-          CUSTODY_ROOT: ${{ runner.temp }}/seali-python-components-job
-          TARGET_ABI: arm64-v8a
-          BUILD_OUTCOME: ${{ steps.component_build.outcome }}
-        run: timeout --signal=TERM --kill-after=30s 300 python3 scripts/python-components/encrypt.py
+          COMPONENT_BUILD_OUTCOME: ${{ steps.component_build.outcome }}
+        run: timeout --signal=TERM --kill-after=30s 300 python3 scripts/native-mincut/encrypt-joint-custody.py
       - name: Retain separate bounded component ciphertext only
         timeout-minutes: 3
-        if: always() && steps.component_encrypt.outcome == 'success'
+        if: always() && steps.encrypt.outcome == 'success'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: private-functional-arm64-components-encrypted
@@ -179,4 +173,4 @@ jobs:
           compression-level: 0
       - name: Remove transient app and native data
         if: always()
-        run: rm -rf "$RUNNER_TEMP/seali-native-job" "$RUNNER_TEMP/seali-native-build.tar.gz" "$RUNNER_TEMP/native-build.cms" "$RUNNER_TEMP/native-build.cms.tmp" app/build app/libs/functional-alpha app/src/main/jniLibs app/src/main/assets/functional-engine "$RUNNER_TEMP/seali-python-components-job" "$RUNNER_TEMP/seali-components-build.tar.gz" "$RUNNER_TEMP/components-build.cms" "$RUNNER_TEMP/components-build.cms.tmp"
+        run: rm -rf "$RUNNER_TEMP/seali-native-job" "$RUNNER_TEMP/seali-native-build.tar.gz" "$RUNNER_TEMP/native-build.cms" "$RUNNER_TEMP/native-build.cms.tmp" app/build app/libs/functional-alpha app/src/main/jniLibs app/src/main/assets/functional-engine "$RUNNER_TEMP/seali-python-components-job" "$RUNNER_TEMP/seali-components-build.tar.gz" "$RUNNER_TEMP/components-build.cms" "$RUNNER_TEMP/components-build.cms.tmp" "$RUNNER_TEMP/seali-joint-build.tar.gz" "$RUNNER_TEMP/volume-1.part" "$RUNNER_TEMP/volume-2.part" "$RUNNER_TEMP/joint-custody-manifest.json"
