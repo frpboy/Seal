@@ -84,6 +84,7 @@ jobs:
       - name: Check owned namespace and release verifier source guards
         run: |
           python3 scripts/test_owned_namespace_boundaries.py
+          python3 scripts/test_notice_asset_contract.py
           python3 scripts/owned-source-prep/test-seali-prepare-owned-producer-inputs.py
           python3 scripts/quickjs-source-preparation/test-verify-quickjs-target.py
           python3 scripts/quickjs-source-preparation/test-verify-quickjs-target-main.py
