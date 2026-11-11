@@ -24,7 +24,6 @@ jobs:
       contents: write
     env:
       EXPECTED_SHA: ${{ inputs.expected_sha }}
-      CUSTODY_ROOT: ${{ runner.temp }}/seali-alpha7-evidence
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -40,7 +39,8 @@ jobs:
           test "$GITHUB_SHA" = "$EXPECTED_SHA"
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
           test "$(gh api repos/frpboy/Seali/branches/main --jq .commit.sha)" = "$EXPECTED_SHA"
-          mkdir -p "$CUSTODY_ROOT/evidence"
+          printf 'CUSTODY_ROOT=%s/seali-alpha7-evidence\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/seali-alpha7-evidence/evidence"
       - name: Download and stage only locked unpublished inputs
         env:
           GH_TOKEN: ${{ github.token }}
