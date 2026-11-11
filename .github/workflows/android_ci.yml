@@ -81,8 +81,18 @@ jobs:
       - name: Grant execute permission for Gradle wrapper
         run: chmod +x gradlew
 
+      - name: Check owned namespace and release verifier source guards
+        run: |
+          python3 scripts/test_owned_namespace_boundaries.py
+          python3 scripts/quickjs-source-preparation/test-verify-quickjs-target.py
+          python3 scripts/quickjs-source-preparation/test-verify-quickjs-target-main.py
+          python3 scripts/release-qualification/test-compatible-alpha7-verifier.py
+
+      # Source verification needs no native payload and never produces an APK.
+      # The candidate property admits this isolated source tree; it does not
+      # admit release packaging, runtime qualification or public distribution.
       - name: Run generic debug unit tests
-        run: ./gradlew testGenericDebugUnitTest
+        run: ./gradlew -PfunctionalAlphaCandidate testGenericDebugUnitTest :frpboy-library:testDebugUnitTest
 
       - name: Run buildSrc unit tests
         run: ./gradlew -p buildSrc test --console=plain
