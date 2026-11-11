@@ -1,4 +1,4 @@
-name: Private functional ARM64 alpha build measurement
+name: SOURCE PREPARATION ONLY - compatible alpha7 build
 on:
   workflow_dispatch:
     inputs:
@@ -10,7 +10,7 @@ permissions:
   contents: read
 jobs:
   private-arm64-app:
-    if: github.repository == 'frpboy/Seali' && github.event.repository.private == false
+    if: false # PREPARATION ONLY. No run admission; native QuickJS source integration pending.
     runs-on: ubuntu-24.04
     timeout-minutes: 220
     steps:
@@ -82,21 +82,57 @@ jobs:
         run: |
           set -euo pipefail
           timeout --signal=TERM --kill-after=30s 300 python3 scripts/fetch-functional-inputs.py
-          python3 scripts/prepare-functional-wrappers.py --input-dir "$CUSTODY_ROOT/app-inputs" --root .
+          python3 scripts/stage-owned-engine.py --input "$CUSTODY_ROOT/app-inputs/yt-dlp" --root .
           python3 scripts/prune-functional-python.py --library-aar "$CUSTODY_ROOT/app-inputs/library-0.17.3.aar" --out "$CUSTODY_ROOT/python-pruned" > "$CUSTODY_ROOT/evidence/python-prune.stdout.json"
           python3 scripts/replace-functional-python-components.py --root "$CUSTODY_ROOT/python-pruned" --stage "$RUNNER_TEMP/seali-python-components-job/build/stage" --abi arm64-v8a --lock functional-python-components-lock.json --readelf "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf"
           python3 scripts/verify-functional-python-closure.py --root "$CUSTODY_ROOT/python-pruned" --ndk "$ANDROID_NDK_HOME"
           python3 scripts/test-functional-engine-filter.py --source "$CUSTODY_ROOT/app-inputs/yt-dlp.tar.gz" --out "$CUSTODY_ROOT/evidence/engine-filter.json"
           python3 scripts/prepare-functional-payload.py --stage "$BUILD_ROOT/stage" --python-pruned "$CUSTODY_ROOT/python-pruned" --root .
+      # SOURCE PROPOSAL ONLY: jobfalse plus recipeexit78 remain hard execution blockers.
+      # Entire QuickJS inputs/source/objects/out/static evidence stay under existing custody
+      # allowlisted inputs/ and build/ roots. No opaque prebuilt fallback; no runtime lane.
+      - name: Prepare exact EJS-only runtime inputs (disabled source proposal)
+        timeout-minutes: 3
+        run: |
+          set -euo pipefail
+          mkdir -p "$CUSTODY_ROOT/inputs/quickjs"
+          curl --fail --location --max-time 120 --output "$CUSTODY_ROOT/inputs/quickjs/original.tar.xz" https://bellard.org/quickjs/quickjs-2026-06-04.tar.xz
+          python3 scripts/quickjs-source-preparation/stage-reviewed-inputs.py --archive "$CUSTODY_ROOT/inputs/quickjs/original.tar.xz" --patch scripts/quickjs-source-preparation/quickjs-june-maintenance.patch --driver scripts/quickjs-source-preparation/seali-ejs-runner.c --out "$CUSTODY_ROOT/inputs/quickjs/staged"
+      - name: Build only the restricted EJS driver (recipe still exits78)
+        id: qjs
+        timeout-minutes: 11
+        env:
+          NDK: ${{ env.ANDROID_NDK_HOME }}
+          SOURCE_ARCHIVE: ${{ env.CUSTODY_ROOT }}/inputs/quickjs/staged/quickjs-2026-06-04.tar.xz
+          BACKPORT_PATCH: ${{ env.CUSTODY_ROOT }}/inputs/quickjs/staged/quickjs-june-maintenance.patch
+          RUNNER_SOURCE: ${{ env.CUSTODY_ROOT }}/inputs/quickjs/staged/seali-ejs-runner.c
+          WORK: ${{ env.CUSTODY_ROOT }}/build/quickjs-ejs-only
+          ABI: arm64-v8a
+        run: timeout --signal=TERM --kill-after=30s 600 bash scripts/quickjs-source-preparation/build-ejs-only-android.sh
+      - name: Static target check and exact ARM payload extension
+        timeout-minutes: 3
+        run: |
+          set -euo pipefail
+          python3 scripts/quickjs-source-preparation/verify-quickjs-target.py --elf "$CUSTODY_ROOT/build/quickjs-ejs-only/out/libqjs.so" --ndk "$ANDROID_NDK_HOME" --abi arm64-v8a --out "$CUSTODY_ROOT/build/quickjs-ejs-only/static-evidence"
+          python3 scripts/quickjs-source-preparation/stage-verified-payload.py --elf "$CUSTODY_ROOT/build/quickjs-ejs-only/out/libqjs.so" --receipt "$CUSTODY_ROOT/build/quickjs-ejs-only/static-evidence/static-target-check.json" --root .
       - name: Private debug APK, unit tests and instrumentation compilation only
         id: app
         run: |
           set -euo pipefail
           chmod +x gradlew
           timeout --signal=TERM --kill-after=30s 1500 ./gradlew --no-daemon --max-workers=2 -Dorg.gradle.jvmargs=-Xmx3072m -Pkotlin.compiler.execution.strategy=in-process -PfunctionalAlphaCandidate -PnoSplits -PABI_FILTERS=arm64-v8a :app:testGenericDebugUnitTest :app:assembleGenericDebug :app:assembleGenericDebugAndroidTest
-      - name: Verify actual APK bytes and test-only identity
+      - name: Build compatible alpha7 using existing production identity
+        id: release_app
+        timeout-minutes: 26
+        env:
+          KEYSTORE_BASE64: ${{ secrets.SEALI_UPLOAD_KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.SEALI_UPLOAD_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.SEALI_UPLOAD_KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
+        run: bash scripts/release-qualification/build-compatible-alpha7.sh
+      - name: Verify compatible alpha7 static identity and payload only
         timeout-minutes: 2
-        run: python3 scripts/verify-functional-apk.py
+        run: python3 scripts/release-qualification/verify-compatible-alpha7.py
       - name: Collect private build evidence, not runtime claims
         timeout-minutes: 3
         if: always() && steps.prepare.outcome == 'success'
@@ -104,14 +140,14 @@ jobs:
           NATIVE_OUTCOME: ${{ steps.native.outcome }}
           COMPONENT_OUTCOME: ${{ steps.component_build.outcome }}
           COMPONENT_VERIFY_OUTCOME: ${{ steps.component_verify.outcome }}
-          APP_OUTCOME: ${{ steps.app.outcome }}
+          APP_OUTCOME: ${{ steps.release_app.outcome }}
         run: python3 scripts/collect-functional-app-custody.py
       - name: Encrypt full native and app custody before any upload
         id: encrypt
         if: always() && steps.prepare.outcome == 'success'
         env:
           BUILD_OUTCOME: ${{ steps.native.outcome }}
-          APP_BUILD_OUTCOME: ${{ steps.app.outcome }}
+          APP_BUILD_OUTCOME: ${{ steps.release_app.outcome }}
         run: timeout --signal=TERM --kill-after=30s 300 python3 scripts/native-mincut/encrypt-native-custody.py
       - name: Encrypt separate full component source and relink custody
         id: component_encrypt

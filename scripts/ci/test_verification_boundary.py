@@ -3,7 +3,7 @@ from pathlib import Path
 import unittest
 
 WORKFLOW = Path(__file__).resolve().parents[2] / ".github/workflows/android_ci.yml"
-SIGNING = "github.event_name == 'workflow_dispatch' && inputs.build_release == true"
+SIGNING = "(github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call') && inputs.build_release == true"
 
 
 class VerificationBoundaryTest(unittest.TestCase):
@@ -15,7 +15,18 @@ class VerificationBoundaryTest(unittest.TestCase):
         self.assertIn("type: boolean", section)
         self.assertIn("default: false", section)
 
-    def test_key_staging_requires_manual_opt_in(self):
+    def test_reusable_release_inputs_default_to_safe_values(self):
+        section = self.source.split("  workflow_call:\n", 1)[1].split("\npermissions:", 1)[0]
+        fields = (
+            section.split("      build_release:\n", 1)[1].split("      run_history_ui:\n", 1)[0],
+            section.split("      run_history_ui:\n", 1)[1].split("      publish_apk_artifacts:\n", 1)[0],
+            section.split("      publish_apk_artifacts:\n", 1)[1],
+        )
+        for field in fields:
+            self.assertIn("type: boolean", field)
+            self.assertIn("default: false", field)
+
+    def test_key_staging_requires_explicit_release_opt_in(self):
         section = self.source.split("      - name: Validate and stage private Play upload key\n", 1)[1]
         self.assertTrue(section.startswith("        if: " + SIGNING + "\n"))
         self.assertNotIn('if [[ "$GITHUB_EVENT_NAME" == "pull_request"', section)

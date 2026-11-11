@@ -1,0 +1,90 @@
+[
+  {
+    "module": "common",
+    "source_jar": "common-sources.jar",
+    "source_sha256": "643b6cc9a9d97b98a1e594255c1a329b8d95d1478aa6bae1d0eee0bd83787260",
+    "original_files": [
+      {
+        "path": "com/yausername/youtubedl_common/SharedPrefsHelper.kt",
+        "sha256": "119c1d99962141afd220c800c856900f8de6df587d22f382d7087bdfdffd3677"
+      },
+      {
+        "path": "com/yausername/youtubedl_common/utils/ZipUtils.kt",
+        "sha256": "e8cf516055adf8eb72dd2d6ee54541b9771791dcdfe3893db8a9079480d92041"
+      }
+    ],
+    "java_namespace_preserved_for_api_compatibility": "com.yausername.youtubedl_common"
+  },
+  {
+    "module": "library",
+    "source_jar": "wrapper-sources.jar",
+    "source_sha256": "263ed633ab505502a4b3c490400e4d8dd32e3c9c13645cc57bc10e3de81de207",
+    "original_files": [
+      {
+        "path": "com/yausername/youtubedl_android/DownloadProgressCallback.kt",
+        "sha256": "757517eaad7c3fae0179a620ad76094106ef213845d04f61dcce39c12e7427db"
+      },
+      {
+        "path": "com/yausername/youtubedl_android/StreamGobbler.kt",
+        "sha256": "902c9ca6fb2c253321d7f7d8c9f9f2c1d1e7b18e3de04da7830d2e9bd0c9a8b5"
+      },
+      {
+        "path": "com/yausername/youtubedl_android/StreamProcessExtractor.kt",
+        "sha256": "958580b131143d6cc8ad94352250f2b9478e133198b8fbf169f353923bf493c4"
+      },
+      {
+        "path": "com/yausername/youtubedl_android/YoutubeDL.kt",
+        "sha256": "a3b4f56efe5648471a6a3ac3b5da816b422da1ce97844767023caed07c04596a"
+      },
+      {
+        "path": "com/yausername/youtubedl_android/YoutubeDLException.kt",
+        "sha256": "e9a51bfd3a8e95eb27d9ede338f025dad699b03b11ce69ca783ee5e05161bee9"
+      },
+      {
+        "path": "com/yausername/youtubedl_android/YoutubeDLOptions.kt",
+        "sha256": "7780f870f4b2819d9c77353c980ad83cecf1a9067e1c03dac1510f4215261a7c"
+      },
+      {
+        "path": "com/yausername/youtubedl_android/YoutubeDLRequest.kt",
+        "sha256": "c598f2448cfeb0000d2aab5c12f74ee20dc3dfd13932b2954a5115766f44ccb9"
+      },
+      {
+        "path": "com/yausername/youtubedl_android/YoutubeDLResponse.kt",
+        "sha256": "fac1984fcd8bb35b41d64ea7e9ab48b0c9753d9adcf4d42b0f7c6d011e9295c0"
+      },
+      {
+        "path": "com/yausername/youtubedl_android/YoutubeDLUpdater.kt",
+        "sha256": "8044ec774677c04cfd0bccc6d43b7e53458c3906dce84bd06d02e1f984590d0c"
+      },
+      {
+        "path": "com/yausername/youtubedl_android/mapper/VideoFormat.kt",
+        "sha256": "de0b48c96b1946e27abaed8bb5c3a702d76fd7363fd1db9f787cbcfdc73b1f91"
+      },
+      {
+        "path": "com/yausername/youtubedl_android/mapper/VideoInfo.kt",
+        "sha256": "d1867ecb3b368754181aaf07a98846a997033e8ed5caf2346eb0a2162bf535cc"
+      },
+      {
+        "path": "com/yausername/youtubedl_android/mapper/VideoSubtitle.kt",
+        "sha256": "8b4de0bda8cd4ad78d646e620e662c5682624b0a7553b4516d849ab761dc615e"
+      },
+      {
+        "path": "com/yausername/youtubedl_android/mapper/VideoThumbnail.kt",
+        "sha256": "ae10bd5a970174a32d9fa00d9e3b5d4817aea81517e49c6d56635cadf6bd550e"
+      }
+    ],
+    "java_namespace_preserved_for_api_compatibility": "com.yausername.youtubedl_android"
+  },
+  {
+    "module": "ffmpeg",
+    "source_jar": "ffmpeg-sources.jar",
+    "source_sha256": "35cc0d95c9e2965dd46b066cc863b99fcde49319aa0d6bea8288bfca87d10367",
+    "original_files": [
+      {
+        "path": "com/yausername/ffmpeg/FFmpeg.kt",
+        "sha256": "1d24f85bbe0d095a7a74107ff48ee1c33168bc0667cd1b32bad099578b6cdbc7"
+      }
+    ],
+    "java_namespace_preserved_for_api_compatibility": "com.yausername.ffmpeg"
+  }
+]

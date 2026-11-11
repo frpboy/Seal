@@ -20,7 +20,7 @@ class OwnedNamespaceBoundaries(unittest.TestCase):
         self.assertIn('applicationId = "com.frpboy.seali"',app)
         self.assertIn('applicationIdSuffix = ".debug"',app)
         self.assertIn('applicationIdSuffix = ".preview"',app)
-        self.assertIn('versionCode = 200_000_160',app)
+        self.assertIn('versionCode = 200_000_170',app)
         self.assertIn('namespace = "com.frpboy.seali.color"',(ROOT/'color/build.gradle.kts').read_text())
     def test_real_legacy_receiver_and_supported_activity_aliases(self):
         app=ET.parse(ROOT/'app/src/main/AndroidManifest.xml').getroot().find('application')
@@ -47,6 +47,10 @@ class OwnedNamespaceBoundaries(unittest.TestCase):
         for name,expected in manifest.items():
             self.assertEqual(hashlib.sha256((ROOT/'app/schemas/com.frpboy.seali.database.AppDatabase'/name).read_bytes()).hexdigest(),expected)
         self.assertFalse((ROOT/'app/schemas/com.junkfood.seal.database.AppDatabase').exists())
-        self.assertIn('io.github.junkfood02.youtubedl-android',(ROOT/'gradle/libs.versions.toml').read_text())
+        self.assertNotIn('io.github.junkfood02.youtubedl-android',(ROOT/'gradle/libs.versions.toml').read_text())
+        app=(ROOT/'app/build.gradle.kts').read_text()
+        for module in ['frpboy-common','frpboy-library','frpboy-ffmpeg']:
+            self.assertIn('implementation(project(":'+module+'"))',app)
+        self.assertNotIn('libs/functional-alpha/',app)
         self.assertIn('Based on Seal by JunkFood02',(ROOT/'app/src/main/java/com/frpboy/seali/ui/page/settings/about/AboutPage.kt').read_text())
 if __name__=='__main__':unittest.main()

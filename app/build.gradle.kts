@@ -77,7 +77,7 @@ android {
         applicationId = "com.frpboy.seali"
         minSdk = 24
         targetSdk = 36
-        versionCode = 200_000_160
+        versionCode = 200_000_170
         check(versionCode == currentVersionCode)
 
         versionName = baseVersionName
@@ -243,7 +243,9 @@ dependencies {
 
     implementation(libs.okhttp)
 
-    implementation(files("libs/functional-alpha/common-wrapper.aar", "libs/functional-alpha/library-wrapper.aar", "libs/functional-alpha/ffmpeg-wrapper.aar"))
+    implementation(project(":frpboy-library"))
+    implementation(project(":frpboy-ffmpeg"))
+    implementation(project(":frpboy-common"))
     implementation("com.fasterxml.jackson.core:jackson-databind:2.11.1")
     implementation("com.fasterxml.jackson.core:jackson-annotations:2.11.1")
     implementation("commons-io:commons-io:2.5")

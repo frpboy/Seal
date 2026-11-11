@@ -19,3 +19,9 @@ dependencyResolutionManagement {
 rootProject.name = "Seali"
 include (":app")
 include(":color")
+include(":frpboy-common")
+project(":frpboy-common").projectDir = file("dependencies/frpboy-common")
+include(":frpboy-library")
+project(":frpboy-library").projectDir = file("dependencies/frpboy-library")
+include(":frpboy-ffmpeg")
+project(":frpboy-ffmpeg").projectDir = file("dependencies/frpboy-ffmpeg")

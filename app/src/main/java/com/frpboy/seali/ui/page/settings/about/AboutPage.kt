@@ -61,7 +61,7 @@ import com.frpboy.seali.util.ToastUtil
 private const val releaseURL = "https://github.com/frpboy/Seali/releases"
 private const val repoUrl = "https://github.com/frpboy/Seali"
 private const val upstreamRepoUrl = "https://github.com/JunkFood02/Seal"
-private const val developerName = "Rahul Muraleedharan"
+private const val developerName = "FRPBOY (Rahul Muraleedharan)"
 private const val portfolioUrl = "https://www.frpboy.in/"
 private const val githubProfileUrl = "https://github.com/frpboy"
 private const val linkedinUrl = "https://www.linkedin.com/in/rahul-muraleedharan-it"
@@ -181,12 +181,19 @@ fun AboutPage(
                 }
                 item {
                     PreferenceItem(
-                        title = "Based on Seal by JunkFood02",
-                        description = upstreamRepoUrl,
+                        title = "Seali by FrpBoy",
+                        description = repoUrl,
                         icon = Icons.Outlined.Language,
                     ) {
-                        openUrl(upstreamRepoUrl)
+                        openUrl(repoUrl)
                     }
+                }
+                item {
+                    PreferenceItem(
+                        title = "Based on Seal by JunkFood02",
+                        description = "Upstream source and required credit",
+                        icon = Icons.Outlined.Language,
+                    ) { openUrl(upstreamRepoUrl) }
                 }
                 item {
                     PreferenceItem(
