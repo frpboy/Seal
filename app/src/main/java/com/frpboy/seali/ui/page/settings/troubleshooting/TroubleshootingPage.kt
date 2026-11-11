@@ -79,6 +79,14 @@ fun TroubleShootingPage(
                         onClick = { uriHandler.openUri("https://github.com/frpboy/Seali/issues") },
                     )
 
+                    val knownIssueUrlSeal = "https://github.com/JunkFood02/Seal/issues/1399"
+                    PreferenceItem(
+                        title = stringResource(R.string.seali_upstream_known_issues),
+                        description = null,
+                        icon = Icons.AutoMirrored.Outlined.OpenInNew,
+                        onClick = { uriHandler.openUri(knownIssueUrlSeal) },
+                    )
+
                     val knownIssueUrlYtdlp = "https://github.com/yt-dlp/yt-dlp/issues/3766"
                     PreferenceItem(
                         title = stringResource(R.string.seali_ytdlp_known_issues),
