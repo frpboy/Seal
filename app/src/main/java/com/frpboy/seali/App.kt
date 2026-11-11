@@ -97,6 +97,7 @@ class App : Application() {
             try {
                 FunctionalEngine.install(this@App)
                 YoutubeDL.init(this@App)
+                FunctionalEngine.verifyRecoveredEngine(this@App)
                 FFmpeg.init(this@App)
                 DownloadUtil.getCookiesContentFromDatabase().getOrNull()?.let {
                     FileUtil.writeContentToFile(it, getCookiesFile())

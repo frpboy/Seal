@@ -117,6 +117,7 @@ const val DOWNLOAD_TYPE_INITIALIZATION = "download_type_init"
 private const val DOWNLOAD_TYPE = "download_type"
 
 const val YT_DLP_UPDATE_CHANNEL = "yt-dlp_update_channel"
+const val YT_DLP_CHANNEL_SELECTION = "yt-dlp_channel_selection_v1"
 const val YT_DLP_UPDATE_TIME = "yt-dlp_last_update"
 const val YT_DLP_UPDATE_INTERVAL = "yt-dlp_update_interval"
 
@@ -240,7 +241,7 @@ private val IntPreferenceDefaults =
         SHOW_SPONSOR_MSG to 0,
         CONVERT_SUBTITLE to NOT_SPECIFIED,
         DOWNLOAD_TYPE_INITIALIZATION to USE_PREVIOUS_SELECTION,
-        YT_DLP_UPDATE_CHANNEL to YT_DLP_NIGHTLY,
+        YT_DLP_UPDATE_CHANNEL to YT_DLP_STABLE,
         DOWNLOAD_TYPE to DownloadType.Video.ordinal,
     )
 
@@ -281,6 +282,18 @@ object PreferenceUtil {
     fun encodeInt(key: String, int: Int) = key.updateInt(int)
 
     fun encodeString(key: String, string: String) = key.updateString(string)
+
+    fun getYtdlpChannelSelection(): NightlyChannelSelection =
+        NightlyChannelPolicy.decode(kv.decodeString(YT_DLP_CHANNEL_SELECTION))
+
+    fun effectiveYtdlpUpdateChannel(): Int = getYtdlpChannelSelection().channel
+
+    fun saveYtdlpChannelSelection(selection: NightlyChannelSelection) {
+        // A single MMKV value commits channel, Allow and warning suppression together.
+        check(kv.encode(YT_DLP_CHANNEL_SELECTION, NightlyChannelPolicy.encode(selection))) {
+            "Cannot save runtime update channel"
+        }
+    }
 
     fun containsKey(key: String) = kv.containsKey(key)
 

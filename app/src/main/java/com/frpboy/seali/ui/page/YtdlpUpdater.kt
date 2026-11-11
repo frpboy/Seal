@@ -32,7 +32,7 @@ fun YtdlpUpdater() {
             (!FDROID_RUNTIME_AUTO_UPDATE_CONSENT.getBoolean() || !YT_DLP_AUTO_UPDATE.getBoolean()))
             return@LaunchedEffect
 
-        if (!YT_DLP_AUTO_UPDATE.getBoolean() && YT_DLP_VERSION.getString().isNotEmpty())
+        if (!YT_DLP_AUTO_UPDATE.getBoolean())
             return@LaunchedEffect
 
         if (!PreferenceUtil.isNetworkAvailableForDownload()) {

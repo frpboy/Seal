@@ -492,4 +492,10 @@
     <string name="seali_stream_size_unknown">Input stream size unknown. Clipping, chapters and post-processing can change the final file size.</string>
     <string name="custom_commands_unavailable_candidate" translatable="false">Custom command execution is unavailable in this source-limited alpha candidate. Use the normal download flow. Saved templates are kept.</string>
     <string name="app_updates_unavailable_candidate" translatable="false">App self-update is unavailable in this source-built alpha candidate. Release selection, package, signing certificate and version-code compatibility are not qualified. Update preferences are kept.</string>
+    <string name="runtime_channel_pending_hint">Changes apply when you confirm. Cancel keeps your saved settings. Stable is the default; Nightly needs your permission.</string>
+    <string name="runtime_nightly_warning_title">Allow Nightly updates?</string>
+    <string name="runtime_nightly_warning_body">Nightly builds are experimental. They may break downloads or require switching back to Stable. A new engine is installed only if its integrity and required offline capabilities pass checks. This is not a guarantee that every website will work.</string>
+    <string name="runtime_nightly_dont_show_again">Don\'t show again</string>
+    <string name="runtime_nightly_save_hint">Allow selects Nightly for now. Confirm in Update settings to save your choice and this checkbox. Cancel here keeps Stable selected.</string>
+    <string name="runtime_nightly_allow">Allow</string>
 </resources>

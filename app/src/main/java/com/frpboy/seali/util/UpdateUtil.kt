@@ -66,7 +66,7 @@ object UpdateUtil {
                     manualConsent = manualConsent,
                 )) return@withContext null
             val channel =
-                when (YT_DLP_UPDATE_CHANNEL.getInt()) {
+                when (PreferenceUtil.effectiveYtdlpUpdateChannel()) {
                     YT_DLP_NIGHTLY -> YoutubeDL.UpdateChannel.NIGHTLY
                     else -> YoutubeDL.UpdateChannel.STABLE
                 }
