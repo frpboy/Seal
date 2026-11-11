@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.junkfood.seal.App
+import com.junkfood.seal.util.FDROID_RUNTIME_AUTO_UPDATE_CONSENT
 import com.junkfood.seal.Downloader
 import com.junkfood.seal.util.PreferenceUtil
 import com.junkfood.seal.util.PreferenceUtil.getBoolean
@@ -24,6 +26,11 @@ fun YtdlpUpdater() {
 
     LaunchedEffect(Unit) {
         if (downloaderState !is Downloader.State.Idle) return@LaunchedEffect
+
+        // F-Droid consent is independent of legacy settings and the empty-version bootstrap.
+        if (App.isFDroidBuild() &&
+            (!FDROID_RUNTIME_AUTO_UPDATE_CONSENT.getBoolean() || !YT_DLP_AUTO_UPDATE.getBoolean()))
+            return@LaunchedEffect
 
         if (!YT_DLP_AUTO_UPDATE.getBoolean() && YT_DLP_VERSION.getString().isNotEmpty())
             return@LaunchedEffect

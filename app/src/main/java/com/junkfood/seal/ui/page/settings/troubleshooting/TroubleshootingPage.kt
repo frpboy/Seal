@@ -36,6 +36,7 @@ import com.junkfood.seal.ui.component.PreferenceItem
 import com.junkfood.seal.ui.component.PreferenceSubtitle
 import com.junkfood.seal.ui.component.PreferenceSwitch
 import com.junkfood.seal.ui.page.settings.BasePreferencePage
+import com.junkfood.seal.ui.page.settings.general.rememberRuntimeUpdateConsent
 import com.junkfood.seal.ui.page.settings.general.YtdlpUpdateChannelDialog
 import com.junkfood.seal.util.PreferenceUtil.getString
 import com.junkfood.seal.util.PreferenceUtil.updateBoolean
@@ -57,6 +58,7 @@ fun TroubleShootingPage(
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val requestRuntimeConsent = rememberRuntimeUpdateConsent()
 
     BasePreferencePage(
         modifier = modifier,
@@ -124,8 +126,9 @@ fun TroubleShootingPage(
                     onClick = {
                         scope.launch(Dispatchers.IO) {
                             runCatching {
+                                    if (!requestRuntimeConsent(false)) return@launch
                                     isUpdating = true
-                                    UpdateUtil.updateYtDlp()
+                                    UpdateUtil.updateYtDlp(manualConsent = true)
                                     ytdlpVersion = YT_DLP_VERSION.getString()
                                 }
                                 .onFailure { th ->
