@@ -41,7 +41,7 @@ for source in seali-ejs-runner quickjs dtoa libregexp libunicode cutils; do
   "$CC" "${CFLAGS[@]}" -I"$WORK/target" -c "$WORK/target/$source.c" -o "$WORK/out/$source.o"
 done
 "$CC" -pie -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384 \
-  -Wl,-z,relro,-z,now -Wl,--build-id=sha1 -o "$WORK/out/libqjs.so" \
+  -Wl,-z,relro,-z,now -Wl,-z,separate-loadable-segments -Wl,--build-id=sha1 -o "$WORK/out/libqjs.so" \
   "$WORK/out/"*.o -lm -ldl
 "$TOOLCHAIN/llvm-readelf" -h -l -d -s "$WORK/out/libqjs.so" > "$WORK/out/libqjs.elf.txt"
 sha256sum "$WORK/out/"* > "$WORK/out/SHA256SUMS"
