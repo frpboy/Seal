@@ -56,7 +56,9 @@ class VerificationBoundaryTest(unittest.TestCase):
 
     def test_upload_does_not_silently_enable_release(self):
         self.assertIn("inputs.publish_apk_artifacts == true && inputs.build_release != true", self.source)
-        self.assertEqual(self.source.count("inputs.publish_apk_artifacts == true\n        uses: actions/upload-artifact@v4"), 5)
+        self.assertEqual(self.source.count("inputs.publish_apk_artifacts == true\n        uses: actions/upload-artifact@v4"), 6)
+        self.assertIn("name: seali-checksums", self.source)
+        self.assertIn("sha256sum -- *.apk > SHA256SUMS", self.source)
 
 
 if __name__ == "__main__":

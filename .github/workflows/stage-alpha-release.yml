@@ -79,7 +79,18 @@ jobs:
           HEAD_REPO=$(echo "$RUN_JSON" | jq -r .head_repository.full_name)
           EVENT=$(echo "$RUN_JSON" | jq -r .event)
           WORKFLOW=$(echo "$RUN_JSON" | jq -r .path)
-          [ "$WORKFLOW" = ".github/workflows/android_ci.yml" ] || { echo "ERROR: unsupported artifact workflow"; exit 1; }
+          case "$WORKFLOW" in
+            .github/workflows/android_ci.yml)
+              ;;
+            .github/workflows/android.yml)
+              CALL_SHA=$(echo "$RUN_JSON" | jq -r '.referenced_workflows[]? | select(.path | contains("/.github/workflows/android_ci.yml@")) | .sha' | head -n 1)
+              [ "$CALL_SHA" = "$TARGET" ] || { echo "ERROR: manual release wrapper did not call the canonical Android CI workflow at the target commit"; exit 1; }
+              ;;
+            *)
+              echo "ERROR: unsupported artifact workflow: $WORKFLOW"
+              exit 1
+              ;;
+          esac
           echo "run head_sha=$HEAD_SHA conclusion=$CONCLUSION repo=$HEAD_REPO event=$EVENT target=$TARGET"
           [ "$CONCLUSION" = "success" ] || { echo "ERROR: source run did not succeed"; exit 1; }
           [ "$HEAD_SHA" = "$TARGET" ] || { echo "ERROR: run head SHA does not match target commit"; exit 1; }
@@ -118,6 +129,53 @@ jobs:
                   raise SystemExit(f'ERROR: {apk.name} version does not match tag')
           PYAPK
 
+      - name: Verify SHA-256 manifest matches all five APKs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PYSHA'
+          import hashlib
+          import pathlib
+          import re
+
+          root = pathlib.Path("artifacts")
+          manifest = root / "seali-checksums" / "SHA256SUMS"
+          if not manifest.is_file() or manifest.stat().st_size == 0:
+              raise SystemExit("ERROR: signed APK SHA256SUMS artifact is missing or empty")
+
+          apks = sorted(root.rglob("*.apk"))
+          if len(apks) != 5:
+              raise SystemExit(f"ERROR: expected five APKs, found {len(apks)}")
+          suffixes = ("-universal.apk", "-arm64-v8a.apk", "-armeabi-v7a.apk", "-x86.apk", "-x86_64.apk")
+          for suffix in suffixes:
+              matches = [apk for apk in apks if apk.name.endswith(suffix)]
+              if len(matches) != 1:
+                  raise SystemExit(f"ERROR: expected exactly one {suffix} APK, found {len(matches)}")
+          if any(apk.stat().st_size <= 0 for apk in apks):
+              raise SystemExit("ERROR: an APK artifact is empty")
+
+          expected = {}
+          for line in manifest.read_text().splitlines():
+              fields = line.split(maxsplit=1)
+              if len(fields) != 2:
+                  raise SystemExit("ERROR: malformed SHA256SUMS entry")
+              digest, filename = fields
+              filename = filename.lstrip("* ")
+              if not re.fullmatch(r"[A-Za-z0-9._-]+\.apk", filename) or filename in expected:
+                  raise SystemExit("ERROR: invalid or duplicate APK filename in SHA256SUMS")
+              if not re.fullmatch(r"[0-9a-fA-F]{64}", digest):
+                  raise SystemExit("ERROR: invalid SHA-256 digest in SHA256SUMS")
+              expected[filename] = digest.lower()
+
+          if len(expected) != 5 or set(expected) != {apk.name for apk in apks}:
+              raise SystemExit("ERROR: SHA256SUMS does not cover exactly the five APK assets")
+          for apk in apks:
+              actual = hashlib.sha256(apk.read_bytes()).hexdigest()
+              if actual != expected[apk.name]:
+                  raise SystemExit(f"ERROR: SHA-256 mismatch for {apk.name}")
+          print("Verified non-empty APKs and SHA-256 checksums for universal, ARM64, ARMv7, x86 and x86_64.")
+          PYSHA
+
       - name: Create draft prerelease with APK assets
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -131,6 +189,7 @@ jobs:
           find artifacts -name '*.apk' -print
           APK_COUNT=$(find artifacts -name '*.apk' | wc -l)
           [ "$APK_COUNT" -eq 5 ] || { echo "ERROR: expected 5 APKs, found $APK_COUNT"; exit 1; }
+          test -s artifacts/seali-checksums/SHA256SUMS
           for abi in universal arm64-v8a armeabi-v7a x86 x86_64; do
             mapfile -t apks < <(find "artifacts/seali-$abi" -maxdepth 1 -type f -name "*-$abi.apk")
             [ "${#apks[@]}" -eq 1 ] || { echo "ERROR: expected one APK per ABI"; exit 1; }
@@ -145,4 +204,5 @@ jobs:
             artifacts/seali-arm64-v8a/*.apk \
             artifacts/seali-armeabi-v7a/*.apk \
             artifacts/seali-x86/*.apk \
-            artifacts/seali-x86_64/*.apk
+            artifacts/seali-x86_64/*.apk \
+            artifacts/seali-checksums/SHA256SUMS

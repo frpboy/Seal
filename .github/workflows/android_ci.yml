@@ -354,6 +354,15 @@ jobs:
           cp "${universal[0]}" "$output_dir/Seali-${ref_slug}-universal.apk"
           ls -lh "$output_dir"
 
+      - name: Generate release APK SHA-256 checksums
+        if: steps.signing.outputs.available == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd release-assets && sha256sum -- *.apk > SHA256SUMS)
+          test "$(wc -l < release-assets/SHA256SUMS)" -eq 5
+          echo "Generated SHA-256 checksums for all five signed APK variants."
+
       # Play builds are validated but never distributed as GitHub artifacts.
       # Upload to Google Play only through its separately approved process.
 
@@ -400,6 +409,15 @@ jobs:
         with:
           name: seali-universal
           path: release-assets/*-universal.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload release checksums
+        if: steps.signing.outputs.available == 'true' && (github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call') && inputs.publish_apk_artifacts == true
+        uses: actions/upload-artifact@v4
+        with:
+          name: seali-checksums
+          path: release-assets/SHA256SUMS
           if-no-files-found: error
           retention-days: 14
 
