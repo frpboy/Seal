@@ -80,14 +80,37 @@ def download(root):
 def prepare(root):
     require(platform.system()=='Linux' and platform.machine()=='x86_64','Linux x86_64 required')
     require(not root.exists() and not root.is_symlink(),'fresh job root required')
-    require(shutil.disk_usage(root.parent).free>=10*1024**3,'less than10GiB measured free disk')
-    mem={line.split(':')[0]:int(line.split()[1])*1024 for line in Path('/proc/meminfo').read_text().splitlines() if line.startswith(('MemTotal:','MemAvailable:'))}
-    require(mem['MemAvailable']>=1500*1024**2,'less than1500MiB available RAM')
     root.mkdir(mode=0o700)
     for n in ['inputs','sources','evidence','tmp','home']: (root/n).mkdir(mode=0o700)
+    # Diagnostic data stays in evidence/, which only encrypted custody uploads.
+    # Record measured prerequisites before each fail-closed admission check.
+    disk=shutil.disk_usage(root.parent).free
+    mem={line.split(':')[0]:int(line.split()[1])*1024 for line in Path('/proc/meminfo').read_text().splitlines() if line.startswith(('MemTotal:','MemAvailable:'))}
+    diagnostic={'scope':'predownload-admission-diagnostic-only','disk_free_bytes':disk,
+        'memory':mem,'network':{'status':'not-probed'},'downloads_started':False}
+    diagnostic_path=root/'evidence/predownload-admission.json'
+    def retain():
+        diagnostic_path.write_text(json.dumps(diagnostic,indent=2)+'\n')
+        diagnostic_path.chmod(0o600)
+    retain()
+    require(disk>=10*1024**3,'less than10GiB measured free disk')
+    require(mem['MemAvailable']>=1500*1024**2,'less than1500MiB available RAM')
     v=module('input-validation')
     # Probe host capacity and isolation before any722MB NDK/source download.
-    network=v.network_probe()
+    try:
+        network=v.network_probe()
+    except BaseException as error:
+        diagnostic['network']={'status':'probe-exception','error_type':type(error).__name__}
+        retain()
+        raise
+    # Fixed probe output only, no environment or unrelated host files. Bound the
+    # retained JSON even if a diagnostic unexpectedly grows. Gate uses original.
+    encoded=json.dumps(network)
+    diagnostic['network']=(network if len(encoded.encode())<=32768 else
+        {'status':'diagnostic-over-bound','bytes':len(encoded.encode()),
+         'available':network.get('available'),'exit_code':network.get('exit_code'),
+         'error':str(network.get('error',''))[:4096]})
+    retain()
     require(network['available'],'network namespace isolation unavailable')
     receipt={'scope':'source-only-arm64-components-prerequisites','memory':mem,
         'pre_download_network':network,'pre_download_disk_free':shutil.disk_usage(root).free,
