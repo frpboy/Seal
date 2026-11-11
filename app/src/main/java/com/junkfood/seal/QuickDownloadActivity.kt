@@ -2,9 +2,7 @@ package com.junkfood.seal
 
 import android.content.Intent
 import android.graphics.drawable.ColorDrawable
-import android.os.Build
 import android.os.Bundle
-import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -34,9 +32,18 @@ import com.junkfood.seal.util.matchUrlFromSharedText
 import com.junkfood.seal.util.setLanguage
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.net.URI
 import org.koin.androidx.viewmodel.ext.android.getViewModel
 
 private const val TAG = "QuickDownloadActivity"
+
+internal fun isSupportedShareUrl(value: String): Boolean =
+    runCatching {
+        URI(value).let { uri ->
+            (uri.scheme.equals("http", ignoreCase = true) || uri.scheme.equals("https", ignoreCase = true)) &&
+                !uri.host.isNullOrBlank()
+        }
+    }.getOrDefault(false)
 
 class QuickDownloadActivity : ComponentActivity() {
     private var sharedUrlCached: String = ""
@@ -65,28 +72,18 @@ class QuickDownloadActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        intent.getSharedURL()?.let { sharedUrlCached = it }
+        intent.getSharedURL()?.takeIf(::isSupportedShareUrl)?.let { sharedUrlCached = it }
 
         if (sharedUrlCached.isEmpty()) {
             finish()
+            return
         }
 
         App.startService()
 
         enableEdgeToEdge()
 
-        window.run {
-            setBackgroundDrawable(ColorDrawable(0))
-            setLayout(
-                WindowManager.LayoutParams.MATCH_PARENT,
-                WindowManager.LayoutParams.MATCH_PARENT,
-            )
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY)
-            } else {
-                setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT)
-            }
-        }
+        window.setBackgroundDrawable(ColorDrawable(0))
 
         if (Build.VERSION.SDK_INT < 33) {
             runBlocking { setLanguage(PreferenceUtil.getLocaleFromPreference()) }

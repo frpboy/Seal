@@ -14,6 +14,11 @@ import com.junkfood.seal.database.objects.OptionShortcut
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+internal fun templatesToImport(
+    templates: List<CommandTemplate>,
+    existingTemplates: List<CommandTemplate>,
+): List<CommandTemplate> = templates.filterNot { existingTemplates.contains(it) }.map { it.copy(id = 0) }
+
 object DatabaseUtil {
     private const val DATABASE_NAME = "app_database"
     private val db = Room.databaseBuilder(context, AppDatabase::class.java, DATABASE_NAME).build()
@@ -94,9 +99,7 @@ object DatabaseUtil {
                 if (templates != null) {
                     val templateList = getTemplateList()
                     dao.importTemplates(
-                        templateList
-                            .filterNot { templateList.contains(it) }
-                            .map { it.copy(id = 0) }
+                        templatesToImport(templates, templateList)
                             .also { cnt += it.size }
                     )
                 }

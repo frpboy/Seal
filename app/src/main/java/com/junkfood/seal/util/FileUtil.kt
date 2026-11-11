@@ -15,6 +15,7 @@ import androidx.documentfile.provider.DocumentFile
 import com.junkfood.seal.App.Companion.context
 import com.junkfood.seal.R
 import java.io.File
+import java.security.MessageDigest
 import okhttp3.internal.closeQuietly
 
 const val AUDIO_REGEX = "(mp3|aac|opus|m4a)$"
@@ -178,6 +179,15 @@ object FileUtil {
     fun Context.getConfigDirectory(): File = cacheDir
 
     fun Context.getConfigFile(suffix: String = "") = File(getConfigDirectory(), "config$suffix.txt")
+
+    internal fun taskConfigFileName(taskId: String): String =
+        "config-" +
+            MessageDigest.getInstance("SHA-256")
+                .digest(taskId.toByteArray())
+                .joinToString("") { "%02x".format(it.toInt() and 0xff) } +
+            ".txt"
+
+    fun Context.getTaskConfigFile(taskId: String) = File(getConfigDirectory(), taskConfigFileName(taskId))
 
     fun Context.getCookiesFile() = File(getConfigDirectory(), "cookies.txt")
 

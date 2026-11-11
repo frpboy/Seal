@@ -881,35 +881,40 @@ object DownloadUtil {
         progressCallback: ((Float, Long, String) -> Unit),
     ): Result<YoutubeDLResponse> {
         val urlList = urlString.split(Regex("[\n ]")).filter { it.isNotBlank() }
+        val configFile = context.getTaskConfigFile(taskId)
 
-        val request =
-            with(preferences) {
-                YoutubeDLRequest(urlList).apply {
-                    commandDirectory.takeIf { it.isNotEmpty() }?.let { addOption("-P", it) }
-                    addOption("--newline")
-                    if (aria2c) {
-                        enableAria2c()
-                    }
-                    if (useDownloadArchive) {
-                        useDownloadArchive()
-                    }
-                    if (restrictFilenames) {
-                        addOption("--restrict-filenames")
-                    }
-                    addOption(
-                        "--config-locations",
-                        FileUtil.writeContentToFile(template.template, context.getConfigFile())
-                            .absolutePath,
-                    )
-                    if (cookies) {
-                        enableCookies(userAgentString)
+        return try {
+            val request =
+                with(preferences) {
+                    YoutubeDLRequest(urlList).apply {
+                        commandDirectory.takeIf { it.isNotEmpty() }?.let { addOption("-P", it) }
+                        addOption("--newline")
+                        if (aria2c) {
+                            enableAria2c()
+                        }
+                        if (useDownloadArchive) {
+                            useDownloadArchive()
+                        }
+                        if (restrictFilenames) {
+                            addOption("--restrict-filenames")
+                        }
+                        addOption(
+                            "--config-locations",
+                            FileUtil.writeContentToFile(template.template, configFile)
+                                .absolutePath,
+                        )
+                        if (cookies) {
+                            enableCookies(userAgentString)
+                        }
                     }
                 }
-            }
 
-        return runCatching {
-            YoutubeDL.getInstance()
-                .execute(request = request, processId = taskId, callback = progressCallback)
+            runCatching {
+                YoutubeDL.getInstance()
+                    .execute(request = request, processId = taskId, callback = progressCallback)
+            }
+        } finally {
+            configFile.delete()
         }
     }
 
@@ -922,10 +927,13 @@ object DownloadUtil {
             val taskId = Downloader.makeKey(url = url, templateName = template.name)
             val notificationId = taskId.toNotificationId()
             val urlList = url.split(Regex("[\n ]")).filter { it.isNotBlank() }
+            val configFile = context.getTaskConfigFile(taskId)
 
-            ToastUtil.makeToastSuspend(context.getString(R.string.start_execute))
-            val request =
-                YoutubeDLRequest(urlList).apply {
+            var processStarted = false
+            try {
+                ToastUtil.makeToastSuspend(context.getString(R.string.start_execute))
+                val request =
+                    YoutubeDLRequest(urlList).apply {
                     commandDirectory.takeIf { it.isNotEmpty() }?.let { addOption("-P", it) }
                     addOption("--newline")
                     if (aria2c) {
@@ -939,7 +947,7 @@ object DownloadUtil {
                     }
                     addOption(
                         "--config-locations",
-                        FileUtil.writeContentToFile(template.template, context.getConfigFile())
+                        FileUtil.writeContentToFile(template.template, configFile)
                             .absolutePath,
                     )
                     if (cookies) {
@@ -947,9 +955,10 @@ object DownloadUtil {
                     }
                 }
 
-            onProcessStarted()
-            withContext(Dispatchers.Main) { onTaskStarted(template, url) }
-            runCatching {
+                onProcessStarted()
+                processStarted = true
+                withContext(Dispatchers.Main) { onTaskStarted(template, url) }
+                runCatching {
                     val response =
                         YoutubeDL.getInstance().execute(request = request, processId = taskId) {
                             progress,
@@ -980,7 +989,10 @@ object DownloadUtil {
                         else onTaskError(this, template, url)
                     }
                 }
-            onProcessEnded()
+            } finally {
+                configFile.delete()
+                if (processStarted) onProcessEnded()
+            }
         }
     }
 
