@@ -103,6 +103,65 @@ class Tests(unittest.TestCase):
         text=Path(__file__).with_name('prepare.py').read_text()
         body=text[text.index('def prepare('):]
         self.assertLess(body.index('network=v.network_probe()'),body.index("'inputs':download("))
+    def test_low_disk_retains_measurement_before_rejection(self):
+        from types import SimpleNamespace
+        job=self.root/'job'
+        with patch.object(prepare.shutil,'disk_usage',return_value=SimpleNamespace(free=1)),patch.object(prepare,'module') as module,patch.object(prepare,'download') as download:
+            with self.assertRaisesRegex(ValueError,'less than10GiB'):prepare.prepare(job)
+        module.assert_not_called();download.assert_not_called()
+        data=json.loads((job/'evidence/predownload-admission.json').read_text())
+        self.assertEqual(data['disk_free_bytes'],1)
+        self.assertEqual(data['network'],{'status':'not-probed'})
+
+    def test_rejected_probe_retains_private_diagnostic_without_download(self):
+        from types import SimpleNamespace
+        probe={'available':False,'exit_code':1,'error':'unshare: Operation not permitted'}
+        job=self.root/'job'
+        with patch.object(prepare,'module',return_value=SimpleNamespace(network_probe=lambda:probe)),patch.object(prepare,'download') as download:
+            with self.assertRaisesRegex(ValueError,'network namespace isolation unavailable'):
+                prepare.prepare(job)
+        download.assert_not_called()
+        receipt=job/'evidence/predownload-admission.json'
+        data=json.loads(receipt.read_text())
+        self.assertEqual(data['network'],probe)
+        self.assertGreater(data['disk_free_bytes'],0)
+        self.assertIn('MemAvailable',data['memory'])
+        self.assertEqual(receipt.stat().st_mode&0o777,0o600)
+        self.assertFalse(data['downloads_started'])
+        self.assertFalse((job/'custody-public.json').exists())
+
+    def test_rejected_probe_retains_interfaces_and_connect_details(self):
+        from types import SimpleNamespace
+        probe={'available':False,'parent_namespace':'net:[1]','probe':{'namespace':'net:[2]',
+            'interfaces':[{'name':'lo','up':True}], 'connections':[{'family':2,'connect_errno':101}]}}
+        with patch.object(prepare,'module',return_value=SimpleNamespace(network_probe=lambda:probe)),patch.object(prepare,'download') as download:
+            with self.assertRaisesRegex(ValueError,'network namespace isolation unavailable'):
+                prepare.prepare(self.root/'job')
+        download.assert_not_called()
+        self.assertEqual(json.loads((self.root/'job/evidence/predownload-admission.json').read_text())['network'],probe)
+
+    def test_probe_exception_retained_without_raw_environment(self):
+        from types import SimpleNamespace
+        job=self.root/'job'
+        def fail(): raise TimeoutError('sensitive unexpected text')
+        with patch.object(prepare,'module',return_value=SimpleNamespace(network_probe=fail)),patch.object(prepare,'download') as download:
+            with self.assertRaises(TimeoutError):prepare.prepare(job)
+        download.assert_not_called()
+        text=(job/'evidence/predownload-admission.json').read_text()
+        self.assertIn('TimeoutError',text)
+        self.assertNotIn('sensitive unexpected text',text)
+
+    def test_oversize_probe_diagnostic_is_bounded_but_guard_still_rejects(self):
+        from types import SimpleNamespace
+        probe={'available':False,'exit_code':1,'error':'x'*40000}
+        job=self.root/'job'
+        with patch.object(prepare,'module',return_value=SimpleNamespace(network_probe=lambda:probe)),patch.object(prepare,'download') as download:
+            with self.assertRaisesRegex(ValueError,'network namespace isolation unavailable'):prepare.prepare(job)
+        download.assert_not_called()
+        text=(job/'evidence/predownload-admission.json').read_text()
+        self.assertLess(len(text.encode()),8192)
+        self.assertIn('diagnostic-over-bound',text)
+
     def test_reduced_custody_keeps_build_not_sources(self):
         root=self.root/'job';root.mkdir()
         for name in ['sources','build','evidence','recipes','tmp','home','inputs']:
