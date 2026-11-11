@@ -4,8 +4,8 @@
 
 This repository continues work based on:
 
-- Project: [Seal](https://github.com/JunkFood02/Seal)
-- Original developer: [JunkFood02](https://github.com/JunkFood02)
+- Project: original open-source Android downloader (see [CREDITS.md](CREDITS.md))
+- Original author: documented in [CREDITS.md](CREDITS.md)
 - Original license: GNU General Public License v3.0
 - Upstream default branch: `main`
 
@@ -33,4 +33,4 @@ Seali will maintain its own issue triage, roadmap, testing, release process, and
 
 The repository is now standalone at [frpboy/Seali](https://github.com/frpboy/Seali). Seali uses the installed application ID `com.frpboy.seali`; the published alpha and later main changes are distinguished in [SEALI_STATUS.md](SEALI_STATUS.md). Detaching or renaming the repository does not replace inherited dependencies or qualify a new binary.
 
-Thank you to JunkFood02 and the original contributors for Seal. Their authorship, history and required notices remain intact. See [CREDITS.md](CREDITS.md). Owned Kotlin namespaces now use `com.frpboy.seali` in source preparation. Minimal legacy upgrade identifiers and real dependency coordinates remain where required; they do not identify Seali as an official upstream release. Source migration is not an installed/runtime qualification.
+Upstream authorship, historical references and required notices are centralized in [CREDITS.md](CREDITS.md). Owned Kotlin namespaces now use `com.frpboy.seali` in source preparation. Minimal legacy upgrade identifiers and real dependency coordinates remain where required; they do not identify Seali as an official upstream release. Source migration is not an installed/runtime qualification.

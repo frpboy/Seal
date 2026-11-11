@@ -6,7 +6,7 @@ makes no legal/compliance conclusion.
 
 ## Scope
 
-Seali bundles native code through the `io.github.junkfood02.youtubedl-android`
+Seali bundles native code through the the inherited youtubedl-android Maven group
 Maven artifacts `library`, `ffmpeg`, and `aria2c`, pinned in
 `gradle/libs.versions.toml`:
 
@@ -15,7 +15,7 @@ Maven artifacts `library`, `ffmpeg`, and `aria2c`, pinned in
 
 Both artifact POMs declare "GPL-3.0 license" and point their SCM URL at the
 upstream `github.com/yausername/youtubedl-android`; the publishing groupId is
-the fork `io.github.junkfood02`.
+the fork the upstream publisher group.
 
 ## Version 0.17.3 (what main currently ships)
 
@@ -25,7 +25,7 @@ the fork `io.github.junkfood02`.
 - Its arm64-v8a payload `libffmpeg.zip.so` has SHA-256
   `3e4dd8424f2ab3ca741ac37e121fac2efb4c3426948e16ace1ef9a1ffb482930`,
   byte-identical to the payload checked into the public repository
-  `github.com/junkfood02/youtubedl-android` at commit
+  `the upstream wrapper fork` at commit
   `d7c6ea110e4c6191fe1958402a62e69fdaee6674` ("release 0.17.2", the public
   `master` HEAD). The published binary therefore equals the payload recorded
   in public source control together with the Kotlin wrapper sources.
@@ -35,7 +35,7 @@ the fork `io.github.junkfood02`.
   `--enable-gpl --enable-version3 --enable-libx264 --enable-libx265`;
   `libavutil` carries the banner "GPL version 3 or later".
 - A public repository named `build-ffmpeg` was not located under either
-  `junkfood02` or `yausername` on GitHub as of 2026-11-09, so the Actions
+  `the upstream publisher` or `yausername` on GitHub as of 2026-11-09, so the Actions
   build definition itself was not found in sources checked.
 - Note: binary equality with the checked-in payload does not by itself
   establish complete corresponding source (exact build environment and the
@@ -107,16 +107,16 @@ FFmpeg/aria2 source.
 
 - Maven Central artifacts and `.sha256` sidecars: ffmpeg 0.17.3 and 0.18.1,
   library 0.17.3 and 0.18.1, aria2c 0.18.1 (POMs and sources jars included).
-- `github.com/junkfood02/youtubedl-android`: full branch and tag set, HEAD
+- `the upstream wrapper fork`: full branch and tag set, HEAD
   tree at d7c6ea1 including checked-in jniLibs payloads and BUILD_FFMPEG.md.
 - `github.com/yausername/youtubedl-android` tags.
 - `termux/termux-packages` commit history for `packages/ffmpeg/build.sh` and
   the current recipe.
-- Repository existence checks for `junkfood02/build-ffmpeg` and
+- Repository existence checks for `the upstream publisher/build-ffmpeg` and
   `yausername/build-ffmpeg` (not found).
 
 Not checked: termux-packages history for files other than
-`packages/ffmpeg/build.sh`, jitpack, other junkfood02 repositories, Maven
+`packages/ffmpeg/build.sh`, jitpack, other the upstream publisher repositories, Maven
 Central version-listing metadata beyond the versions above.
 
 ## Source-build work in progress (2026-11-09)

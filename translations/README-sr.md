@@ -4,7 +4,7 @@ This inherited translation is not yet fully updated or validated for Seali. Use 
 
 Maintainer: Rahul Muraleedharan. Contact: [frpboy12@gmail.com](mailto:frpboy12@gmail.com). Support: [FrpBoy Projects](https://t.me/FRPboy_Projects). Optional sponsorship: [Buy Me a Coffee](https://buymeacoffee.com/frpboy) or [Patreon](https://www.patreon.com/c/FrpBoy).
 
-Thank you to **JunkFood02** and contributors for the original [Seal project](https://github.com/JunkFood02/Seal). Original authorship and GPL-3.0 notices are preserved. See [CREDITS.md](../CREDITS.md). The links below have been updated for Seali; the inherited translation still needs language review.
+Upstream authorship, history and required GPL-3.0 notices are documented in [CREDITS.md](../CREDITS.md). The links below have been updated for Seali; the inherited translation still needs language review.
 
 ---
 

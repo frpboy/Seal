@@ -11,7 +11,7 @@ For Seali questions, use the [FrpBoy Projects Telegram group](https://t.me/FRPbo
 
 ## Disclaimer
 
-Seali is independently maintained by Rahul Muraleedharan and is based on Seal by JunkFood02. Thank you to the original author and contributors. See [CREDITS.md](CREDITS.md). Published alpha builds and unqualified main changes must not be presented as stable or fully tested.
+Seali is independently maintained by Rahul Muraleedharan. See [CREDITS.md](CREDITS.md) for upstream authorship, history and required notices. Published alpha builds and unqualified main changes must not be presented as stable or fully tested.
 
 
 ## Bug Report
