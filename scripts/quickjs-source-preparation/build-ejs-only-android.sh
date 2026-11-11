@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
-# SOURCE-ONLY CANDIDATE. Not an admission to build or a qualified Android binary.
+# Bounded cross-compilation only. Output is not runtime-qualified.
 # Caller provides original archive + already verified NDK r28c and host compiler.
 set -euo pipefail
-echo 'BLOCKED: independent EJS driver/source, temp/cancellation, target recipe review and run admission pending' >&2
-exit 78
-# Retained below for source review only, not execution.
 : "${NDK:?verified Android NDK r28c tree required}"
 : "${RUNNER_SOURCE:?exact reviewed EJS-only driver source required}"
 : "${SOURCE_ARCHIVE:?original QuickJS archive required}"
 : "${WORK:?new empty work directory required}"
 : "${BACKPORT_PATCH:?reviewed maintenance patch required}"
 : "${ABI:?arm64-v8a or x86_64 required}"
+# Resource bounds apply to compiler children too. No target execution in this recipe.
+ulimit -v 1310720
+ulimit -t 600
+[ "$(sed -n 's/^Pkg.Revision *= *//p' "$NDK/source.properties")" = "28.2.13676358" ]
+
 echo 'cfd2f86bc18559e3e59d8874e6da4f36db83a3631a627858ee19de8793d1d2fe  '"$RUNNER_SOURCE" | sha256sum -c -
 [ ! -e "$WORK" ] || { echo 'WORK must not exist' >&2; exit 1; }
 echo 'b376e839b322978313d929fd20663b11ba58b75df5a46c126dd19ea2fa70ad2a  '"$SOURCE_ARCHIVE" | sha256sum -c -
