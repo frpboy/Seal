@@ -44,10 +44,6 @@
     "sha256": "4cf748a8c9044b0a0b27ccb5e358fc689dbcf26b4ec4661961e87c8305127b82"
   },
   "tracked_files": {
-    "dependencies/frpboy-library/src/main/res/raw/ytdlp": {
-      "sha256": "e51e69e89489f199530f13d32a4342da3ddb2cf34842f364603a066db05afbf3",
-      "bytes": 3073072
-    },
     "functional-alpha-platform-jni.json": {
       "sha256": "84c16be9449036f8b7d8c4fad366adc1496e38d6f4e1bbf4ef053a80c196d6e5",
       "bytes": 861
@@ -59,5 +55,6 @@
     "tag_name": "custody-seali-alpha7-inputs-20261111",
     "name": "Unpublished Seali alpha7 build inputs custody",
     "target_commitish": "a38b36fb8550b62a69f34234784e1d4970387e7e"
-  }
+  },
+  "maven_lock": "scripts/build-contract/alpha7-maven-lock.json"
 }

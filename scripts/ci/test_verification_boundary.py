@@ -50,13 +50,38 @@ class VerificationBoundaryTest(unittest.TestCase):
         self.assertTrue(section.startswith("        if: always() && " + SIGNING + "\n"))
 
     def test_actual_unit_commands_remain_before_key_staging(self):
-        self.assertLess(self.source.index("testGenericDebugUnitTest :frpboy-library:testDebugUnitTest"), self.source.index("id: signing"))
+        self.assertLess(self.source.index("testGenericDebugUnitTest"), self.source.index("id: signing"))
         self.assertLess(self.source.index("./gradlew -p buildSrc test"), self.source.index("id: signing"))
         self.assertIn("persist-credentials: false", self.source)
-        self.assertIn("./gradlew -PfunctionalAlphaCandidate testGenericDebugUnitTest :frpboy-library:testDebugUnitTest", self.source)
+        self.assertIn("./gradlew -PfunctionalAlphaCandidate testGenericDebugUnitTest", self.source)
         self.assertIn("python3 scripts/test_owned_namespace_boundaries.py", self.source)
         self.assertIn("python3 scripts/owned-source-prep/test-seali-prepare-owned-producer-inputs.py", self.source)
         self.assertIn("python3 scripts/release-qualification/test-compatible-alpha7-verifier.py", self.source)
+
+    def test_maven_consumer_replaces_local_task_without_claiming_producer_coverage(self):
+        root=WORKFLOW.parents[2]
+        for name in ['android_ci.yml','alpha7-candidate.yml','classic-history-ui.yml']:
+            text=(root/'.github/workflows'/name).read_text()
+            self.assertNotIn(':frpboy-library:testDebugUnitTest',text)
+            self.assertIn('38 owned-library producer units moved to',text)
+            self.assertIn('Consumer contract CI staging awaits a source-bound producer artifact route.',text)
+        self.assertNotIn('python3 scripts/build-contract/test-maven-inputs.py',self.source.split('  maven-consumer-qualification:',1)[0])
+
+    def test_isolated_maven_workflow_is_manual_source_only(self):
+        text=self.source.split('  maven-consumer-qualification:\n',1)[1]
+        self.assertTrue(text.startswith("    if: github.event_name == 'workflow_dispatch' && inputs.qualify_maven_consumer == true\n"))
+        self.assertIn("if: github.event_name != 'workflow_dispatch' || inputs.qualify_maven_consumer != true",self.source)
+        self.assertIn('inputs.run_history_ui == true && inputs.qualify_maven_consumer != true',self.source)
+        self.assertIn('ref: 41ac9a5375aeccf7fe36b3946d7af05f2fad637e',text)
+        self.assertIn('python3 scripts/build-contract/test-maven-inputs.py',text)
+        self.assertIn(':app:compileGenericDebugKotlin :app:testGenericDebugUnitTest',text)
+        for name in ['BUILD_RELEASE','PUBLISH_APK','HISTORY_UI']:
+            self.assertIn('test "$'+name+'" = false',text)
+        self.assertIn('packages: platform-tools',text)
+        self.assertIn('expected_qualification_sha',self.source)
+        self.assertNotIn('secrets.',text)
+        self.assertNotIn('actions/upload-artifact',text)
+        self.assertNotIn(':app:assemble',text)
 
     def test_upload_does_not_silently_enable_release(self):
         self.assertIn("inputs.publish_apk_artifacts == true && inputs.build_release != true", self.source)

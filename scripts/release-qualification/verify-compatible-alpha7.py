@@ -45,7 +45,15 @@ with zipfile.ZipFile(apk) as z:
     assert raw_path != 'assets/functional-engine/yt-dlp'
     for name in ['assets/functional-engine/yt-dlp', raw_path]:
         assert hashlib.sha256(z.read(name)).hexdigest() == 'e51e69e89489f199530f13d32a4342da3ddb2cf34842f364603a066db05afbf3'
+# This isolated consumer lane requires its artifact lock. Missing custody fails closed.
+maven_lock = pathlib.Path('scripts/build-contract/alpha7-maven-lock.json')
+assert maven_lock.is_file(), 'required Maven artifact custody lock missing'
+import importlib.util
+spec=importlib.util.spec_from_file_location('alpha7_maven','scripts/build-contract/verify-alpha7-maven.py')
+maven=importlib.util.module_from_spec(spec);spec.loader.exec_module(maven)
+# Same immutable AAR bytes and resources are checked again at the final signed APK boundary.
+maven_receipt=maven.verify(pathlib.Path.cwd(),json.loads(maven_lock.read_text()),apk=apk,raw_path=raw_path)
 (out/'alpha7-resource-table.txt').write_text(resources)
 for name, text in [('alpha7-badging.txt',badging),('alpha7-manifest.txt',manifest),('alpha7-cert.txt',cert)]:
     (out/name).write_text(text)
-(out/'alpha7-static-check.json').write_text(json.dumps({'apk_sha256':hashlib.sha256(apk.read_bytes()).hexdigest(),'bytes':apk.stat().st_size,'package':'com.frpboy.seali','name':'2.0.0-alpha.7','code':200000172,'signer_sha256':'88774e5211b61f7827db0ba6991a668000ceab9a9e9490648054b8a19b6e070f','native_sha256':want,'raw_engine_resource_id':hex(raw_id),'raw_engine_zip_path':raw_path,'runtime_tested':False,'upgrade_tested':False,'download_tested':False,'public_release_ready':False},indent=2)+'\n')
+(out/'alpha7-static-check.json').write_text(json.dumps({'apk_sha256':hashlib.sha256(apk.read_bytes()).hexdigest(),'bytes':apk.stat().st_size,'package':'com.frpboy.seali','name':'2.0.0-alpha.7','code':200000172,'signer_sha256':'88774e5211b61f7827db0ba6991a668000ceab9a9e9490648054b8a19b6e070f','native_sha256':want,'raw_engine_resource_id':hex(raw_id),'raw_engine_zip_path':raw_path,'runtime_tested':False,'upgrade_tested':False,'download_tested':False,'public_release_ready':False,'maven_artifacts':maven_receipt},indent=2)+'\n')

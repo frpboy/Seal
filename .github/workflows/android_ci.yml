@@ -8,6 +8,15 @@ on:
     tags: [ "v*" ]
   workflow_dispatch:
     inputs:
+      qualify_maven_consumer:
+        description: 'Isolated source-only Maven consumer qualification, no APK or signing'
+        type: boolean
+        required: false
+        default: false
+      expected_qualification_sha:
+        description: 'Exact reviewed isolated consumer commit, required for qualification mode'
+        type: string
+        required: false
       build_release:
         description: 'Explicitly build owner-signed release APKs/AAB (separate from verification; no upload unless approved)'
         type: boolean
@@ -46,6 +55,7 @@ permissions:
 
 jobs:
   build:
+    if: github.event_name != 'workflow_dispatch' || inputs.qualify_maven_consumer != true
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -93,8 +103,11 @@ jobs:
       # Source verification needs no native payload and never produces an APK.
       # The candidate property admits this isolated source tree; it does not
       # admit release packaging, runtime qualification or public distribution.
+      # Consumer contract CI staging awaits a source-bound producer artifact route.
+      # The 38 owned-library producer units moved to the youtubedl-android fork CI.
+      # Consumer tests do not replace that producer coverage or Android runtime checks.
       - name: Run generic debug unit tests
-        run: ./gradlew -PfunctionalAlphaCandidate testGenericDebugUnitTest :frpboy-library:testDebugUnitTest
+        run: ./gradlew -PfunctionalAlphaCandidate testGenericDebugUnitTest
 
       - name: Run buildSrc unit tests
         run: ./gradlew -p buildSrc test --console=plain
@@ -445,7 +458,7 @@ jobs:
           rm -f app/seali-upload-key.jks "$RUNNER_TEMP/seali-upload-key.base64" "$RUNNER_TEMP/seali-keystore-check.log" "$RUNNER_TEMP/seali-upload-key-check.csr" "$RUNNER_TEMP/seali-upload-key-nested.base64" "$RUNNER_TEMP/seali-upload-key-nested.bin"
 
   history-ui:
-    if: (github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call') && inputs.run_history_ui == true
+    if: (github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call') && inputs.run_history_ui == true && inputs.qualify_maven_consumer != true
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
@@ -491,3 +504,75 @@ jobs:
             instrumentation-result.txt
             app/build/reports/androidTests/connected/
             app/build/outputs/androidTest-results/connected/
+
+  maven-consumer-qualification:
+    if: github.event_name == 'workflow_dispatch' && inputs.qualify_maven_consumer == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Check explicit consumer source
+        env:
+          EXPECTED_SHA: ${{ inputs.expected_qualification_sha }}
+          BUILD_RELEASE: ${{ inputs.build_release }}
+          PUBLISH_APK: ${{ inputs.publish_apk_artifacts }}
+          HISTORY_UI: ${{ inputs.run_history_ui }}
+        run: |
+          set -euo pipefail
+          test "$BUILD_RELEASE" = false
+          test "$PUBLISH_APK" = false
+          test "$HISTORY_UI" = false
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$GITHUB_SHA" = "$EXPECTED_SHA"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - name: Check out public producer at reviewed immutable source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: frpboy/youtubedl-android
+          ref: 41ac9a5375aeccf7fe36b3946d7af05f2fad637e
+          path: .qualification/producer
+          persist-credentials: false
+      - name: Verify producer source and self-contained policy tests
+        run: |
+          set -euo pipefail
+          python3 scripts/build-contract/check-pinned-producer.py --root . --producer .qualification/producer
+          python3 scripts/ci/test_verification_boundary.py
+          python3 scripts/release-qualification/test-compatible-alpha7-verifier.py
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407
+        with:
+          log-accepted-android-sdk-licenses: false
+          packages: platform-tools
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
+      - name: Install compile platform
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Build public producer locally and execute its 38 units
+        working-directory: .qualification/producer
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew --no-daemon :common:publishReleasePublicationToStagingRepository :library:publishReleasePublicationToStagingRepository :ffmpeg:publishReleasePublicationToStagingRepository :library:testReleaseUnitTest
+          python3 scripts/verify-publication.py --repository build/staging-deploy --group io.github.frpboy.youtubedl-android --version 0.1.0-alpha.7-staging.2 --engine-sha256 "$(cat engine-sha256.txt)" --engine-checker-sha256 "$(cat engine-checker-sha256.txt)"
+      - name: Require exact reviewed artifact bytes without automatic lock regeneration
+        run: |
+          set -euo pipefail
+          test ! -e .qualification/maven
+          cp -R .qualification/producer/build/staging-deploy .qualification/maven
+          python3 scripts/build-contract/verify-alpha7-maven.py --root . --lock scripts/build-contract/alpha7-maven-lock.json
+          python3 scripts/build-contract/test-maven-inputs.py
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Compile actual consumer and run app/buildSrc units, no APK
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew --no-daemon -PfunctionalAlphaCandidate :app:verifyGenericDebugReviewedMaven :app:compileGenericDebugKotlin :app:testGenericDebugUnitTest
+          ./gradlew --no-daemon -p buildSrc test
+      # No upload, native staging, APK, signing, secrets, dispatch, release or public registry.

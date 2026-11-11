@@ -49,8 +49,19 @@ class OwnedNamespaceBoundaries(unittest.TestCase):
         self.assertFalse((ROOT/'app/schemas/com.junkfood.seal.database.AppDatabase').exists())
         self.assertNotIn('io.github.junkfood02.youtubedl-android',(ROOT/'gradle/libs.versions.toml').read_text())
         app=(ROOT/'app/build.gradle.kts').read_text()
-        for module in ['frpboy-common','frpboy-library','frpboy-ffmpeg']:
-            self.assertIn('implementation(project(":'+module+'"))',app)
+        for module in ['common','library','ffmpeg']:
+            self.assertIn('implementation("io.github.frpboy.youtubedl-android:'+module+':0.1.0-alpha.7-staging.2")',app)
+            self.assertNotIn('implementation(project(":frpboy-'+module+'"))',app)
+        settings=(ROOT/'settings.gradle.kts').read_text()
+        self.assertIn('content { includeGroup("io.github.frpboy.youtubedl-android") }',settings)
+        self.assertIn('VerifyAlpha7MavenTask',app)
         self.assertNotIn('libs/functional-alpha/',app)
         self.assertIn('Based on Seal by JunkFood02',(ROOT/'app/src/main/java/com/frpboy/seali/ui/page/settings/about/AboutPage.kt').read_text())
+    def test_engine_stager_has_no_dead_local_library_destination(self):
+        text=(ROOT/'scripts/stage-owned-engine.py').read_text()
+        self.assertIn("app/src/main/assets/functional-engine/yt-dlp",text)
+        self.assertNotIn('dependencies/frpboy-library/src/main/res/raw/ytdlp',text)
+        lock=json.loads((ROOT/'scripts/build-contract/alpha7-input-lock.json').read_text())
+        self.assertEqual(lock['maven_lock'],'scripts/build-contract/alpha7-maven-lock.json')
+        self.assertNotIn('dependencies/frpboy-library/src/main/res/raw/ytdlp',lock['files'])
 if __name__=='__main__':unittest.main()

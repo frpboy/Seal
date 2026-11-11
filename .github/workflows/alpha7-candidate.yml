@@ -59,12 +59,14 @@ jobs:
         if: inputs.stage_only == false
         with:
           packages: platform-tools platforms;android-36 build-tools;36.0.0
+      # Consumer contract CI staging awaits a source-bound producer artifact route.
+      # The 38 owned-library producer units moved to youtubedl-android fork CI.
       - name: Compile and run source units before signing
         if: inputs.stage_only == false
         run: |
           set -euo pipefail
           chmod +x gradlew
-          ./gradlew --no-daemon testGenericDebugUnitTest :frpboy-library:testDebugUnitTest
+          ./gradlew --no-daemon testGenericDebugUnitTest
           ./gradlew --no-daemon -p buildSrc test
       - name: Build with existing original signing identity
         if: inputs.stage_only == false

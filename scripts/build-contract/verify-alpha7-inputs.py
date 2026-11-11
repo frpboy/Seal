@@ -13,6 +13,11 @@ def verify(root, lock, native_roots=None):
             if ancestor.is_symlink():raise ValueError('symlink input: '+name)
         if not path.is_file():raise ValueError('Missing reviewed alpha7 input: '+name+'; stage the locked ARM64 archive, never substitute upstream native AARs.')
         if path.stat().st_size!=row['bytes'] or hashlib.sha256(path.read_bytes()).hexdigest()!=row['sha256']:raise ValueError('input differs from reviewed custody: '+name)
+    if 'maven_lock' in lock:
+        import importlib.util
+        spec=importlib.util.spec_from_file_location('alpha7_maven',root/'scripts/build-contract/verify-alpha7-maven.py')
+        verifier=importlib.util.module_from_spec(spec);spec.loader.exec_module(verifier)
+        verifier.verify(root,json.loads((root/lock['maven_lock']).read_text()))
     expected={p for p in lock['files'] if '/jniLibs/' in p}
     actual=set()
     if native_roots is None:

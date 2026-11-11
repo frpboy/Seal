@@ -268,9 +268,9 @@ dependencies {
 
     implementation(libs.okhttp)
 
-    implementation(project(":frpboy-library"))
-    implementation(project(":frpboy-ffmpeg"))
-    implementation(project(":frpboy-common"))
+    implementation("io.github.frpboy.youtubedl-android:library:0.1.0-alpha.7-staging.2")
+    implementation("io.github.frpboy.youtubedl-android:ffmpeg:0.1.0-alpha.7-staging.2")
+    implementation("io.github.frpboy.youtubedl-android:common:0.1.0-alpha.7-staging.2")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.11.1")
     implementation("com.fasterxml.jackson.core:jackson-annotations:2.11.1")
     implementation("commons-io:commons-io:2.5")
@@ -285,4 +285,33 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.espresso.core)
     implementation(libs.androidx.compose.ui.tooling)
+}
+
+// Local isolated Maven qualification. Actual per-variant selected AAR bytes gate packaging.
+androidComponents {
+    onVariants { variant ->
+        val upperName = variant.name.replaceFirstChar { it.uppercaseChar() }
+        val ownedAars = configurations.getByName("${variant.name}RuntimeClasspath").incoming.artifactView {
+            componentFilter {
+                it is org.gradle.api.artifacts.component.ModuleComponentIdentifier &&
+                    it.group == "io.github.frpboy.youtubedl-android"
+            }
+            attributes {
+                attribute(org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "aar")
+            }
+        }.files
+        val verifyOwned = tasks.register<VerifyAlpha7MavenTask>("verify${upperName}ReviewedMaven") {
+            selectedAars.from(ownedAars)
+            artifactLock.set(rootProject.layout.projectDirectory.file("scripts/build-contract/alpha7-maven-lock.json"))
+            verifierScript.set(rootProject.layout.projectDirectory.file("scripts/build-contract/verify-alpha7-maven.py"))
+            repositoryRoot.set(rootProject.layout.projectDirectory)
+        }
+        tasks.configureEach {
+            if ((name.startsWith("merge${upperName}") &&
+                    (name.endsWith("Assets") || name.endsWith("NativeLibs") || name.endsWith("JniLibFolders"))) ||
+                name == "compress${upperName}Assets") {
+                dependsOn(verifyOwned)
+            }
+        }
+    }
 }

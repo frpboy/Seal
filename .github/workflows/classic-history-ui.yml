@@ -116,12 +116,14 @@ jobs:
           set -euo pipefail
           python3 scripts/quickjs-source-preparation/verify-quickjs-target.py --elf "$CUSTODY_ROOT/build/quickjs-ejs-only/out/libqjs.so" --ndk "$ANDROID_NDK_HOME" --abi arm64-v8a --out "$CUSTODY_ROOT/build/quickjs-ejs-only/static-evidence"
           python3 scripts/quickjs-source-preparation/stage-verified-payload.py --elf "$CUSTODY_ROOT/build/quickjs-ejs-only/out/libqjs.so" --receipt "$CUSTODY_ROOT/build/quickjs-ejs-only/static-evidence/static-target-check.json" --root .
+      # Consumer contract CI staging awaits a source-bound producer artifact route.
+      # The 38 owned-library producer units moved to youtubedl-android fork CI.
       - name: Private debug APK, unit tests and instrumentation compilation only
         id: app
         run: |
           set -euo pipefail
           chmod +x gradlew
-          timeout --signal=TERM --kill-after=30s 1500 ./gradlew --no-daemon --max-workers=2 -Dorg.gradle.jvmargs=-Xmx3072m -Pkotlin.compiler.execution.strategy=in-process -PfunctionalAlphaCandidate -PnoSplits -PABI_FILTERS=arm64-v8a :frpboy-library:testDebugUnitTest :app:testGenericDebugUnitTest :app:assembleGenericDebug :app:assembleGenericDebugAndroidTest
+          timeout --signal=TERM --kill-after=30s 1500 ./gradlew --no-daemon --max-workers=2 -Dorg.gradle.jvmargs=-Xmx3072m -Pkotlin.compiler.execution.strategy=in-process -PfunctionalAlphaCandidate -PnoSplits -PABI_FILTERS=arm64-v8a :app:testGenericDebugUnitTest :app:assembleGenericDebug :app:assembleGenericDebugAndroidTest
       - name: Build compatible alpha7 using existing production identity
         id: release_app
         timeout-minutes: 26
