@@ -1,0 +1,46 @@
+name: Owned ARM64 SSL and Expat source build (manual review lane)
+on:
+  workflow_dispatch:
+    inputs:
+      expected_source_sha:
+        description: Exact reviewed commit containing this lane
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: owned-arm64-components
+  cancel-in-progress: false
+jobs:
+  components:
+    if: github.repository == 'frpboy/Seali' && github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Source preparation guards only
+        run: python3 scripts/owned-components/test_owned_components.py
+      - name: Build two source components only
+        timeout-minutes: 86
+        env:
+          EXPECTED_SOURCE_SHA: ${{ inputs.expected_source_sha }}
+          REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
+        run: |
+          set -euo pipefail
+          python3 scripts/owned-components/run.py --expected-source-sha "$EXPECTED_SOURCE_SHA"
+      - name: Retain only bounded encrypted custody
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: owned-components-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/seali-owned-components-job/owned-components.cms
+            ${{ runner.temp }}/seali-owned-components-job/custody-public.json
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
+      # No app, Python, signing, runtime, caches, release or output-pin promotion.
+      # Dispatch requires fresh account storage admission and source/recipe review
+      # outside this repository; a generated receipt cannot grant permission.

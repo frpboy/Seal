@@ -1,0 +1,307 @@
+{
+  "inputs": {
+    "python-baseline/archives/Python-3.11.10.tar.xz": {
+      "bytes": 20067656,
+      "name": "Python-3.11.10.tar.xz",
+      "sha256": "07a4356e912900e61a15cb0949a06c4a05012e213ecd6b4e84d0f67aabbee372"
+    },
+    "python-baseline/archives/bzip2-1.0.8.tar.gz": {
+      "bytes": 810029,
+      "name": "bzip2-1.0.8.tar.gz",
+      "sha256": "ab5a03176ee106d3f0fa90e381da478ddae405918153cca248e682cd0c4a2269"
+    },
+    "python-baseline/archives/expat-2.10.0.tar.xz": {
+      "bytes": 543404,
+      "name": "expat-2.10.0.tar.xz",
+      "sha256": "c624ba2998fc65df1163a49641ff3f9ab73138b11641d92c86bee0fb01b1bc7f"
+    },
+    "python-baseline/archives/libandroid-support-29.tar.gz": {
+      "bytes": 12699,
+      "name": "libandroid-support-29.tar.gz",
+      "sha256": "8f74ce0f9cf70ec29f548696c248cac0ba560a2d8916a0fe1cf9316d5f167a80"
+    },
+    "python-baseline/archives/libffi-3.4.6.tar.gz": {
+      "bytes": 1391684,
+      "name": "libffi-3.4.6.tar.gz",
+      "sha256": "b0dea9df23c863a7a50e825440f3ebffabd65df1497108e5d437747843895a4e"
+    },
+    "python-baseline/archives/mutagen-1.47.0.tar.gz": {
+      "bytes": 1274186,
+      "name": "mutagen-1.47.0.tar.gz",
+      "sha256": "719fadef0a978c31b4cf3c956261b3c58b6948b32023078a2117b1de09f0fc99"
+    },
+    "python-baseline/archives/ncurses-a480458e.tar.gz": {
+      "bytes": 3613836,
+      "name": "ncurses-a480458e.tar.gz",
+      "sha256": "ec6122c3b8ab930d1477a1dbfd90299e9f715555a98b6e6805d5ae1b0d72becd"
+    },
+    "python-baseline/archives/openssl-3.5.9.tar.gz": {
+      "bytes": 53279637,
+      "name": "openssl-3.5.9.tar.gz",
+      "sha256": "603f5602e2eef00d77fbd429d34dcd5822bb301757a1bc9cdb24c670f1eb859a"
+    },
+    "python-baseline/archives/pycryptodomex-3.20.0.tar.gz": {
+      "bytes": 4794613,
+      "name": "pycryptodomex-3.20.0.tar.gz",
+      "sha256": "7a710b79baddd65b806402e14766c721aee8fb83381769c27920f26476276c1e"
+    },
+    "python-baseline/archives/sqlite-autoconf-3460100.tar.gz": {
+      "bytes": 3265571,
+      "name": "sqlite-autoconf-3460100.tar.gz",
+      "sha256": "67d3fe6d268e6eaddcae3727fce58fcc8e9c53869bdd07a0c61e38ddf2965071"
+    },
+    "python-baseline/archives/termux-9115a276.tar.gz": {
+      "bytes": 7230359,
+      "name": "termux-9115a276.tar.gz",
+      "sha256": "7cb09b5c35b457f6b57172350cda04b5786a91bc4bd8a63b2d875090d52c521c"
+    },
+    "python-baseline/archives/wcwidth-4.tar.gz": {
+      "bytes": 12096,
+      "name": "wcwidth-4.tar.gz",
+      "sha256": "08489e00f797ffb3b71f9c1894c83e5ebe12c90a2ee0e1f9dc7c6eb29a2ff1a8"
+    },
+    "python-baseline/archives/xz-5.6.2.tar.xz": {
+      "bytes": 1307448,
+      "name": "xz-5.6.2.tar.xz",
+      "sha256": "a9db3bb3d64e248a0fae963f8fb6ba851a26ba1822e504dc0efd18a80c626caf"
+    },
+    "python-baseline/archives/zlib-1.3.1.tar.xz": {
+      "bytes": 1305740,
+      "name": "zlib-1.3.1.tar.xz",
+      "sha256": "38ef96b8dfe510d42707d9c781877914792541133e1870841463bfa73f883e32"
+    },
+    "python-baseline/notices/cacert.pem": {
+      "bytes": 200116,
+      "name": "cacert.pem",
+      "sha256": "427c064216761a1e72a8b30f0d954d08cb6e4435a82091fb865afd20c8497285"
+    },
+    "python-refresh/archives/Python-3.11.18.tar.xz": {
+      "bytes": 20351120,
+      "name": "Python-3.11.18.tar.xz",
+      "sha256": "9120e0a653868f6e3698d36cdd99e5a58903ec9469e448f21d98f7b16d8fa290"
+    },
+    "python-refresh/archives/libffi-3.8.0.tar.gz": {
+      "bytes": 1581626,
+      "name": "libffi-3.8.0.tar.gz",
+      "sha256": "7da3e2d9a171eb0a038f592ecad3ff2bb2550f3496d87b3b29ad0cf4430c0db4"
+    },
+    "python-refresh/archives/ncurses-26ceb3cbd343d2e503ca21d90077143a12727c22.tar.gz": {
+      "bytes": 3701824,
+      "name": "ncurses-26ceb3cbd343d2e503ca21d90077143a12727c22.tar.gz",
+      "sha256": "17a6be16b695ad6843965856590439834c60b6488fdffb428796b57d717e1251"
+    },
+    "python-refresh/archives/pycryptodomex-3.24.2.tar.gz": {
+      "bytes": 4963137,
+      "name": "pycryptodomex-3.24.2.tar.gz",
+      "sha256": "e4dbc29e2575365d15e272f769329106277649aea081e2119cf43d66950f8f8f"
+    },
+    "python-refresh/archives/sqlite-autoconf-3540100.tar.gz": {
+      "bytes": 3332984,
+      "name": "sqlite-autoconf-3540100.tar.gz",
+      "sha256": "926ef8d3eab93fbf6e06011901273eec076b25594a4e1cdadd50c987f4f6d64e"
+    },
+    "python-refresh/archives/xz-5.8.4.tar.xz": {
+      "bytes": 1567192,
+      "name": "xz-5.8.4.tar.xz",
+      "sha256": "4ce24038fd4221e0d13bc1a2de7a4db56e90b92b3bf75321f6c14be73f65de4b"
+    },
+    "python-refresh/archives/zlib-1.4.tar.xz": {
+      "bytes": 1320316,
+      "name": "zlib-1.4.tar.xz",
+      "sha256": "4f11c512053d7bab8d9e9b89bde3575add3e4c50a383b42ef6cb837035fc5a7c"
+    }
+  },
+  "metadata": {
+    "python-baseline/recipe/producer-source-inputs.json": {
+      "names": [
+        "Python-3.11.10.tar.xz",
+        "bzip2-1.0.8.tar.gz",
+        "cacert.pem",
+        "expat-2.10.0.tar.xz",
+        "libandroid-support-29.tar.gz",
+        "libffi-3.4.6.tar.gz",
+        "mutagen-1.47.0.tar.gz",
+        "ncurses-a480458e.tar.gz",
+        "openssl-3.5.9.tar.gz",
+        "pycryptodomex-3.20.0.tar.gz",
+        "sqlite-autoconf-3460100.tar.gz",
+        "termux-9115a276.tar.gz",
+        "wcwidth-4.tar.gz",
+        "xz-5.6.2.tar.xz",
+        "zlib-1.3.1.tar.xz"
+      ],
+      "sha256": "836ec28a91ef4b95a1069936882c54cee53bf1a67bd2e7f58e2f9a932b546aa0"
+    },
+    "python-refresh/archives/source-inputs.json": {
+      "names": [
+        "Python-3.11.18.tar.xz",
+        "libffi-3.8.0.tar.gz",
+        "ncurses-26ceb3cbd343d2e503ca21d90077143a12727c22.tar.gz",
+        "pycryptodomex-3.24.2.tar.gz",
+        "sqlite-autoconf-3540100.tar.gz",
+        "xz-5.8.4.tar.xz",
+        "zlib-1.4.tar.xz"
+      ],
+      "sha256": "b9540f9b39db9e49141c9e3d2b5af5b1eb64c657cd2e4b49afc2c5da9200afea"
+    }
+  },
+  "recipe": {
+    "OPENSSL-CONFIG-CHOICE.md": {
+      "bytes": 3521,
+      "sha256": "d06a162098c264d1d8d0413547c0bf943c652871ea378d58526155794a5eed4b"
+    },
+    "README.md": {
+      "bytes": 10690,
+      "sha256": "cdae529c4f825eaef7a1f38dabdb3450212482f43c9fa6c3d448000ae9d2cab3"
+    },
+    "SECURITY-DISPOSITION.md": {
+      "bytes": 6210,
+      "sha256": "7e3e7586b3298f6425cf6142d75cf2282d0f6af2b84e17b2d571fa7e78add0b1"
+    },
+    "additional-source-deltas.json": {
+      "bytes": 276,
+      "sha256": "89f1f28ceac4d1985c67d07264395803060e125e5707269c11a58a5f554c2f3e"
+    },
+    "audit-native-import-closure.py": {
+      "bytes": 2961,
+      "sha256": "95cdb368b2df904bf19a46f324040d23951b1ce36d1358feaec100e363a8f928"
+    },
+    "audit-python-elf-pages.py": {
+      "bytes": 4588,
+      "sha256": "14f8d7d692daf2e54c86a4dae1dcc601c3cf111b9c50306879107a8431911684"
+    },
+    "baseline-cryptodome-native-paths.json": {
+      "bytes": 1544,
+      "sha256": "0debd7634dbf7b8276e13a9b2a00fe87ca32bffcc0963ae77ef38468ccb88f20"
+    },
+    "baseline-file-allowlist.json": {
+      "bytes": 103135,
+      "sha256": "2e3ea7b304864db0ad8cf3d44dd8d7d0c1ab87ea780611e3e64a713c282aa80d"
+    },
+    "build-cpython-arm64.sh": {
+      "bytes": 3963,
+      "sha256": "490b25ee4803e7de40764da3215888d47bd1bff46c2befc16bd5bd405d2916c3"
+    },
+    "build-launcher-arm64.sh": {
+      "bytes": 1301,
+      "sha256": "78e696800db62f2a156c879c5decfb057e61f75a8cdb3ffd8470525285090d2f"
+    },
+    "build-pycryptodomex-arm64.sh": {
+      "bytes": 1883,
+      "sha256": "18881c1bd6625c9e34ba65da71eb86c5aa2ecaffd884c641be72e23da6664a1a"
+    },
+    "build-python-dependencies-arm64.sh": {
+      "bytes": 6202,
+      "sha256": "399e71e5014f7f0b41e8f4d4053a990a9a5d1e806e197e9f12393c6c43fa6898"
+    },
+    "check-candidate-closure.sh": {
+      "bytes": 564,
+      "sha256": "3406107b4f97ed109b82148384484eb44dd6c40efdeed19cdb1c1d0647ecde83"
+    },
+    "closure-command-input-receipt.json": {
+      "bytes": 5234,
+      "sha256": "fe61285e6146e141501d9827d9edb71629a877901139e3ccfb7b6a0d26df6aef"
+    },
+    "package-source-python.py": {
+      "bytes": 5795,
+      "sha256": "d61e73a3b41f49c02450bc8b94b92c107d7b3246ba6cd8d80b07465f0fd18194"
+    },
+    "patch-inputs.json": {
+      "bytes": 732,
+      "sha256": "0add1ef45839505f9fae2026206c4517d6a53bfbdd02c32f53bc8415923834a7"
+    },
+    "patches/cpython-3.11.10-termux-canonical.patch": {
+      "bytes": 13103,
+      "sha256": "20c918c1a6a484da86fa6e1ae67a5ff843a165012199add28972e831121f645b"
+    },
+    "patches/cpython-3.11.18-expat-feature-guards.patch": {
+      "bytes": 3863,
+      "sha256": "4b4716fe594de2b2be1b4bb5ffdc03e9173fa23191af25e20e71ed932ba63c70"
+    },
+    "patches/cpython-3.11.18-seali-canonical.patch": {
+      "bytes": 18488,
+      "sha256": "6d20563968222054e48ddd53354cf0f1027a4c9032f1398ca254f182197d71cd"
+    },
+    "patches/cpython-android24-grp.patch": {
+      "bytes": 568,
+      "sha256": "976c71a7aa61a171c3dd0bde7dadbd8b0aee39283491f83b336581ec020545f7"
+    },
+    "patches/cpython-seali-runtime-paths.patch": {
+      "bytes": 3488,
+      "sha256": "1d1cc647af9363463c3f6a8343b5c82b25cf2d822870545ceb3076c10e3f1e0a"
+    },
+    "patches/cpython-semaphore-aliases.patch": {
+      "bytes": 802,
+      "sha256": "7538324236d7a5388938a0d68a37cca1bdeb862c4cd58d1849cdfdf66dd58e36"
+    },
+    "patches/semaphore-private-tmpdir.patch": {
+      "bytes": 748,
+      "sha256": "608c8f1a2c0de6a06df65bbb9f08a71b800914e6cb8363703da1040c768ddb14"
+    },
+    "patches/xz-5.8.4-android-soname.patch": {
+      "bytes": 1319,
+      "sha256": "92a99f1ab48687988354d8271d85d8cdf04b3296a95a47072be7e8d9919e0869"
+    },
+    "prepare-cpython-source.py": {
+      "bytes": 1387,
+      "sha256": "85bac7c1433bbe70aad61c71fb03199d0f9fae50a4850825524e48071cbffa98"
+    },
+    "producer-source-inputs.json": {
+      "bytes": 4365,
+      "sha256": "836ec28a91ef4b95a1069936882c54cee53bf1a67bd2e7f58e2f9a932b546aa0"
+    },
+    "qualified-expat-lock.json": {
+      "bytes": 748,
+      "sha256": "126f692ca006a359b22257081b52b8f04594e17981d2f483139d4a96ab10f526"
+    },
+    "refresh-compression-arm64.sh": {
+      "bytes": 2348,
+      "sha256": "fa2d8a6c8b9cc79df1779c1a7adc76dae2523b27fb01440d3ea82a15ef452901"
+    },
+    "refresh-remaining-arm64.sh": {
+      "bytes": 3451,
+      "sha256": "1282dbac19b7667c9259cf682830c30d9fec02d8869371cbf81b7c86d747f658"
+    },
+    "refreshed-cryptodome-native-paths.json": {
+      "bytes": 1592,
+      "sha256": "6a4f55971efb5ed5bc18f3de5aa85a269a0b11986d8436d29d3027c7a5fbb3e0"
+    },
+    "required-module-paths.json": {
+      "bytes": 2911,
+      "sha256": "8e244049f9c4b4c59fff792bac639f30228469008c0a3174aea7e0c5ed0f03b7"
+    },
+    "runtime-path-patch.json": {
+      "bytes": 2103,
+      "sha256": "f2b31247684bc52467d4ff8caabc99093d6f6fc2cc11d21d397dbb0e2d40a95e"
+    },
+    "seali-python-launcher.c": {
+      "bytes": 398,
+      "sha256": "c34810311879f14d864928aee03c3d25bd5a5facbac800b0376b88712052be82"
+    },
+    "source-lock.json": {
+      "bytes": 5399,
+      "sha256": "2d1c75dbf3789fe5b69eb119d09b4cd0c099f70e8e950a154691916059b40d80"
+    },
+    "strict-patch-receipt.txt": {
+      "bytes": 733,
+      "sha256": "5675bb2eb20e2ff091ce855666557b57e076feda5ea4e5a260971325b9695cfb"
+    },
+    "tests/launcher-forwarding.txt": {
+      "bytes": 82,
+      "sha256": "b859c43f937a25be905ad86b811a1021f74468730ab40cac0af29fb9a0f698ad"
+    },
+    "tests/page-audit.txt": {
+      "bytes": 107,
+      "sha256": "d9d734ee1c2de67b748aeef1c4126433aa438ad8375ca953916f12b1df11414d"
+    },
+    "tests/source-prepare.txt": {
+      "bytes": 725,
+      "sha256": "41c17374d45b788b2e22230cdc759313f9a0dcfd0086f93195e4cb3171143872"
+    },
+    "tests/test_page_audit.py": {
+      "bytes": 2563,
+      "sha256": "e943174923197dca001a0a835a02ef55df2b7d8fda7b06880e7b5f86ae4cf40c"
+    }
+  },
+  "schema": 1
+}
