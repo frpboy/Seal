@@ -55,6 +55,7 @@ class VerificationBoundaryTest(unittest.TestCase):
         self.assertIn("persist-credentials: false", self.source)
         self.assertIn("./gradlew -PfunctionalAlphaCandidate testGenericDebugUnitTest :frpboy-library:testDebugUnitTest", self.source)
         self.assertIn("python3 scripts/test_owned_namespace_boundaries.py", self.source)
+        self.assertIn("python3 scripts/owned-source-prep/test-seali-prepare-owned-producer-inputs.py", self.source)
         self.assertIn("python3 scripts/release-qualification/test-compatible-alpha7-verifier.py", self.source)
 
     def test_upload_does_not_silently_enable_release(self):
