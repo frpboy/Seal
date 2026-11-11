@@ -1,0 +1,92 @@
+name: Alpha7 ARM64 candidate (owner manual, unpublished custody)
+on:
+  workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: 'Full reviewed main SHA supplied with ready-to-trigger instruction'
+        type: string
+        required: true
+      stage_only:
+        description: 'Verify job-token custody download/staging only, no signing or APK'
+        type: boolean
+        required: false
+        default: true
+permissions: {}
+concurrency:
+  group: seali-alpha7-manual-candidate
+  cancel-in-progress: false
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # Only this manually dispatched job needs unpublished draft push-user access.
+    permissions:
+      contents: write
+    env:
+      EXPECTED_SHA: ${{ inputs.expected_sha }}
+      CUSTODY_ROOT: ${{ runner.temp }}/seali-alpha7-evidence
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Verify exact manual main source before any input or secret
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_EVENT_NAME" = workflow_dispatch
+          test "$GITHUB_REPOSITORY" = frpboy/Seali
+          test "$GITHUB_REF" = refs/heads/main
+          test "$GITHUB_SHA" = "$EXPECTED_SHA"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          test "$(gh api repos/frpboy/Seali/branches/main --jq .commit.sha)" = "$EXPECTED_SHA"
+          mkdir -p "$CUSTODY_ROOT/evidence"
+      - name: Download and stage only locked unpublished inputs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 scripts/build-contract/test-inputs.py
+          python3 scripts/build-contract/custody-inputs.py download --output "$RUNNER_TEMP/seali-alpha7-arm64-inputs.tar"
+          python3 scripts/build-contract/stage-alpha7-inputs.py --archive "$RUNNER_TEMP/seali-alpha7-arm64-inputs.tar" --root "$GITHUB_WORKSPACE" --lock scripts/build-contract/alpha7-input-lock.json
+          python3 scripts/build-contract/verify-alpha7-inputs.py --root "$GITHUB_WORKSPACE"
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        if: inputs.stage_only == false
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407
+        if: inputs.stage_only == false
+        with:
+          packages: platform-tools platforms;android-36 build-tools;36.0.0
+      - name: Compile and run source units before signing
+        if: inputs.stage_only == false
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew --no-daemon testGenericDebugUnitTest :frpboy-library:testDebugUnitTest
+          ./gradlew --no-daemon -p buildSrc test
+      - name: Build with existing original signing identity
+        if: inputs.stage_only == false
+        env:
+          KEYSTORE_BASE64: ${{ secrets.SEALI_UPLOAD_KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.SEALI_UPLOAD_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.SEALI_UPLOAD_KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
+        run: bash scripts/release-qualification/build-compatible-alpha7.sh
+      - name: Verify final signed ARM64 APK before any retention
+        if: inputs.stage_only == false
+        run: |
+          set -euo pipefail
+          python3 scripts/release-qualification/test-compatible-alpha7-verifier.py
+          python3 scripts/release-qualification/verify-compatible-alpha7.py
+      - name: Retain verified APK and receipt in unpublished custody only
+        if: inputs.stage_only == false
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mapfile -t apks < <(find app/build/outputs/apk/generic/release -maxdepth 1 -type f -name '*.apk')
+          test "${#apks[@]}" = 1
+          python3 scripts/build-contract/custody-inputs.py retain --apk "${apks[0]}" --receipt "$CUSTODY_ROOT/evidence/alpha7-static-check.json"
+          # Draft remains unpublished. No public artifact, release or tag operation.

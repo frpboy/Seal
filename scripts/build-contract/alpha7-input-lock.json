@@ -52,5 +52,12 @@
       "sha256": "84c16be9449036f8b7d8c4fad366adc1496e38d6f4e1bbf4ef053a80c196d6e5",
       "bytes": 861
     }
+  },
+  "custody": {
+    "release_id": 441954416,
+    "asset_id": 736184853,
+    "tag_name": "custody-seali-alpha7-inputs-20261111",
+    "name": "Unpublished Seali alpha7 build inputs custody",
+    "target_commitish": "a38b36fb8550b62a69f34234784e1d4970387e7e"
   }
 }
