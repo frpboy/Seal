@@ -1,11 +1,14 @@
 [
   {
-    "aar": "mmkv-1.3.12.aar",
-    "aar_sha256": "97abbe23d5afed6c2739bc754957230de66466985ef868226ec31036bbce014b",
+    "source": "Tencent/MMKV v1.3.17 source project :frpboy-mmkv",
+    "source_commit": "8bf97e7816dbfe016273cc2b8f5c3f1b36f9621c",
     "entry": "jni/arm64-v8a/libmmkv.so",
     "apk_entry": "lib/arm64-v8a/libmmkv.so",
-    "bytes": 590136,
-    "sha256": "fa85a4c9da455b8135c0d3f384e69d29b22ac8d83a37ba2feb889b24367b09f2"
+    "bytes": 610544,
+    "sha256": "6544cd777e2b7bfdc450dcfbb22e1145062e9077296700f1251abcd03724fae0",
+    "source_archive_sha256": "1593761a62bd7ffe5eaa90a1530dc2c9e587110081da00f230557cc0c3fb3179",
+    "ndk": "r28c, differs from upstream r28.1",
+    "runtime_tested": false
   },
   {
     "aar": "graphics-path-1.0.1.aar",

@@ -179,6 +179,7 @@ object YoutubeDL {
             this["PATH"] = System.getenv("PATH") + ":" + binDir!!.absolutePath
             this["PYTHONHOME"] = ENV_PYTHONHOME
             this["HOME"] = ENV_PYTHONHOME
+            selectOwnedPythonConfig(checkNotNull(ENV_PYTHONHOME))
             this["TMPDIR"] = invocation.directory.absolutePath
         }
 

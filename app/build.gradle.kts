@@ -251,7 +251,7 @@ dependencies {
     implementation("commons-io:commons-io:2.5")
     implementation("org.apache.commons:commons-compress:1.12")
 
-    implementation(libs.mmkv)
+    implementation(project(":frpboy-mmkv"))
 
     testImplementation(libs.junit4)
     androidTestImplementation(platform(libs.androidx.compose.bom))
