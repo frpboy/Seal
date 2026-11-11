@@ -1,0 +1,3 @@
+CA source: https://curl.se/ca/cacert.pem
+Source and license information: https://curl.se/docs/caextract.html
+Mozilla certificate source license: MPL 2.0. This transformed PEM lacks Mozilla per-certificate constraints, as curl documents.

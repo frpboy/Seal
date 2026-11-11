@@ -1,0 +1,549 @@
+--- a/quickjs.c
++++ b/quickjs.c
+@@ -7535,19 +7535,24 @@
+ 
+ /* if filename != NULL, an additional level is added with the filename
+    and line number information (used for parse error). */
+-static void build_backtrace(JSContext *ctx, JSValueConst error_obj,
++static void build_backtrace(JSContext *ctx, JSValueConst error_val,
+                             const char *filename, int line_num, int col_num,
+                             int backtrace_flags)
+ {
+     JSStackFrame *sf;
+-    JSValue str;
++    JSValue str, error_obj;
+     DynBuf dbuf;
+     const char *func_name_str;
+     const char *str1;
+     JSObject *p;
+ 
+-    if (!JS_IsObject(error_obj))
++    if (!JS_IsObject(error_val))
+         return; /* protection in the out of memory case */
++
++    /* hold a reference: the allocations below can raise an out of memory,
++       which frees the current exception, aliased by error_obj in the call
++       sites passing rt->current_exception */
++    error_obj = JS_DupValue(ctx, error_val);
+     
+     js_dbuf_init(ctx, &dbuf);
+     if (filename) {
+@@ -7557,7 +7562,7 @@
+         dbuf_putc(&dbuf, '\n');
+         str = JS_NewString(ctx, filename);
+         if (JS_IsException(str))
+-            return;
++            goto done;
+         /* Note: SpiderMonkey does that, could update once there is a standard */
+         if (JS_DefinePropertyValue(ctx, error_obj, JS_ATOM_fileName, str,
+                                    JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE) < 0 ||
+@@ -7565,7 +7570,7 @@
+                                    JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE) < 0 ||
+             JS_DefinePropertyValue(ctx, error_obj, JS_ATOM_columnNumber, JS_NewInt32(ctx, col_num),
+                                    JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE) < 0) {
+-            return;
++            goto done;
+         }
+     }
+     for(sf = ctx->rt->current_stack_frame; sf != NULL; sf = sf->prev_frame) {
+@@ -7614,6 +7619,8 @@
+     dbuf_free(&dbuf);
+     JS_DefinePropertyValue(ctx, error_obj, JS_ATOM_stack, str,
+                            JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
++ done:
++    JS_FreeValue(ctx, error_obj);
+ }
+ 
+ /* Note: it is important that no exception is returned by this function */
+@@ -8180,14 +8187,13 @@
+     func = js_autoinit_func_table[id];
+     /* 'func' shall not modify the object properties 'pr' */
+     val = func(realm, p, prop, pr->u.init.opaque);
+-    js_autoinit_free(ctx->rt, pr);
+-    prs->flags &= ~JS_PROP_TMASK;
+-    pr->u.value = JS_UNDEFINED;
+     if (JS_IsException(val))
+         return -1;
+     if (id == JS_AUTOINIT_ID_MODULE_NS &&
+         JS_VALUE_GET_TAG(val) == JS_TAG_STRING) {
+         /* WARNING: a varref is returned as a string  ! */
++        js_autoinit_free(ctx->rt, pr);
++        prs->flags &= ~JS_PROP_TMASK;
+         prs->flags |= JS_PROP_VARREF;
+         pr->u.var_ref = JS_VALUE_GET_PTR(val);
+         js_rc(pr->u.var_ref)->ref_count++;
+@@ -8195,13 +8201,20 @@
+         JSVarRef *var_ref;
+         /* in the global object we use references */
+         var_ref = js_create_var_ref(ctx, FALSE);
+-        if (!var_ref)
++        if (!var_ref) {
++            JS_FreeValue(ctx, val);
+             return -1;
++        }
++        js_autoinit_free(ctx->rt, pr);
++        prs->flags &= ~JS_PROP_TMASK;
+         prs->flags |= JS_PROP_VARREF;
+         pr->u.var_ref = var_ref;
+         var_ref->value = val; 
+         var_ref->is_const = !(prs->flags & JS_PROP_WRITABLE);
+     } else {
++        js_autoinit_free(ctx->rt, pr);
++        prs->flags &= ~JS_PROP_TMASK;
++        pr->u.value = JS_UNDEFINED;
+         pr->u.value = val;
+     }
+     return 0;
+@@ -9538,13 +9551,12 @@
+ }
+ 
+ /* Preconditions: 'p' must be of class JS_CLASS_ARRAY, p->fast_array =
+-   TRUE and p->extensible = TRUE */
++   TRUE, p->extensible = TRUE and p->u.array.count < 2^31 - 1 */
+ static inline int add_fast_array_element(JSContext *ctx, JSObject *p,
+                                          JSValue val, int flags)
+ {
+     uint32_t new_len, array_len;
+     /* extend the array by one */
+-    /* XXX: convert to slow array if new_len > 2^31-1 elements */
+     new_len = p->u.array.count + 1;
+     /* update the length if necessary. We assume that if the length is
+        not an integer, then if it >= 2^31.  */
+@@ -9555,13 +9567,23 @@
+                 JS_FreeValue(ctx, val);
+                 return JS_ThrowTypeErrorReadOnly(ctx, flags, JS_ATOM_length);
+             }
++            if (unlikely(new_len > p->u.array.u1.size)) {
++                if (expand_fast_array(ctx, p, new_len)) {
++                    JS_FreeValue(ctx, val);
++                    return -1;
++                }
++            }
+             p->prop[0].u.value = JS_NewInt32(ctx, new_len);
+-        }
+-    }
+-    if (unlikely(new_len > p->u.array.u1.size)) {
+-        if (expand_fast_array(ctx, p, new_len)) {
+-            JS_FreeValue(ctx, val);
+-            return -1;
++        } else {
++            goto test_resize;
++        }
++    } else {
++    test_resize:
++        if (unlikely(new_len > p->u.array.u1.size)) {
++            if (expand_fast_array(ctx, p, new_len)) {
++                JS_FreeValue(ctx, val);
++                return -1;
++            }
+         }
+     }
+     p->u.array.u.values[new_len - 1] = val;
+@@ -9843,8 +9865,10 @@
+                 return call_setter(ctx, pr->u.getset.setter, this_obj, val, flags);
+             } else if ((prs->flags & JS_PROP_TMASK) == JS_PROP_AUTOINIT) {
+                 /* Instantiate property and retry (potentially useless) */
+-                if (JS_AutoInitProperty(ctx, p1, prop, pr, prs))
++                if (JS_AutoInitProperty(ctx, p1, prop, pr, prs)) {
++                    JS_FreeValue(ctx, val);
+                     return -1;
++                }
+                 goto retry2;
+             } else if (!(prs->flags & JS_PROP_WRITABLE)) {
+                 goto read_only_prop;
+@@ -9870,6 +9894,8 @@
+                 __JS_AtomIsTaggedInt(prop)) {
+                 uint32_t idx = __JS_AtomToUInt32(prop);
+                 if (idx == p->u.array.count) {
++                    if (idx == INT32_MAX)
++                        goto generic_create_prop;
+                     /* fast case */
+                     return add_fast_array_element(ctx, p, val, flags);
+                 } else {
+@@ -9962,6 +9988,7 @@
+             if (unlikely(idx >= (uint32_t)p->u.array.count)) {
+                 /* fast path to add an element to the array */
+                 if (unlikely(idx != (uint32_t)p->u.array.count ||
++                             idx == INT32_MAX ||
+                              !p->fast_array ||
+                              !can_extend_fast_array(p))) {
+                     goto slow_path;
+@@ -10144,6 +10171,8 @@
+                     if (idx == p->u.array.count) {
+                         if (!p->extensible)
+                             goto not_extensible;
++                        if (idx == INT32_MAX)
++                            goto convert_to_array;
+                         if (flags & (JS_PROP_HAS_GET | JS_PROP_HAS_SET))
+                             goto convert_to_array;
+                         prop_flags = get_prop_flags(flags, 0);
+@@ -32787,12 +32816,18 @@
+     s->jump_size++;
+ }
+ 
+-static inline void capture_var(JSFunctionDef *s, JSVarDef *vd)
++static inline __exception int capture_var(JSFunctionDef *s, JSVarDef *vd)
+ {
+     if (!vd->is_captured) {
++        /* the variable reference indexes are currently stored on 16 bits */
++        if (unlikely(s->var_ref_count >= JS_MAX_LOCAL_VARS)) {
++            JS_ThrowInternalError(s->ctx, "too variable references");
++            return -1;
++        }
+         vd->is_captured = 1;
+         vd->var_ref_idx = s->var_ref_count++;
+     }
++    return 0;
+ }
+ 
+ /* return the position of the next opcode or -1 if error */
+@@ -32904,12 +32939,14 @@
+                 /* Create a dummy object with a named slot that is
+                    a reference to the local variable */
+                 if (var_idx & ARGUMENT_VAR_OFFSET) {
+-                    capture_var(s, &s->args[var_idx - ARGUMENT_VAR_OFFSET]);
++                    if (capture_var(s, &s->args[var_idx - ARGUMENT_VAR_OFFSET]))
++                        return -1;
+                     dbuf_putc(bc, OP_make_arg_ref);
+                     dbuf_put_u32(bc, JS_DupAtom(ctx, var_name));
+                     dbuf_put_u16(bc, var_idx - ARGUMENT_VAR_OFFSET);
+                 } else {
+-                    capture_var(s, &s->vars[var_idx]);
++                    if (capture_var(s, &s->vars[var_idx]))
++                        return -1;
+                     dbuf_putc(bc, OP_make_loc_ref);
+                     dbuf_put_u32(bc, JS_DupAtom(ctx, var_name));
+                     dbuf_put_u16(bc, var_idx);
+@@ -33003,7 +33040,8 @@
+                 var_idx = idx;
+                 break;
+             } else if (vd->var_name == JS_ATOM__with_ && !is_pseudo_var) {
+-                capture_var(fd, vd);
++                if (capture_var(fd, vd))
++                    return -1;
+                 idx = get_closure_var(ctx, s, fd, JS_CLOSURE_LOCAL, idx, vd->var_name, FALSE, FALSE, JS_VAR_NORMAL);
+                 if (idx >= 0) {
+                     dbuf_putc(bc, OP_get_var_ref);
+@@ -33040,7 +33078,8 @@
+         /* check eval object */
+         if (!is_arg_scope && fd->var_object_idx >= 0 && !is_pseudo_var) {
+             vd = &fd->vars[fd->var_object_idx];
+-            capture_var(fd, vd);
++            if (capture_var(fd, vd))
++                return -1;
+             idx = get_closure_var(ctx, s, fd, JS_CLOSURE_LOCAL,
+                                   fd->var_object_idx, vd->var_name,
+                                   FALSE, FALSE, JS_VAR_NORMAL);
+@@ -33052,7 +33091,8 @@
+         /* check eval object in argument scope */
+         if (fd->arg_var_object_idx >= 0 && !is_pseudo_var) {
+             vd = &fd->vars[fd->arg_var_object_idx];
+-            capture_var(fd, vd);
++            if (capture_var(fd, vd))
++                return -1;
+             idx = get_closure_var(ctx, s, fd, JS_CLOSURE_LOCAL,
+                                   fd->arg_var_object_idx, vd->var_name,
+                                   FALSE, FALSE, JS_VAR_NORMAL);
+@@ -33167,12 +33207,14 @@
+     } else {
+         /* find the corresponding closure variable */
+         if (var_idx & ARGUMENT_VAR_OFFSET) {
+-            capture_var(fd, &fd->args[var_idx - ARGUMENT_VAR_OFFSET]);
++            if (capture_var(fd, &fd->args[var_idx - ARGUMENT_VAR_OFFSET]))
++                return -1;
+             idx = get_closure_var(ctx, s, fd,
+                                   JS_CLOSURE_ARG, var_idx - ARGUMENT_VAR_OFFSET,
+                                   var_name, FALSE, FALSE, JS_VAR_NORMAL);
+         } else {
+-            capture_var(fd, &fd->vars[var_idx]);
++            if (capture_var(fd, &fd->vars[var_idx]))
++                return -1;
+             idx = get_closure_var(ctx, s, fd,
+                                   JS_CLOSURE_LOCAL, var_idx,
+                                   var_name,
+@@ -33319,7 +33361,8 @@
+         if (idx >= 0) {
+             var_kind = fd->vars[idx].var_kind;
+             if (is_ref) {
+-                capture_var(fd, &fd->vars[idx]);
++                if (capture_var(fd, &fd->vars[idx]))
++                    return -1;
+                 idx = get_closure_var(ctx, s, fd, JS_CLOSURE_LOCAL, idx, var_name,
+                                       TRUE, TRUE, JS_VAR_NORMAL);
+                 if (idx < 0)
+@@ -33466,17 +33509,19 @@
+     return 0;
+ }
+ 
+-static void mark_eval_captured_variables(JSContext *ctx, JSFunctionDef *s,
+-                                         int scope_level)
++static __exception int mark_eval_captured_variables(JSContext *ctx, JSFunctionDef *s,
++                                                    int scope_level)
+ {
+     int idx;
+     JSVarDef *vd;
+ 
+     for (idx = s->scopes[scope_level].first; idx >= 0;) {
+         vd = &s->vars[idx];
+-        capture_var(s, vd);
++        if (capture_var(s, vd))
++            return -1;
+         idx = vd->scope_next;
+     }
++    return 0;
+ }
+ 
+ /* XXX: should handle the argument scope generically */
+@@ -33490,7 +33535,7 @@
+             var_kind == JS_VAR_FUNCTION_NAME);
+ }
+ 
+-static void add_eval_variables(JSContext *ctx, JSFunctionDef *s)
++static __exception int add_eval_variables(JSContext *ctx, JSFunctionDef *s)
+ {
+     JSFunctionDef *fd;
+     JSVarDef *vd;
+@@ -33534,7 +33579,8 @@
+ 
+     for(i = 0; i < s->arg_count; i++) {
+         vd = &s->args[i];
+-        capture_var(s, vd);
++        if (capture_var(s, vd))
++            return -1;
+     }
+     for(i = 0; i < s->var_count; i++) {
+         vd = &s->vars[i];
+@@ -33542,7 +33588,8 @@
+         if (vd->scope_level == 0 &&
+             vd->var_name != JS_ATOM__ret_ &&
+             vd->var_name != JS_ATOM_NULL) {
+-            capture_var(s, vd);
++            if (capture_var(s, vd))
++                return -1;
+         }
+     }
+     
+@@ -33584,9 +33631,11 @@
+         scope_idx = fd->scopes[scope_level].first;
+         while (scope_idx >= 0) {
+             vd = &fd->vars[scope_idx];
+-            capture_var(fd, vd);
+-            get_closure_var(ctx, s, fd, JS_CLOSURE_LOCAL, scope_idx,
+-                            vd->var_name, vd->is_const, vd->is_lexical, vd->var_kind);
++            if (capture_var(fd, vd))
++                return -1;
++            if (get_closure_var(ctx, s, fd, JS_CLOSURE_LOCAL, scope_idx,
++                                vd->var_name, vd->is_const, vd->is_lexical, vd->var_kind) < 0)
++                return -1;
+             scope_idx = vd->scope_next;
+         }
+         is_arg_scope = (scope_idx == ARG_SCOPE_END);
+@@ -33596,10 +33645,12 @@
+             for(i = 0; i < fd->arg_count; i++) {
+                 vd = &fd->args[i];
+                 if (vd->var_name != JS_ATOM_NULL) {
+-                    capture_var(fd, vd);
+-                    get_closure_var(ctx, s, fd,
+-                                    JS_CLOSURE_ARG, i, vd->var_name, FALSE,
+-                                    vd->is_lexical, JS_VAR_NORMAL);
++                    if (capture_var(fd, vd))
++                        return -1;
++                    if (get_closure_var(ctx, s, fd,
++                                        JS_CLOSURE_ARG, i, vd->var_name, FALSE,
++                                        vd->is_lexical, JS_VAR_NORMAL) < 0)
++                        return -1;
+                 }
+             }
+             for(i = 0; i < fd->var_count; i++) {
+@@ -33608,10 +33659,12 @@
+                 if (vd->scope_level == 0 &&
+                     vd->var_name != JS_ATOM__ret_ &&
+                     vd->var_name != JS_ATOM_NULL) {
+-                    capture_var(fd, vd);
+-                    get_closure_var(ctx, s, fd,
+-                                    JS_CLOSURE_LOCAL, i, vd->var_name, FALSE,
+-                                    vd->is_lexical, JS_VAR_NORMAL);
++                    if (capture_var(fd, vd))
++                        return -1;
++                    if (get_closure_var(ctx, s, fd,
++                                        JS_CLOSURE_LOCAL, i, vd->var_name, FALSE,
++                                        vd->is_lexical, JS_VAR_NORMAL) < 0)
++                        return -1;
+                 }
+             }
+         } else {
+@@ -33619,10 +33672,12 @@
+                 vd = &fd->vars[i];
+                 /* do not close top level last result */
+                 if (vd->scope_level == 0 && is_var_in_arg_scope(vd->var_name, vd->var_kind)) {
+-                    capture_var(fd, vd);
+-                    get_closure_var(ctx, s, fd,
+-                                    JS_CLOSURE_LOCAL, i, vd->var_name, FALSE,
+-                                    vd->is_lexical, JS_VAR_NORMAL);
++                    if (capture_var(fd, vd))
++                        return -1;
++                    if (get_closure_var(ctx, s, fd,
++                                        JS_CLOSURE_LOCAL, i, vd->var_name, FALSE,
++                                        vd->is_lexical, JS_VAR_NORMAL) < 0)
++                        return -1;
+                 }
+             }
+         }
+@@ -33645,6 +33700,7 @@
+             }
+         }
+     }
++    return 0;
+ }
+ 
+ static void set_closure_from_var(JSContext *ctx, JSClosureVar *cv,
+@@ -34131,7 +34187,8 @@
+             {
+                 int call_argc = get_u16(bc_buf + pos + 1);
+                 scope = get_u16(bc_buf + pos + 1 + 2);
+-                mark_eval_captured_variables(ctx, s, scope);
++                if (mark_eval_captured_variables(ctx, s, scope))
++                    goto fail;
+                 dbuf_putc(&bc_out, op);
+                 dbuf_put_u16(&bc_out, call_argc);
+                 dbuf_put_u16(&bc_out, s->scopes[scope].first - ARG_SCOPE_END);
+@@ -34139,7 +34196,8 @@
+             break;
+         case OP_apply_eval: /* convert scope index to adjusted variable index */
+             scope = get_u16(bc_buf + pos + 1);
+-            mark_eval_captured_variables(ctx, s, scope);
++            if (mark_eval_captured_variables(ctx, s, scope))
++                goto fail;
+             dbuf_putc(&bc_out, op);
+             dbuf_put_u16(&bc_out, s->scopes[scope].first - ARG_SCOPE_END);
+             break;
+@@ -34154,6 +34212,8 @@
+             scope = get_u16(bc_buf + pos + 5);
+             pos_next = resolve_scope_var(ctx, s, var_name, scope, op, &bc_out,
+                                          NULL, NULL, pos_next);
++            if (pos_next < 0)
++                goto fail;
+             JS_FreeAtom(ctx, var_name);
+             break;
+         case OP_scope_make_ref:
+@@ -34167,6 +34227,8 @@
+                 ls->ref_count--;  /* always remove label reference */
+                 pos_next = resolve_scope_var(ctx, s, var_name, scope, op, &bc_out,
+                                              bc_buf, ls, pos_next);
++                if (pos_next < 0)
++                    goto fail;
+                 JS_FreeAtom(ctx, var_name);
+             }
+             break;
+@@ -34701,14 +34763,14 @@
+     if (s->jump_size) {
+         s->jump_slots = js_mallocz(s->ctx, sizeof(*s->jump_slots) * s->jump_size);
+         if (s->jump_slots == NULL)
+-            return -1;
++            goto fail;
+     }
+ #endif
+     /* XXX: Should skip this phase if not generating SHORT_OPCODES */
+     if (s->line_number_size && !s->strip_debug) {
+         s->line_number_slots = js_mallocz(s->ctx, sizeof(*s->line_number_slots) * s->line_number_size);
+         if (s->line_number_slots == NULL)
+-            return -1;
++            goto fail;
+         s->line_number_last = s->source_pos;
+         s->line_number_last_pc = 0;
+     }
+@@ -34753,8 +34815,10 @@
+             /* the arguments are implicitly captured because
+                references to them are created with the 'argument'
+                object */
+-            for(i = 0; i < s->arg_count; i++)
+-                capture_var(s, &s->args[i]);
++            for(i = 0; i < s->arg_count; i++) {
++                if (capture_var(s, &s->args[i]))
++                    goto fail;
++            }
+         }
+         if (s->arguments_arg_idx >= 0)
+             put_short_code(&bc_out, OP_set_loc, s->arguments_arg_idx);
+@@ -35944,8 +36008,10 @@
+        are used to compile the eval and they must be ordered by scope,
+        so it is necessary to create the closure variables before any
+        other variable lookup is done. */
+-    if (fd->has_eval_call)
+-        add_eval_variables(ctx, fd);
++    if (fd->has_eval_call) {
++        if (add_eval_variables(ctx, fd))
++            goto fail;
++    }
+ 
+     /* add the module global variables in the closure */
+     if (fd->is_eval) {
+@@ -38555,14 +38621,13 @@
+ 
+ static JSValue JS_ReadBigInt(BCReaderState *s)
+ {
+-    JSValue obj = JS_UNDEFINED;
+     uint32_t len, i, n;
+     JSBigInt *p;
+     js_limb_t v;
+     uint8_t v8;
+     
+     if (bc_get_leb128(s, &len))
+-        goto fail;
++        return JS_EXCEPTION;
+     bc_read_trace(s, "len=%" PRId64 "\n", (int64_t)len);
+     if (len == 0) {
+         /* zero case */
+@@ -38571,7 +38636,7 @@
+     }
+     p = js_bigint_new(s->ctx, (len - 1) / (JS_LIMB_BITS / 8) + 1);
+     if (!p)
+-        goto fail;
++        return JS_EXCEPTION;
+     for(i = 0; i < len / (JS_LIMB_BITS / 8); i++) {
+ #if JS_LIMB_BITS == 32
+         if (bc_get_u32(s, &v))
+@@ -38601,7 +38666,7 @@
+     bc_read_trace(s, "}\n");
+     return JS_CompactBigInt(s->ctx, p);
+  fail:
+-    JS_FreeValue(s->ctx, obj);
++    js_free(s->ctx, p);
+     return JS_EXCEPTION;
+ }
+ 
+@@ -56840,8 +56905,13 @@
+ 
+     if (!abuf || abuf->detached)
+         return;
+-    if (abuf->free_func)
++    if (abuf->free_func) {
+         abuf->free_func(ctx->rt, abuf->opaque, abuf->data);
++        /* The backing data has been released. Do not release it again when
++           the detached ArrayBuffer object is later finalized. */
++        abuf->free_func = NULL;
++        abuf->opaque = NULL;
++    }
+     abuf->data = NULL;
+     abuf->byte_length = 0;
+     abuf->detached = TRUE;
+@@ -56981,6 +57051,8 @@
+         abuf->data = NULL;
+         abuf->byte_length = 0;
+         abuf->detached = TRUE;
++        abuf->free_func = NULL;
++        abuf->opaque = NULL;
+         js_array_buffer_update_typed_arrays(abuf);
+     }
+     return res;
+--- a/libunicode.c
++++ b/libunicode.c
+@@ -1390,7 +1390,7 @@
+         cr_free(cr1);
+         cr_free(cr2);
+     }
+-    goto fail;
++    return -1;
+ }
+ 
+ #define M(id) (1U << UNICODE_GC_ ## id)

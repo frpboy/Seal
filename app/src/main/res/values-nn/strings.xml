@@ -78,7 +78,7 @@
     <string name="permission_issue">Problem med gøymetilgjenget</string>
     <string name="battery_configuration">Batteri-innstilling</string>
     <string name="battery_configuration_desc">Hopp over batteriforlenging for denne appen, slik at han kan hente ting i bakgrunnen</string>
-    <string name="service_title">Seal hentar…</string>
+    <string name="service_title">Seali hentar…</string>
     <string name="unknown_error">Ukjent mistak</string>
     <string name="translate">Omsett</string>
     <string name="translate_desc">Hjelp til med å omsetja denne appen hos Hosted Weblate</string>

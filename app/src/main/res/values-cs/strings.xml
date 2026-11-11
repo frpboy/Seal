@@ -127,7 +127,7 @@
     <string name="concurrent_download_num">Počet vláken pro souběžné stahování DASH/HLS native videí je %d.</string>
     <string name="download_range_desc">Upřesněte rozsah videí ke stažení z playlistu „%3$s“ (od %1$d do %2$d).</string>
     <string name="battery_configuration">Nastavení baterie</string>
-    <string name="service_title">Seal stahuje…</string>
+    <string name="service_title">Seali stahuje…</string>
     <string name="translate">Překlad</string>
     <string name="translate_desc">Pomozte přeložit tuto aplikaci na Hosted Weblate</string>
     <string name="prefix">Předpona</string>
@@ -210,9 +210,9 @@
     <string name="edit_file">Upravit soubor</string>
     <string name="embed_metadata_desc">Vložit metadata a miniaturu videa do zvukového souboru</string>
     <string name="switch_to_github_builds">přechod na sestavení z GitHubu</string>
-    <string name="custom_command_usage_msg">yt-dlp je výkonný nástroj pro příkazový řádek sloužící ke stahování videí. Seal zjednodušuje jeho používání díky intuitivnímu grafickému rozhraní, přednastavením pro časté příkazy a dalším dodatečným funkcím.
+    <string name="custom_command_usage_msg">yt-dlp je výkonný nástroj pro příkazový řádek sloužící ke stahování videí. Seali zjednodušuje jeho používání díky intuitivnímu grafickému rozhraní, přednastavením pro časté příkazy a dalším dodatečným funkcím.
 \n
-\nPokročilým uživatelům nástroje yt-dlp umožňuje Seal vytvářet, ukládat a přímo spouštět vlastní šablony příkazů, stejně jako v terminálu.
+\nPokročilým uživatelům nástroje yt-dlp umožňuje Seali vytvářet, ukládat a přímo spouštět vlastní šablony příkazů, stejně jako v terminálu.
 \n
 \nPři používání vlastních příkazů bude většina možností a funkcí v grafickém rozhraní vypnuta.</string>
     <string name="clear_download_archive">Vyčistit archiv stahování?</string>
