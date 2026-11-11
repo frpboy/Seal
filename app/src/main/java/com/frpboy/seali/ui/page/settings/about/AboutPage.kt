@@ -8,8 +8,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.ContactSupport
 import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.NewReleases
