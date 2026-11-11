@@ -29,12 +29,17 @@ on:
         description: 'Build owner-signed release APKs/AAB'
         type: boolean
         required: false
-        default: true
+        default: false
+      run_history_ui:
+        description: 'Run the Android history UI check on an existing KVM-capable runner'
+        type: boolean
+        required: false
+        default: false
       publish_apk_artifacts:
         description: 'Publish qualified APKs as Actions artifacts'
         type: boolean
         required: false
-        default: true
+        default: false
 
 permissions:
   contents: read
