@@ -58,6 +58,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -176,7 +177,19 @@ fun NavigationDrawerSheetContent(
                 .verticalScroll(rememberScrollState())
                 .systemBarsPadding()
     ) {
-        Spacer(Modifier.height(72.dp))
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_launcher_foreground),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(44.dp),
+            )
+            Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleLarge)
+        }
         ProvideTextStyle(MaterialTheme.typography.labelLarge) {
             NavigationDrawerItem(
                 label = {
@@ -215,6 +228,7 @@ fun NavigationDrawerSheetContent(
                 },
                 selected = currentRoute == Route.TASK_LIST,
             )
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
             NavigationDrawerItem(
                 label = { Text(stringResource(R.string.settings)) },
                 icon = { Icon(Icons.Outlined.Settings, null) },
@@ -227,7 +241,7 @@ fun NavigationDrawerSheetContent(
             )
 
             NavigationDrawerItem(
-                label = { Text(stringResource(R.string.sponsor)) },
+                label = { Text(stringResource(R.string.seali_support_and_donate)) },
                 icon = { Icon(Icons.Outlined.VolunteerActivism, null) },
                 onClick = {
                     scope

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -134,12 +135,21 @@ fun AppEntry(dialogViewModel: DownloadDialogViewModel) {
                 }
             },
             footer = {
-                Text(
-                    appName + "\n" + versionReport + "\n" + currentRoute,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 12.dp),
-                )
+                TextButton(
+                    onClick = {
+                        scope.launch {
+                            drawerState.close()
+                            navController.navigate(Route.ABOUT) { launchSingleTop = true }
+                        }
+                    },
+                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp),
+                ) {
+                    Text(
+                        appName + "\n" + versionReport,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             },
         ) {
             NavHost(
