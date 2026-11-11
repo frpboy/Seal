@@ -17,10 +17,10 @@ class PythonComponentsFunctionalTest {
         val python = File(context.applicationInfo.nativeLibraryDir, "libpython.so")
         val home = File(context.noBackupFilesDir, "youtubedl-android/packages/python/usr")
         assertTrue(python.isFile); assertTrue(home.isDirectory)
-        for (name in listOf("python-components-check.py", "localhost-test-cert.pem", "localhost-test-key.pem")) {
+        for (name in listOf("python-components-check.py", "generate-localhost-fixture.py")) {
             fixtures.open("functional/$name").use { input -> File(work, name).outputStream().use { input.copyTo(it) } }
         }
-        // The private key is a public test fixture, not a user credential or production key.
+        // The Python test generates a fresh localhost-only key; none is stored in source.
         val process = ProcessBuilder(python.absolutePath, File(work, "python-components-check.py").absolutePath, work.absolutePath)
             .directory(work).redirectErrorStream(true).apply {
                 environment()["LD_LIBRARY_PATH"] = File(home, "lib").absolutePath
@@ -44,6 +44,8 @@ class PythonComponentsFunctionalTest {
             process.waitFor(5, TimeUnit.SECONDS)
             reader.join(5000)
             File(work, "python-components-result.txt").writeText(output)
+            File(work, "localhost-test-key.pem").delete()
+            File(work, "localhost-test-cert.pem").delete()
             assertFalse("Fixture child must not survive cleanup", process.isAlive)
         }
     }

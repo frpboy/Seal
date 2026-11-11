@@ -5,6 +5,9 @@ assert pyexpat.EXPAT_VERSION=='expat_2.10.0',pyexpat.EXPAT_VERSION
 assert hashlib.sha256(b'abc').hexdigest()=='ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'
 assert hmac.new(b'key',b'The quick brown fox jumps over the lazy dog',hashlib.sha256).hexdigest()=='f7bc83f430538424b13298e6aa6fb143ef4d59a14946175997479dbc2d1a3cd8'
 assert hashlib.scrypt(b'password',salt=b'salt',n=16,r=1,p=1,dklen=32).hex()=='45133c3dfba48c82235df51a5349924110eee893752f0d4168d2e2aee5722d82'
+# Load the sibling test helper without adding a production dependency.
+import runpy
+runpy.run_path(str(work / 'generate-localhost-fixture.py'))['generate'](work)
 requests=[]
 class Handler(http.server.BaseHTTPRequestHandler):
  def do_GET(self):
