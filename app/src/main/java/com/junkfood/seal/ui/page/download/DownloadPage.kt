@@ -91,6 +91,7 @@ import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.junkfood.seal.App
+import com.junkfood.seal.util.SafeErrorReport
 import com.junkfood.seal.Downloader
 import com.junkfood.seal.R
 import com.junkfood.seal.download.DownloaderV2
@@ -530,8 +531,9 @@ fun DownloadPageImpl(
                         view.longPressHapticFeedback()
                         clipboardManager.setText(
                             AnnotatedString(
-                                App.getVersionReport() +
-                                    "\nURL: ${errorState.url}\n${errorState.report}"
+                                SafeErrorReport.copyLegacyReport(
+                                    App.getVersionReport(), errorState.report, errorState.url
+                                )
                             )
                         )
                         ToastUtil.makeToast(R.string.error_copied)
