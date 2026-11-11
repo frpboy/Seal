@@ -1,0 +1,11 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="144dp" android:height="144dp"
+    android:viewportWidth="144" android:viewportHeight="144">
+    <!-- Decorative tool-like phone and Seali chevrons; tint follows Material theme. -->
+    <path android:pathData="M51,16 L93,16 Q101,16 101,24 L101,120 Q101,128 93,128 L51,128 Q43,128 43,120 L43,24 Q43,16 51,16 Z"
+        android:strokeColor="#FFFFFF" android:strokeWidth="4" android:strokeLineJoin="round" />
+    <path android:pathData="M63,25 L81,25 M68,118 L76,118"
+        android:strokeColor="#FFFFFF" android:strokeWidth="4" android:strokeLineCap="round" />
+    <path android:pathData="M58,48 L72,57 L86,48 M58,67 L72,76 L86,67 M58,86 L72,95 L86,86"
+        android:strokeColor="#FFFFFF" android:strokeWidth="5" android:strokeLineCap="round" android:strokeLineJoin="round" />
+</vector>

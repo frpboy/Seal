@@ -43,6 +43,10 @@ if (hasAnySigningValue && !signingConfigured) {
     )
 }
 
+// This isolated branch is a functional phone-alpha candidate, never a production fallback.
+check(project.hasProperty("functionalAlphaCandidate")) {
+    "This candidate requires -PfunctionalAlphaCandidate; do not merge this branch into production."
+}
 val splitApks = !project.hasProperty("noSplits")
 
 val abiFilterList = (properties["ABI_FILTERS"] as String).split(';')
@@ -73,7 +77,7 @@ android {
         applicationId = "com.frpboy.seali"
         minSdk = 24
         targetSdk = 36
-        versionCode = 200_000_160
+        versionCode = 200_000_170
         check(versionCode == currentVersionCode)
 
         versionName = baseVersionName
@@ -177,10 +181,11 @@ android {
     packaging {
         resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" }
         jniLibs.useLegacyPackaging = true
+        jniLibs.keepDebugSymbols += "**/*.so" // Do not mutate independently reviewed payload bytes.
     }
     androidResources { generateLocaleConfig = true }
 
-    namespace = "com.junkfood.seal"
+    namespace = "com.frpboy.seali"
 }
 
 tasks.configureEach {
@@ -238,9 +243,15 @@ dependencies {
 
     implementation(libs.okhttp)
 
-    implementation(libs.bundles.youtubedlAndroid)
+    implementation(project(":frpboy-library"))
+    implementation(project(":frpboy-ffmpeg"))
+    implementation(project(":frpboy-common"))
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.11.1")
+    implementation("com.fasterxml.jackson.core:jackson-annotations:2.11.1")
+    implementation("commons-io:commons-io:2.5")
+    implementation("org.apache.commons:commons-compress:1.12")
 
-    implementation(libs.mmkv)
+    implementation(project(":frpboy-mmkv"))
 
     testImplementation(libs.junit4)
     androidTestImplementation(platform(libs.androidx.compose.bom))
