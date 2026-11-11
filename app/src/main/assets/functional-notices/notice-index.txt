@@ -1,0 +1,297 @@
+[
+  {
+    "path": "Python-3.11.18/LICENSE",
+    "bytes": 13936,
+    "sha256": "3b2f81fe21d181c499c59a256c8e1968455d6689d269aa85373bfb6af41da3bf"
+  },
+  {
+    "path": "README.txt",
+    "bytes": 620,
+    "sha256": "e43f9a59d25277d738f8c67e476942e48fa94ca54f0f28363f708664015dbcc7"
+  },
+  {
+    "path": "ThomasDickey-ncurses-snapshots-26ceb3c/COPYING",
+    "bytes": 1447,
+    "sha256": "a85ca5bef8ce71f013bc5f4306c681881b248450f3b63722589891f0b69ea52d"
+  },
+  {
+    "path": "android-ndk-r28c/NOTICE",
+    "bytes": 516438,
+    "sha256": "faf0dc52cf6ce9ab09a04b0c074a378dd2565ee1ed9bc1179d83793bcdba012e"
+  },
+  {
+    "path": "android-ndk-r28c/NOTICE.toolchain",
+    "bytes": 799639,
+    "sha256": "789714a9076571c580cf531bdcebec776a4d889c12c3c1108adafc6e4338710a"
+  },
+  {
+    "path": "bzip2-1.0.8/LICENSE",
+    "bytes": 1896,
+    "sha256": "c6dbbf828498be844a89eaa3b84adbab3199e342eb5cb2ed2f0d4ba7ec0f38a3"
+  },
+  {
+    "path": "expat-2.10.0/AUTHORS",
+    "bytes": 142,
+    "sha256": "59f14371c6b75912cfebb46e6247ee5146766e803a0365b124e5d3011e7d0877"
+  },
+  {
+    "path": "expat-2.10.0/COPYING",
+    "bytes": 1144,
+    "sha256": "31b15de82aa19a845156169a17a5488bf597e561b2c318d159ed583139b25e87"
+  },
+  {
+    "path": "ffmpeg-9.0.2/COPYING.LGPLv2.1",
+    "bytes": 26517,
+    "sha256": "246041b6ecf9bc32d718a62c57877c78b5eb397b6467e74ed7ae2626ab189c30"
+  },
+  {
+    "path": "ffmpeg-9.0.2/LICENSE.md",
+    "bytes": 4346,
+    "sha256": "2e1d16c72fd74e12063776371da757322f8b77589386532f4fd8634bde7de1af"
+  },
+  {
+    "path": "lame-4.0/COPYING",
+    "bytes": 25281,
+    "sha256": "e64f9c5a18f56828c10a575df13ade641aa3af4512a7afe6c411256943b57aaf"
+  },
+  {
+    "path": "lame-4.0/LICENSE",
+    "bytes": 503,
+    "sha256": "5c1f8d44f1eacbea3e1c31ff6ee11a4e1690ccbed4ee4af16de3b6eb61dc69a8"
+  },
+  {
+    "path": "libandroid-posix-semaphore/LICENSE",
+    "bytes": 1067,
+    "sha256": "e239ef69c9c4eead9406bdc6a34f2bd1220c3dcd3b17c8377cb2fb73fdaf0d38"
+  },
+  {
+    "path": "libandroid-posix-semaphore/build.sh",
+    "bytes": 833,
+    "sha256": "063f2e0d0eae189b12fe98b0356eaffe9256ac2e90b03a7425b28027459f2c47"
+  },
+  {
+    "path": "libandroid-posix-semaphore/semaphore.c",
+    "bytes": 8036,
+    "sha256": "333e0027667d8a82568fbe5617b1ef381a8c6a920d1a44a07570fb695a302253"
+  },
+  {
+    "path": "libandroid-support/LICENSE.txt",
+    "bytes": 6126,
+    "sha256": "76fc4416b6b20b4223bee8cc5b1ab41e1066a55ee23454f857c74bfbd9c3c2d5"
+  },
+  {
+    "path": "libandroid-support/build.sh",
+    "bytes": 1444,
+    "sha256": "1f88db1f66fd8bf4fac3e610f51904c11915d56d53853802102bfc7d3ecf22dc"
+  },
+  {
+    "path": "libandroid-support-29/LICENSE.txt",
+    "bytes": 6126,
+    "sha256": "76fc4416b6b20b4223bee8cc5b1ab41e1066a55ee23454f857c74bfbd9c3c2d5"
+  },
+  {
+    "path": "libcrypt/LICENSE",
+    "bytes": 1521,
+    "sha256": "311ad021879eeb7713e27e8d894950068689feafc198a236a95c2494710e3a1a"
+  },
+  {
+    "path": "libcrypt/build.sh",
+    "bytes": 697,
+    "sha256": "bedf98276e9d84f8c00860b74519d371b3a9d46368b1bb81b2103049c1647891"
+  },
+  {
+    "path": "libcrypt/crypt3.c",
+    "bytes": 39587,
+    "sha256": "65009358f59f91b6118fc456bfe8186fc432d6c06af86c2346096e56079593c0"
+  },
+  {
+    "path": "libcrypt/crypt3.c.copyright-and-source",
+    "bytes": 39587,
+    "sha256": "65009358f59f91b6118fc456bfe8186fc432d6c06af86c2346096e56079593c0"
+  },
+  {
+    "path": "libffi-3.8.0/LICENSE",
+    "bytes": 1132,
+    "sha256": "17b64dc60f3b6897a60f971e288b973f655c2edcdf08b25f3c3dd5549857881c"
+  },
+  {
+    "path": "libffi-3.8.0/LICENSE-BUILDTOOLS",
+    "bytes": 18698,
+    "sha256": "e67978cd18816c0cb7d29aaaacde7b7447402c2fb321a051698890a8eaedda94"
+  },
+  {
+    "path": "mmkv-1.3.17/LICENSE.TXT",
+    "bytes": 20971,
+    "sha256": "7beb71bc0404734f5126c199f78dc0075421ab740ebcdb01256eca3e9703222f"
+  },
+  {
+    "path": "mozilla-ca/MPL-2.0.txt",
+    "bytes": 16726,
+    "sha256": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04"
+  },
+  {
+    "path": "mozilla-ca/SOURCE.txt",
+    "bytes": 237,
+    "sha256": "d6a9a80305f0ea7120f74e4ef080506b87f188ce4456f2eb6a62a2922ab8e98c"
+  },
+  {
+    "path": "mutagen-1.47.0/COPYING",
+    "bytes": 18092,
+    "sha256": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643"
+  },
+  {
+    "path": "openssl-3.5.9/AUTHORS.md",
+    "bytes": 1022,
+    "sha256": "b9f638dfc06b59c2d3b808186c3b30f713805a5db390f5b77b1703ac58acb83e"
+  },
+  {
+    "path": "openssl-3.5.9/LICENSE.txt",
+    "bytes": 10175,
+    "sha256": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a"
+  },
+  {
+    "path": "opus-1.6.1/COPYING",
+    "bytes": 1945,
+    "sha256": "01e1167d54a096d123cf6dfbbeb19587278845c6481d2d66d545669846079551"
+  },
+  {
+    "path": "pycryptodomex-3.24.2/LICENSE.rst",
+    "bytes": 2926,
+    "sha256": "4e04660d77c1c64e89d79537919fb8240fa21484a7e3db29f358b2c7f84ea073"
+  },
+  {
+    "path": "recipe-leads/libandroid-posix-semaphore.sh",
+    "bytes": 833,
+    "sha256": "063f2e0d0eae189b12fe98b0356eaffe9256ac2e90b03a7425b28027459f2c47"
+  },
+  {
+    "path": "recipe-leads/libandroid-support.sh",
+    "bytes": 1444,
+    "sha256": "1f88db1f66fd8bf4fac3e610f51904c11915d56d53853802102bfc7d3ecf22dc"
+  },
+  {
+    "path": "recipe-leads/libbz2.sh",
+    "bytes": 1883,
+    "sha256": "9e330c9341f8c9c00dfd339c82197d6085dbb77e8b2c2b2f83a02329858c9628"
+  },
+  {
+    "path": "recipe-leads/libcrypt.sh",
+    "bytes": 697,
+    "sha256": "bedf98276e9d84f8c00860b74519d371b3a9d46368b1bb81b2103049c1647891"
+  },
+  {
+    "path": "recipe-leads/libexpat.sh",
+    "bytes": 1483,
+    "sha256": "820e594b0496943e7aafc7b7467ca74608104b1fd70d6d8925196186a5c9aa31"
+  },
+  {
+    "path": "recipe-leads/libffi.sh",
+    "bytes": 1244,
+    "sha256": "67646333dbaf6f2ff77b882cbaff6491a5efb0e513299f3acd0c0763ccb747f1"
+  },
+  {
+    "path": "recipe-leads/liblzma.sh",
+    "bytes": 1227,
+    "sha256": "06ff9b2e75ab7b5a6666352289e46a32c40155e864b8486e764d2a9335a0f8d4"
+  },
+  {
+    "path": "recipe-leads/libsqlite.sh",
+    "bytes": 1206,
+    "sha256": "bf1643ac694b13bc87f03c5ab2a7f366fb7f46127c69b8d1f8f6b5aa6703125b"
+  },
+  {
+    "path": "recipe-leads/ncurses.sh",
+    "bytes": 5860,
+    "sha256": "d949d3ee97c6b95b890222506800432b5731a5f441a57bcc071cb5daebe4a87b"
+  },
+  {
+    "path": "recipe-leads/openssl.sh",
+    "bytes": 2286,
+    "sha256": "5502dbd1bcfcd3e32eff05e6623cd0f76ee87246f5f416585d1f20317c8df217"
+  },
+  {
+    "path": "recipe-leads/zlib.sh",
+    "bytes": 988,
+    "sha256": "19bac6d9766c65cf58a78e06308aa72a87e234642aa3efb4689ab96b7c68768e"
+  },
+  {
+    "path": "source-ledger.json",
+    "bytes": 6041,
+    "sha256": "112abec6d2fece4c8897f1099dc1117ef460a5ff7d7822500bc2f6669ae25271"
+  },
+  {
+    "path": "sqlite3/sqlite3.h.copyright-and-source",
+    "bytes": 695729,
+    "sha256": "d6c84557261893439b341d2e6c35187ae3ea24fbfd843ad94616f72d89242b8c"
+  },
+  {
+    "path": "termux-framework/LICENSE.md",
+    "bytes": 503,
+    "sha256": "aa43b2ed36531f63243f40ae65693b64ce09126932703e7037084fe4f1432b95"
+  },
+  {
+    "path": "wcwidth/LICENSE.txt",
+    "bytes": 2589,
+    "sha256": "80786a6b45d7dc1a4e604c85f779af6b1069bf900eda37684045463d81627314"
+  },
+  {
+    "path": "wcwidth-4/LICENSE.txt",
+    "bytes": 2589,
+    "sha256": "80786a6b45d7dc1a4e604c85f779af6b1069bf900eda37684045463d81627314"
+  },
+  {
+    "path": "xz-5.8.4/COPYING",
+    "bytes": 3119,
+    "sha256": "616a3ad264ce29b8f1cb97e53037b139d406899ca8d1f799651e17bfa09830b8"
+  },
+  {
+    "path": "xz-5.8.4/COPYING.0BSD",
+    "bytes": 607,
+    "sha256": "0b01625d853911cd0e2e088dcfb743261034a091bb379246cb25a14cc4c74bf1"
+  },
+  {
+    "path": "xz-5.8.4/COPYING.GPLv2",
+    "bytes": 17984,
+    "sha256": "edaef632cbb643e4e7a221717a6c441a4c1a7c918e6e4d56debc3d8739b233f6"
+  },
+  {
+    "path": "xz-5.8.4/COPYING.GPLv3",
+    "bytes": 35149,
+    "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+  },
+  {
+    "path": "xz-5.8.4/COPYING.LGPLv2.1",
+    "bytes": 26419,
+    "sha256": "20e50fe7aae3e56378ebf0417d9de904f55a0e61e4df315333e632a4d3555d95"
+  },
+  {
+    "path": "yt-dlp-ejs-0.8.0/BUNDLED-JS-NOTICES.txt",
+    "bytes": 2406,
+    "sha256": "7cc2145beba05a64cd7907f0e1b4025c4d8fb21eb67108d6cd9b45e5f6b98acc"
+  },
+  {
+    "path": "yt-dlp-ejs-0.8.0/EJS-LICENSE",
+    "bytes": 1212,
+    "sha256": "b5065838cbac452dfc855ba6e6e031481ad2c68406f70d21ead9321374653e6c"
+  },
+  {
+    "path": "yt-dlp-ejs-0.8.0/SOURCE.txt",
+    "bytes": 1361,
+    "sha256": "0b17c5f3814bcb85c9e2883dba3b5967c34e5d6379b48f2d4170c4a59fb0f112"
+  },
+  {
+    "path": "yt-dlp-ejs-0.8.0/astring-1.9.0-LICENSE",
+    "bytes": 1074,
+    "sha256": "d7e882d386050a13b3244078d95b1e3d943b4741fb1b2d7d936cf39a08f52a09"
+  },
+  {
+    "path": "yt-dlp-ejs-0.8.0/meriyah-6.1.4-LICENSE.md",
+    "bytes": 760,
+    "sha256": "e9a5df5a6ae5cd51ca430715f4c62fb5424946e8da07b7caa058a1ba0582a848"
+  },
+  {
+    "path": "zlib-1.4/LICENSE",
+    "bytes": 1002,
+    "sha256": "e32ff4e00d9d94930537635291da39e7e612703334bf6fde8c7f1686fe8a45a2"
+  }
+]

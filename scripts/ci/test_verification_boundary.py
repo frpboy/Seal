@@ -50,9 +50,13 @@ class VerificationBoundaryTest(unittest.TestCase):
         self.assertTrue(section.startswith("        if: always() && " + SIGNING + "\n"))
 
     def test_actual_unit_commands_remain_before_key_staging(self):
-        self.assertLess(self.source.index("./gradlew testGenericDebugUnitTest"), self.source.index("id: signing"))
+        self.assertLess(self.source.index("testGenericDebugUnitTest :frpboy-library:testDebugUnitTest"), self.source.index("id: signing"))
         self.assertLess(self.source.index("./gradlew -p buildSrc test"), self.source.index("id: signing"))
         self.assertIn("persist-credentials: false", self.source)
+        self.assertIn("./gradlew -PfunctionalAlphaCandidate testGenericDebugUnitTest :frpboy-library:testDebugUnitTest", self.source)
+        self.assertIn("python3 scripts/test_owned_namespace_boundaries.py", self.source)
+        self.assertIn("python3 scripts/owned-source-prep/test-seali-prepare-owned-producer-inputs.py", self.source)
+        self.assertIn("python3 scripts/release-qualification/test-compatible-alpha7-verifier.py", self.source)
 
     def test_upload_does_not_silently_enable_release(self):
         self.assertIn("inputs.publish_apk_artifacts == true && inputs.build_release != true", self.source)

@@ -16,7 +16,7 @@ The current `io.github.junkfood02.youtubedl-android` Maven coordinates identify 
 
 ## Compatibility identifiers still present
 
-Internal `com.junkfood.seal` Kotlin packages, the color namespace, test selectors and notification action prefix remain for compatibility pending a coordinated, tested migration. The installed Seali application ID remains `com.frpboy.seali`. An internal namespace migration must not change install identity, signing continuity, stored data or required dependency coordinates.
+Owned Kotlin packages, the color namespace, test selectors and new notification action keys use `com.frpboy.seali`. The installed Seali application ID remains `com.frpboy.seali`. Minimal legacy type-ID input mappings, component names and one receiver bridge remain only to read earlier Seali state and keep old explicit intents resolvable. Required upstream attribution and real dependency coordinates are unchanged. See [namespace migration notes](docs/migration/owned-namespace-migration.md); source preparation is not an installed-upgrade qualification.
 
 The inherited [Seal issue 1399](https://github.com/JunkFood02/Seal/issues/1399) is retained here as a specific upstream technical reference, not a Seali reporting destination. Current Seali bug reporting and contribution links point to this repository. Inherited sponsor-generation and automatic issue-closure workflows remain disabled; they are not activated merely by changing the repository name.
 

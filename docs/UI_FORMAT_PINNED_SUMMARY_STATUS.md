@@ -1,0 +1,7 @@
+# Pinned actual stream selection summary
+
+Local child of exact51ac1, no remote mutation. Existing floating Download action becomes a persistent bottom summary plus full-width button. Original onDownloadPressed FormatConfig payload and enabled expression remain exact. No selection change or automatic download.
+
+Summary derives only from the same actual selected formatList used by submission. It shows count and bounded literal actual codec/container tokens, never raw notes/URLs. Total sums each finite positive exact size, falling back to finite positive approximation, only when every stream has a size and no overflow occurs. Otherwise Unknown. Clipping and chapter splitting suppress the full-input total. Even known totals are explicitly input-stream estimates, never final merged/remuxed/converted file-size promises; subtitles, metadata and container overhead may differ. Requested download flattening remains existing code, not fixed or guessed here.
+
+63source assertions across18suites and six production-helper JVMtests pass. Exact Android/Compose, compact/short-height/landscape/RTL/large-font bottom-bar fit, scrolling/list insets, selection changes, suggested/empty/manual/audio/multi-stream/clipping/chapter/subtitle states and actual submit behavior/pixels remain open. No merge/release/UI-completion claim. Qualification-path source design continues separately; more generic compile drafts are not runtime progress.

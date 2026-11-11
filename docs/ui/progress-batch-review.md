@@ -1,0 +1,9 @@
+# Measured queue progress and bounded speed/ETA presentation
+
+Base151171f3; no downloader/state/notification/action/preference changes. Source preparation only.
+
+Grid cards and list rows now show a separate running-only progress block below the card or state text. Measured finite0..1 fraction produces determinate linear progress and integer percent, indeterminate/out-of-range/NaN/infinite produces indeterminate indicator and Downloading, never fake zero/completion. Text and speed/ETA wrap in a column, no fixed line clamp. This is actual per-task progress, not a derived aggregate or wall-clock estimate.
+
+DownloaderV2 currently stores native callback text as Running.progressText and ignores the separate callback ETA parameter. The presentation parser recognizes bounded numeric download speed and ETA tokens from standard [download] lines only. It never prints arbitrary callback text/commands/URLs/cookies. Unrecognized/localized/custom output, control characters or oversized lines yield absent fields, not invented estimates. Accepted speed unit token is kept exactly; ETA rendered as Estimated remaining. No time conversion or precision claims. Native/custom text can change, so parser compatibility and actual running pixels remain gates. Separate typed callback ETA state could be future work, not silently introduced here.
+
+Actual pure Kotlin/JUnit6PASS on unchanged production parser and tests. Python wiring2PASS binds both list/grid to actual Running state and validated renderer. Actual Android compile/Compose/fontscale/progress output/active download behavior/indeterminate/transitions require qualification. No screenshot claims. Later exact composition required with A/D and diagnostic branches. Swipe safe cancel/retry/open-folder remains separate original request work. No push, merge, release or public artifact.

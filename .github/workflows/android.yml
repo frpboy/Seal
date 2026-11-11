@@ -5,6 +5,12 @@ name: Build Release APK
 # be bypassed by this workflow.
 on:
   workflow_dispatch:
+    inputs:
+      publish_apk_artifacts:
+        description: 'Publish validated release APKs and checksums as public Actions artifacts'
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -14,5 +20,5 @@ jobs:
     uses: ./.github/workflows/android_ci.yml
     with:
       build_release: true
-      publish_apk_artifacts: true
+      publish_apk_artifacts: ${{ inputs.publish_apk_artifacts }}
     secrets: inherit

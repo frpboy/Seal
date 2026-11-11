@@ -1,0 +1,11 @@
+--- a/Configurations/15-android.conf
++++ b/Configurations/15-android.conf
+@@ -192,7 +192,7 @@
+         bin_cflags       => "-fPIE",
+         bin_lflags       => "-pie",
+         enable           => [ ],
+-        shared_extension => ".so",
++        shared_extension => ".so.\$(SHLIB_VERSION_NUMBER)",
+     },
+     "android-arm" => {
+         ################################################################
