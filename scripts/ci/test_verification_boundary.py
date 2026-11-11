@@ -17,10 +17,12 @@ class VerificationBoundaryTest(unittest.TestCase):
 
     def test_reusable_release_inputs_default_to_safe_values(self):
         section = self.source.split("  workflow_call:\n", 1)[1].split("\npermissions:", 1)[0]
-        for name in ("build_release", "run_history_ui", "publish_apk_artifacts"):
-            start = section.index("      " + name + ":\n")
-            next_input = section.find("\n      ", start + 1)
-            field = section[start:next_input if next_input >= 0 else len(section)]
+        fields = (
+            section.split("      build_release:\n", 1)[1].split("      run_history_ui:\n", 1)[0],
+            section.split("      run_history_ui:\n", 1)[1].split("      publish_apk_artifacts:\n", 1)[0],
+            section.split("      publish_apk_artifacts:\n", 1)[1],
+        )
+        for field in fields:
             self.assertIn("type: boolean", field)
             self.assertIn("default: false", field)
 
