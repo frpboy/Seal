@@ -13,6 +13,7 @@ import com.junkfood.seal.App.Companion.context
 import com.junkfood.seal.App.Companion.startService
 import com.junkfood.seal.App.Companion.stopService
 import com.junkfood.seal.database.objects.CommandTemplate
+import com.junkfood.seal.util.SafeErrorReport
 import com.junkfood.seal.util.COMMAND_DIRECTORY
 import com.junkfood.seal.util.DownloadUtil
 import com.junkfood.seal.util.FileUtil
@@ -531,9 +532,9 @@ object Downloader {
         val notificationTitle = title ?: url
 
         if (isFetchingInfo) {
-            fetchInfoError(url = url.toString(), errorReport = th.message.toString())
+            fetchInfoError(url = url.toString(), errorReport = SafeErrorReport.localDescription(th))
         } else {
-            downloadError(url = url.toString(), errorReport = th.message.toString())
+            downloadError(url = url.toString(), errorReport = SafeErrorReport.localDescription(th))
         }
 
         notificationId?.let {
