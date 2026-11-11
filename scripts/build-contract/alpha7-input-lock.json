@@ -1,0 +1,56 @@
+{
+  "scope": "retained reviewed ARM64 build inputs only; not runtime or public distribution clearance",
+  "files": {
+    "app/src/main/assets/functional-engine/yt-dlp": {
+      "sha256": "e51e69e89489f199530f13d32a4342da3ddb2cf34842f364603a066db05afbf3",
+      "bytes": 3073072
+    },
+    "app/src/main/jniLibs/arm64-v8a/libffmpeg.so": {
+      "sha256": "cd1b02f0e69b4e763c24260e2d8248473988efde15ce3d93dfe99c961624bbb0",
+      "bytes": 391104
+    },
+    "app/src/main/jniLibs/arm64-v8a/libffmpeg.zip.so": {
+      "sha256": "cea7955e24ed489a01c0f166a8393057f3f65741986dd7eaa55986760e6d27e1",
+      "bytes": 10572761
+    },
+    "app/src/main/jniLibs/arm64-v8a/libffprobe.so": {
+      "sha256": "1a17e0d69db1dd8825427928cde93ea8e19ae67a41f89f9696e5242a38efc23d",
+      "bytes": 193544
+    },
+    "app/src/main/jniLibs/arm64-v8a/libpython.so": {
+      "sha256": "9726de75497c51d033dd1b4bdb9931344815bb3260633d7aa46587e7ea8ab3ce",
+      "bytes": 52416
+    },
+    "app/src/main/jniLibs/arm64-v8a/libpython.zip.so": {
+      "sha256": "38f6e236ba307217895ffd180569b6cacb7c854cc43ad8c9eac461c3430638df",
+      "bytes": 20587205
+    },
+    "app/src/main/jniLibs/arm64-v8a/libqjs.so": {
+      "sha256": "4d8e0ee76b73156888f657f097b53a1e96727f2d3fd6f7c0c4eb6c7e92bb7e19",
+      "bytes": 1071896
+    },
+    "dependencies/frpboy-mmkv/src/main/jniLibs/arm64-v8a/libmmkv.so": {
+      "sha256": "6544cd777e2b7bfdc450dcfbb22e1145062e9077296700f1251abcd03724fae0",
+      "bytes": 610544
+    },
+    "functional-alpha-payload-manifest.json": {
+      "sha256": "6cd0edc4033726d1306e311bb35a0fc23fe0b5415e5f7a75fbb4a6b7d421c9aa",
+      "bytes": 1535
+    }
+  },
+  "archive": {
+    "name": "seali-alpha7-arm64-inputs.tar",
+    "bytes": 36567040,
+    "sha256": "4cf748a8c9044b0a0b27ccb5e358fc689dbcf26b4ec4661961e87c8305127b82"
+  },
+  "tracked_files": {
+    "dependencies/frpboy-library/src/main/res/raw/ytdlp": {
+      "sha256": "e51e69e89489f199530f13d32a4342da3ddb2cf34842f364603a066db05afbf3",
+      "bytes": 3073072
+    },
+    "functional-alpha-platform-jni.json": {
+      "sha256": "84c16be9449036f8b7d8c4fad366adc1496e38d6f4e1bbf4ef053a80c196d6e5",
+      "bytes": 861
+    }
+  }
+}

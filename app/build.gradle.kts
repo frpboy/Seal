@@ -43,11 +43,9 @@ if (hasAnySigningValue && !signingConfigured) {
     )
 }
 
-// This isolated branch is a functional phone-alpha candidate, never a production fallback.
-check(project.hasProperty("functionalAlphaCandidate")) {
-    "This candidate requires -PfunctionalAlphaCandidate; do not merge this branch into production."
-}
-val splitApks = !project.hasProperty("noSplits")
+// Alpha7 ships only the reviewed source-built ARM64 payload set. Source compilation
+// and unit tests are payload-free; APK packaging verifies staged input custody.
+val splitApks = project.hasProperty("splitApks")
 
 val abiFilterList = (properties["ABI_FILTERS"] as String).split(';')
 
@@ -55,6 +53,33 @@ val abiCodes = mapOf("armeabi-v7a" to 1, "arm64-v8a" to 2, "x86" to 3, "x86_64" 
 
 val baseVersionName = currentVersion.name
 val currentVersionCode = currentVersion.code.toInt()
+
+val verifyAlpha7Inputs = tasks.register<Exec>("verifyAlpha7BuildInputs") {
+    workingDir(rootProject.projectDir)
+    // Native payloads are intentionally untracked. Always rehash before packaging.
+    outputs.upToDateWhen { false }
+}
+gradle.projectsEvaluated {
+    val nativeRoots = rootProject.allprojects.flatMap { owner ->
+        owner.extensions.findByType(com.android.build.gradle.BaseExtension::class.java)
+            ?.sourceSets?.flatMap { it.jniLibs.srcDirs } ?: emptyList()
+    }.distinct().sortedBy { it.absolutePath }
+    val args = nativeRoots.flatMap { listOf("--native-root", it.absolutePath) }
+    val command = listOf("python3", "scripts/build-contract/verify-alpha7-inputs.py", "--root", rootProject.projectDir.absolutePath) + args
+    verifyAlpha7Inputs.configure { commandLine(command) }
+}
+tasks.configureEach {
+    if ((name.startsWith("merge") && (name.endsWith("NativeLibs") || name.endsWith("JniLibFolders") || name.endsWith("Assets"))) ||
+        (name.startsWith("compress") && name.endsWith("Assets"))) {
+        dependsOn(verifyAlpha7Inputs)
+        val supportedAlpha7Abi = !splitApks && abiFilterList == listOf("arm64-v8a")
+        doFirst {
+            check(supportedAlpha7Abi) {
+                "Alpha7 packaging supports the reviewed ARM64 payload set only; split/other ABI builds are not qualified."
+            }
+        }
+    }
+}
 
 android {
     compileSdk = 36

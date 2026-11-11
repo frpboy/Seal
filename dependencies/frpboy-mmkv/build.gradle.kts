@@ -39,5 +39,5 @@ val verifyOwnedNative = tasks.register("verifyOwnedMmkvNative") {
     }
 }
 tasks.configureEach {
-    if (name.startsWith("merge") && name.endsWith("NativeLibs")) dependsOn(verifyOwnedNative)
+    if (name.startsWith("merge") && (name.endsWith("NativeLibs") || name.endsWith("JniLibFolders"))) dependsOn(verifyOwnedNative)
 }
