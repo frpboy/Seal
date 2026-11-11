@@ -265,6 +265,31 @@
     "sha256": "20e50fe7aae3e56378ebf0417d9de904f55a0e61e4df315333e632a4d3555d95"
   },
   {
+    "path": "yt-dlp-ejs-0.8.0/BUNDLED-JS-NOTICES.txt",
+    "bytes": 2406,
+    "sha256": "7cc2145beba05a64cd7907f0e1b4025c4d8fb21eb67108d6cd9b45e5f6b98acc"
+  },
+  {
+    "path": "yt-dlp-ejs-0.8.0/EJS-LICENSE",
+    "bytes": 1212,
+    "sha256": "b5065838cbac452dfc855ba6e6e031481ad2c68406f70d21ead9321374653e6c"
+  },
+  {
+    "path": "yt-dlp-ejs-0.8.0/SOURCE.txt",
+    "bytes": 1361,
+    "sha256": "0b17c5f3814bcb85c9e2883dba3b5967c34e5d6379b48f2d4170c4a59fb0f112"
+  },
+  {
+    "path": "yt-dlp-ejs-0.8.0/astring-1.9.0-LICENSE",
+    "bytes": 1074,
+    "sha256": "d7e882d386050a13b3244078d95b1e3d943b4741fb1b2d7d936cf39a08f52a09"
+  },
+  {
+    "path": "yt-dlp-ejs-0.8.0/meriyah-6.1.4-LICENSE.md",
+    "bytes": 760,
+    "sha256": "e9a5df5a6ae5cd51ca430715f4c62fb5424946e8da07b7caa058a1ba0582a848"
+  },
+  {
     "path": "zlib-1.4/LICENSE",
     "bytes": 1002,
     "sha256": "e32ff4e00d9d94930537635291da39e7e612703334bf6fde8c7f1686fe8a45a2"

@@ -1,0 +1,26 @@
+yt-dlp-ejs 0.8.0 is embedded in the pinned yt-dlp 2026.10.26 engine.
+All six embedded yt_dlp_ejs files match the official wheel exactly.
+
+Official release:
+https://github.com/yt-dlp/ejs/releases/tag/0.8.0
+Official wheel SHA256:
+79300e5fca7f937a1eeede11f0456862c1b41107ce1d726871e0207424f4bdb4
+Official source archive SHA256:
+d5fa1639f63b5c4af8d932495f60689d5370f1a095782c944f7f62a303eb104e
+
+The core project uses the Unlicense. Its bundled JavaScript also contains:
+- meriyah 6.1.4, ISC. Exact package-lock source archive:
+  https://registry.npmjs.org/meriyah/-/meriyah-6.1.4.tgz
+  SHA256 c0f105d9fb01bb48c76ea6ee382e6099277b95e3f351fb99b67ddfb79d6088b8
+- astring 1.9.0, MIT. Exact package-lock source archive:
+  https://registry.npmjs.org/astring/-/astring-1.9.0.tgz
+  SHA256 422cca9707aca293e85eb54fdbbc5a0a167ad415236a325ff342e720e67afb49
+Both archives were checked against the upstream package-lock SHA512 integrity.
+
+EJS-LICENSE is the original official wheel license.
+BUNDLED-JS-NOTICES.txt preserves the complete leading notice already embedded
+in the shipped lib.min.js. The original individual meriyah/astring licenses
+are copied from the exact pinned package source archives. These visible copies
+supplement the embedded notices; no engine bytes or upstream credits changed.
+
+Full source/build delivery and Android runtime qualification are separate.
