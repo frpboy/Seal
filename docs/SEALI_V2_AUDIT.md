@@ -3,7 +3,7 @@
 **Audit date:** 2026-11-04  
 **Audited repository:** `frpboy/Seal`  
 **Working branch:** `project/seali-rebrand`  
-**Upstream:** `JunkFood02/Seal`  
+**Upstream:** see [CREDITS.md](../CREDITS.md)  
 **Scope:** upstream activity, v2 implementation status, architecture, test/CI readiness, Android identity, and a safe continuation plan.
 
 ## Historical scope
@@ -31,11 +31,7 @@ The public repository is not archived. However, its application development cade
 
 The alpha.5 release notes explicitly say the new custom-command implementation is still under development and broken. The v2 changelog still marks v2.0.0 as unreleased. This is strong evidence of a long-running unfinished v2 effort, but it does **not** prove the maintainer's personal reason or prove that development will never resume.
 
-References:
-- Upstream releases: https://github.com/JunkFood02/Seal/releases
-- v2 alpha.5: https://github.com/JunkFood02/Seal/releases/tag/v2.0.0-alpha.5
-- v2 changelog: https://github.com/JunkFood02/Seal/blob/main/CHANGELOG.md
-- upstream commit history: https://github.com/JunkFood02/Seal/commits/main/
+References: see [CREDITS.md](../CREDITS.md) for original source, release and history references.
 
 ## 2. Existing v2 implementation in this fork
 
@@ -57,7 +53,7 @@ This is a useful base. It should be preserved and hardened rather than replaced.
 
 ### P1 — Automated tests do not protect the v2 downloader
 
-The local unit-test file contains only a trivial arithmetic test and a small delimiter helper test. The instrumented test checks the package name against `com.junkfood.Seal`, while the Gradle application ID is `com.junkfood.seal`. Package identifiers are case-sensitive, so that assertion is inconsistent with the configured application ID.
+The local unit-test file contains only a trivial arithmetic test and a small delimiter helper test. The instrumented test checks the package name against `legacy package name`, while the Gradle application ID is `legacy internal package namespace`. Package identifiers are case-sensitive, so that assertion is inconsistent with the configured application ID.
 
 The current Android CI workflow builds `buildGenericRelease`; it does not explicitly run the unit-test and instrumentation-test suites.
 
@@ -75,7 +71,7 @@ An upstream issue opened on 2026-09-17 documents YouTube extraction failures cau
 
 **Action:** do not copy a large native binary into the app without a reproducible build and distribution review. First create a small compatibility spike: verify the current youtubedl-android runtime discovery behavior, supported Android ABIs, binary provenance and license, APK/AAB size, update strategy, and real YouTube extraction tests. Consider a runtime-provider abstraction so a future runtime change does not leak through the UI layer.
 
-Reference: https://github.com/JunkFood02/Seal/issues/2640
+Reference: see [CREDITS.md](../CREDITS.md) for the retained upstream issue reference.
 
 ### P2 — Queue persistence and identity need explicit invariants
 
@@ -158,4 +154,4 @@ The first code changes should be deliberately small and testable:
 
 This audit is documentation only. No downloader behavior, package ID, application namespace, signing configuration, app icon, or release workflow has been changed by this audit. No claim is made that an Android build or device test has passed.
 
-The GPL-3.0 license and original copyright notices must remain intact. Seali must clearly identify its upstream origin and must not imply endorsement by JunkFood02.
+The GPL-3.0 license and original copyright notices must remain intact. Seali must clearly identify its upstream origin and must not imply endorsement by the upstream project maintainer.

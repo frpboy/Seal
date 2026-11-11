@@ -31,7 +31,7 @@ The entries below are inherited upstream release history, retained with their or
 - Predictive back animation support for Android 14+
 - Bump up minimum API level to 24 (Android 7.0)
 
-## [v1.13.0][1.13.0] - 2024-08-18
+## [v1.13.0]1.13.0 - 2024-08-18
 
 ### Fixed
 
@@ -43,7 +43,7 @@ The entries below are inherited upstream release history, retained with their or
 - Update `youtubedl-android` to v0.16.1
 - Update translations
 
-## [v1.12.1][1.12.1] - 2024-04-17
+## [v1.12.1]1.12.1 - 2024-04-17
 
 ### Added
 
@@ -63,7 +63,7 @@ The entries below are inherited upstream release history, retained with their or
 * yt-dlp might be broken if you tried to download something while it was
   updating (`bad local file header`). To fix it, you just need to update yt-dlp again
 
-## [v1.12.0][1.12.0] - 2024-04-05
+## [v1.12.0]1.12.0 - 2024-04-05
 
 ### Added
 
@@ -104,7 +104,7 @@ The entries below are inherited upstream release history, retained with their or
 * TextFields(IME) fallback to plain character mode when showing a ModalBottomSheet
 * ModalBottomSheet handles insets incorrectly on devices below API 30
 
-## [v1.11.3][1.11.3] - 2024-01-22
+## [v1.11.3]1.11.3 - 2024-01-22
 
 ### Added
 
@@ -116,7 +116,7 @@ The entries below are inherited upstream release history, retained with their or
 * App creates duplicated command templates on initialization
 * Cannot make video clip in FormatPage
 
-## [v1.11.2][1.11.2] - 2024-01-06
+## [v1.11.2]1.11.2 - 2024-01-06
 
 ### Added
 
@@ -134,7 +134,7 @@ The entries below are inherited upstream release history, retained with their or
 
 * Transition animation should look more smooth now
 
-## [v1.11.1][1.11.1] - 2023-12-16
+## [v1.11.1]1.11.1 - 2023-12-16
 
 ### Added
 
@@ -147,7 +147,7 @@ The entries below are inherited upstream release history, retained with their or
 * Fix some minor UI bugs
 * Fix an issue causing error when parsing video info
 
-## [v1.11.0][1.11.0] - 2023-11-18
+## [v1.11.0]1.11.0 - 2023-11-18
 
 ### Added
 
@@ -180,7 +180,7 @@ The entries below are inherited upstream release history, retained with their or
 
 * Custom prefix for output template has been removed, please migrate to custom output template
 
-## [v1.10.0][1.10.0] - 2023-08-30
+## [v1.10.0]1.10.0 - 2023-08-30
 
 ### Added
 
@@ -239,7 +239,7 @@ The entries below are inherited upstream release history, retained with their or
 * Notifications now are enabled by default
 * Minor UI improvements & changes
 
-## [v1.9.2][1.9.2] - 2023-04-27
+## [v1.9.2]1.9.2 - 2023-04-27
 
 ### Fixed
 
@@ -247,7 +247,7 @@ The entries below are inherited upstream release history, retained with their or
 * Fix misplaced quality tags in `AudioQuickSettingsDialog`
 * Fix mismatched formats when using Save as audio & Download playlist
 
-## [v1.9.1][1.9.1] - 2023-04-11
+## [v1.9.1]1.9.1 - 2023-04-11
 
 ### Added
 
@@ -262,7 +262,7 @@ The entries below are inherited upstream release history, retained with their or
 
 * Move the directory for temporary files to `cacheDir`
 
-## [v1.9.0][1.9.0] - 2023-03-12
+## [v1.9.0]1.9.0 - 2023-03-12
 
 ### Added
 
@@ -303,7 +303,7 @@ The entries below are inherited upstream release history, retained with their or
 - Cookies may not work as expected in some devices, please try to re-generate cookies after this
   occurs. File an issue on GitHub with your device info when experience errors.
 
-## [v1.8.2][1.8.2] - 2023-02-10
+## [v1.8.2]1.8.2 - 2023-02-10
 
 ### Fixed
 
@@ -317,7 +317,7 @@ The entries below are inherited upstream release history, retained with their or
 - Add `horizontalScroll` to `LogPage`
 - Revert the URL intent filters
 
-## [v1.8.1][1.8.1] - 2023-02-01
+## [v1.8.1]1.8.1 - 2023-02-01
 
 ### Fixed
 
@@ -326,7 +326,7 @@ The entries below are inherited upstream release history, retained with their or
 - Disable SD card download when the directory is not set
 - Localized strings for file size texts
 
-## [v1.8.0][1.8.0] - 2023-01-29
+## [v1.8.0]1.8.0 - 2023-01-29
 
 ### Added
 
@@ -347,7 +347,7 @@ The entries below are inherited upstream release history, retained with their or
 - Scan the download directory to the system media library after running commands
 - Change the LongClick operations of `FormatItem` to share the stream URLs
 
-## [v1.7.3][1.7.3] - 2023-01-10
+## [v1.7.3]1.7.3 - 2023-01-10
 
 ### Fixed
 
@@ -364,32 +364,17 @@ The entries below are inherited upstream release history, retained with their or
 
 - Playlist results are limited to 200 videos
 
-[1.7.3]: https://github.com/JunkFood02/Seal/releases/tag/v1.7.3
 
-[1.8.0]: https://github.com/JunkFood02/Seal/releases/tag/v1.8.0
 
-[1.8.1]: https://github.com/JunkFood02/Seal/releases/tag/v1.8.1
 
-[1.8.2]: https://github.com/JunkFood02/Seal/releases/tag/v1.8.2
 
-[1.9.0]: https://github.com/JunkFood02/Seal/releases/tag/v1.9.0
 
-[1.9.1]: https://github.com/JunkFood02/Seal/releases/tag/v1.9.1
 
-[1.9.2]: https://github.com/JunkFood02/Seal/releases/tag/v1.9.2
 
-[1.10.0]: https://github.com/JunkFood02/Seal/releases/tag/v1.10.0
 
-[1.11.0]: https://github.com/JunkFood02/Seal/releases/tag/v1.11.0
 
-[1.11.1]: https://github.com/JunkFood02/Seal/releases/tag/v1.11.1
 
-[1.11.2]: https://github.com/JunkFood02/Seal/releases/tag/v1.11.2
 
-[1.11.3]: https://github.com/JunkFood02/Seal/releases/tag/v1.11.3
 
-[1.12.0]: https://github.com/JunkFood02/Seal/releases/tag/v1.12.0
 
-[1.12.1]: https://github.com/JunkFood02/Seal/releases/tag/v1.12.1
 
-[1.13.0]: https://github.com/JunkFood02/Seal/releases/tag/v1.13.0

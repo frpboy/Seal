@@ -1,6 +1,6 @@
 # Building and testing Seali
 
-Seali is an independent GPL-3.0 continuation of [JunkFood02/Seal](https://github.com/JunkFood02/Seal). This guide describes this fork, not upstream release support.
+Seali is an independently maintained GPL-3.0 Android application. Upstream authorship and required notices are recorded in [CREDITS.md](CREDITS.md). This guide describes Seali build and release support.
 
 ## Prerequisites
 
