@@ -118,6 +118,7 @@ import com.frpboy.seali.util.NOTIFICATION
 import com.frpboy.seali.util.PreferenceUtil
 import com.frpboy.seali.util.PreferenceUtil.getBoolean
 import com.frpboy.seali.util.PreferenceUtil.updateBoolean
+import com.frpboy.seali.util.SafeErrorReport
 import com.frpboy.seali.util.ToastUtil
 import com.frpboy.seali.util.matchUrlFromClipboard
 import kotlinx.coroutines.launch

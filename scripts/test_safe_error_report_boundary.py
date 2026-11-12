@@ -19,6 +19,7 @@ class SafeReportRouting(unittest.TestCase):
         self.assertNotIn("th.message.toString()", text)
     def test_legacy_copy_does_not_reuse_raw_local_report(self):
         text = (ROOT / "ui/page/download/DownloadPage.kt").read_text()
+        self.assertIn("import com.frpboy.seali.util.SafeErrorReport", text)
         self.assertIn("SafeErrorReport.copyLegacyReport(", text)
         self.assertNotIn('URL: ${errorState.url}', text)
     def test_configuration_display_and_copy_route(self):
