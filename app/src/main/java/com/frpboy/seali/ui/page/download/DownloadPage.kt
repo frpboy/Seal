@@ -530,8 +530,9 @@ fun DownloadPageImpl(
                         view.longPressHapticFeedback()
                         clipboardManager.setText(
                             AnnotatedString(
-                                App.getVersionReport() +
-                                    "\nURL: ${errorState.url}\n${errorState.report}"
+                                SafeErrorReport.copyLegacyReport(
+                                    App.getVersionReport(), errorState.report, errorState.url
+                                )
                             )
                         )
                         ToastUtil.makeToast(R.string.error_copied)

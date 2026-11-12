@@ -116,6 +116,7 @@ import com.frpboy.seali.ui.page.settings.format.AudioQuickSettingsDialog
 import com.frpboy.seali.ui.page.settings.format.VideoQuickSettingsDialog
 import com.frpboy.seali.ui.page.settings.network.CookiesQuickSettingsDialog
 import com.frpboy.seali.ui.theme.SealTheme
+import com.frpboy.seali.util.SafeErrorReport
 import com.frpboy.seali.util.AUDIO_CONVERSION_FORMAT
 import com.frpboy.seali.util.AUDIO_CONVERT
 import com.frpboy.seali.util.AUDIO_FORMAT
@@ -280,16 +281,11 @@ fun DownloadDialog(
 private fun ErrorPage(modifier: Modifier = Modifier, state: Error, onActionPost: (Action) -> Unit) {
     val view = LocalView.current
     val clipboardManager = LocalClipboardManager.current
-    val url =
-        state.action.run {
-            when (this) {
-                is Action.FetchFormats -> url
-                is Action.FetchPlaylist -> url
-                else -> {
-                    throw IllegalArgumentException()
-                }
-            }
-        }
+    val url = when (val action = state.action) {
+        is Action.FetchFormats -> action.url
+        is Action.FetchPlaylist -> action.url
+        else -> null
+    }
     Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Icon(
             imageVector = Icons.Outlined.ErrorOutline,
@@ -302,7 +298,7 @@ private fun ErrorPage(modifier: Modifier = Modifier, state: Error, onActionPost:
             modifier = Modifier.padding(top = 12.dp),
         )
         Text(
-            text = state.throwable.message.toString(),
+            text = SafeErrorReport.localDescription(state.throwable),
             style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier =
@@ -321,7 +317,7 @@ private fun ErrorPage(modifier: Modifier = Modifier, state: Error, onActionPost:
                     view.longPressHapticFeedback()
                     clipboardManager.setText(
                         AnnotatedString(
-                            App.getVersionReport() + "\nURL: ${url}\n${state.throwable.message}"
+                            SafeErrorReport.copyReport(App.getVersionReport(), state.throwable, url)
                         )
                     )
                     ToastUtil.makeToast(R.string.error_copied)

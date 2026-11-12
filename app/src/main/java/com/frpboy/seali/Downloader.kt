@@ -20,6 +20,7 @@ import com.frpboy.seali.util.NotificationUtil
 import com.frpboy.seali.util.PlaylistEntry
 import com.frpboy.seali.util.PlaylistResult
 import com.frpboy.seali.util.PreferenceUtil.getString
+import com.frpboy.seali.util.SafeErrorReport
 import com.frpboy.seali.util.ToastUtil
 import com.frpboy.seali.util.VideoInfo
 import com.frpboy.seali.util.toHttpsUrl
@@ -531,9 +532,9 @@ object Downloader {
         val notificationTitle = title ?: url
 
         if (isFetchingInfo) {
-            fetchInfoError(url = url.toString(), errorReport = th.message.toString())
+            fetchInfoError(url = url.toString(), errorReport = SafeErrorReport.localDescription(th))
         } else {
-            downloadError(url = url.toString(), errorReport = th.message.toString())
+            downloadError(url = url.toString(), errorReport = SafeErrorReport.localDescription(th))
         }
 
         notificationId?.let {
