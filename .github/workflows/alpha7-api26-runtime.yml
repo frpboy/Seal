@@ -34,6 +34,11 @@ permissions:
 
 jobs:
   static-gates-and-build:
+    # Draft custody asset read and private retain need the push-level token,
+    # exposed solely to the two pinned custody steps below; gradle/build
+    # steps receive no token and checkout persists no credentials.
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -88,6 +93,19 @@ jobs:
           chmod +x gradlew
           ./gradlew --no-daemon --no-configuration-cache -I scripts/build-contract/resolved-graph.init.gradle -PfunctionalAlphaCandidate :app:writeGenericDebugRuntimeClasspathGraph
           python3 scripts/build-contract/verify-runtime-graph.py --lock scripts/build-contract/alpha7-runtime-graph-lock.json --report app/build/reports/resolved-graph/genericDebugRuntimeClasspath.json
+      # Locked reviewed ARM64 custody inputs are never in git (.gitignore by
+      # design); a fresh checkout lacks all 9. Stage through the repo's own
+      # fail-closed chain (identical calls to alpha7-candidate.yml) before any
+      # packaging task can run.
+      - name: Stage locked unpublished ARM64 custody inputs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 scripts/build-contract/test-inputs.py
+          python3 scripts/build-contract/custody-inputs.py download --output "$RUNNER_TEMP/seali-alpha7-arm64-inputs.tar"
+          python3 scripts/build-contract/stage-alpha7-inputs.py --archive "$RUNNER_TEMP/seali-alpha7-arm64-inputs.tar" --root "$GITHUB_WORKSPACE" --lock scripts/build-contract/alpha7-input-lock.json
+          python3 scripts/build-contract/verify-alpha7-inputs.py --root "$GITHUB_WORKSPACE"
       - name: Assemble ARM64 app and instrumentation APKs
         run: |
           set -euo pipefail
@@ -103,12 +121,22 @@ jobs:
             exit 1
           fi
           sha256sum "${app_apk[0]}" "${test_apk[0]}" | tee apks.sha256
+      # APK bytes stay private: retained as new run-bound assets on the same
+      # pinned unpublished draft release. The retain script re-checks custody
+      # identity before every upload, binds both files to the count-guarded
+      # apks.sha256 manifest, verifies each APK's actual single signer is not
+      # the production certificate, refuses any existing name, and never
+      # deletes, retries or overwrites. Only hashes leave publicly.
+      - name: Retain debug APK pair in unpublished custody only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 scripts/build-contract/retain-debug-artifacts.py --manifest apks.sha256 --apksigner "$ANDROID_HOME/build-tools/36.0.0/apksigner" --receipt-out "$RUNNER_TEMP/retain-receipt.json"
+          cat "$RUNNER_TEMP/retain-receipt.json"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4 (verified tag target 2026-11-13)
         with:
-          name: alpha7-api26-arm64-apks
+          name: alpha7-api26-arm64-evidence
           if-no-files-found: error
           retention-days: 7
-          path: |
-            app/build/outputs/apk/generic/debug/*.apk
-            app/build/outputs/apk/androidTest/generic/debug/*.apk
-            apks.sha256
+          path: apks.sha256
