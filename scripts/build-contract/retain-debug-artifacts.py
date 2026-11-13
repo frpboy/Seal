@@ -37,20 +37,33 @@ def signer_sha256(apksigner,apk):
     if digests[0]==PRODUCTION_SIGNER:raise ValueError('refusing production-signed artifact in debug retention')
     return digests[0]
 
+def checked_file(root,name):
+    path=pathlib.Path(str(name))
+    for ancestor in [path,*path.parents]:
+        if ancestor.is_symlink():raise ValueError('symlink in artifact path: '+str(name))
+    resolved=path.resolve()
+    if not resolved.is_file():raise ValueError('non-regular artifact: '+str(name))
+    if not resolved.is_relative_to(root):raise ValueError('artifact escapes workspace: '+str(name))
+    return path
+
 def retain(lock,manifest,apksigner,receipt_out):
     release,_=custody_inputs.check(lock)
     run=os.environ['GITHUB_RUN_ID'];sha=os.environ['GITHUB_SHA']
     if not run.isdigit() or not re.fullmatch('[0-9a-f]{40}',sha):raise ValueError('invalid run/source binding')
+    root=pathlib.Path.cwd().resolve()
     existing={a['name'] for a in release['assets']}
     items=[]
     for digest,name in manifest_pairs(manifest):
-        path=pathlib.Path(str(name))
+        path=checked_file(root,name)
         data=path.read_bytes()
         if hashlib.sha256(data).hexdigest()!=digest:raise ValueError('file differs from manifest: '+str(name))
         retained='Seali-alpha7-'+run+'-'+path.name
         if retained in existing:raise ValueError('output asset already exists; do not overwrite')
         items.append((retained,data,digest,signer_sha256(apksigner,path)))
-    receipt={'source_sha':sha,'run_id':run,'custody_release_id':release['id'],'signer':'debug','runtime_tested':False,'public_release_ready':False,
+    if items[0][3]!=items[1][3]:raise ValueError('app and test APK signer digests differ')
+    receipt={'source_sha':sha,'run_id':run,'custody_release_id':release['id'],
+             'signer_verification':{'signers':1,'production_signer_excluded':True,'pair_signer_consistent':True},
+             'runtime_tested':False,'public_release_ready':False,
              'artifacts':[{'name':n,'sha256':d,'bytes':len(data),'signer_sha256':s} for n,data,d,s in items]}
     items.append(('Seali-alpha7-'+run+'-debug-receipt.json',(json.dumps(receipt,indent=2)+'\n').encode(),None,None))
     results=[]
