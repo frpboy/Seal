@@ -73,7 +73,7 @@ def verify(root, lock, resolved=None, apk=None, raw_path=None, selected_aars=Non
         with zipfile.ZipFile(apk) as z:
             for name,expected in [('assets/functional-engine/yt-dlp',lock['engine_sha256']),('assets/seali-engine/verify-runtime-engine.py',lock['checker_sha256']),(raw_path,lock['engine_sha256'])]:
                 if sha(z.read(name))!=expected: raise ValueError('final APK payload drift: '+name)
-    return {'artifacts':checked,'engine_sha256':lock['engine_sha256'],'checker_sha256':lock['checker_sha256'],'gradle_selection_checked':resolved is not None or selected_aars is not None,'apk_payload_checked':apk is not None,'scope':'artifact identity/content only, not signing, runtime, API24, source/license completeness or release approval'}
+    return {'artifacts':checked,'engine_sha256':lock['engine_sha256'],'checker_sha256':lock['checker_sha256'],'gradle_selection_checked':resolved is not None or selected_aars is not None,'apk_payload_checked':apk is not None,'scope':'artifact identity/content only, not signing, runtime behavior, source/license completeness or release approval'}
 
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--root',required=True);p.add_argument('--lock',required=True);p.add_argument('--resolved-report');p.add_argument('--apk');p.add_argument('--raw-path');p.add_argument('--selected-aar',action='append');a=p.parse_args()

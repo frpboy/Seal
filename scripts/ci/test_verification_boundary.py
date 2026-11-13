@@ -72,7 +72,7 @@ class VerificationBoundaryTest(unittest.TestCase):
         self.assertTrue(text.startswith("    if: github.event_name == 'workflow_dispatch' && inputs.qualify_maven_consumer == true\n"))
         self.assertIn("if: github.event_name != 'workflow_dispatch' || inputs.qualify_maven_consumer != true",self.source)
         self.assertIn('inputs.run_history_ui == true && inputs.qualify_maven_consumer != true',self.source)
-        self.assertIn('ref: 41ac9a5375aeccf7fe36b3946d7af05f2fad637e',text)
+        self.assertIn('ref: 860532435b1e69ba6984d6e911e061748477eedd',text)
         self.assertIn('python3 scripts/build-contract/test-maven-inputs.py',text)
         self.assertIn(':app:compileGenericDebugKotlin :app:testGenericDebugUnitTest',text)
         for name in ['BUILD_RELEASE','PUBLISH_APK','HISTORY_UI']:

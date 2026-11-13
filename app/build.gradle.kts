@@ -100,7 +100,7 @@ android {
 
     defaultConfig {
         applicationId = "com.frpboy.seali"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 200_000_170
         check(versionCode == currentVersionCode)
@@ -268,13 +268,13 @@ dependencies {
 
     implementation(libs.okhttp)
 
-    implementation("io.github.frpboy.youtubedl-android:library:0.1.0-alpha.7-staging.2")
-    implementation("io.github.frpboy.youtubedl-android:ffmpeg:0.1.0-alpha.7-staging.2")
-    implementation("io.github.frpboy.youtubedl-android:common:0.1.0-alpha.7-staging.2")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.11.1")
-    implementation("com.fasterxml.jackson.core:jackson-annotations:2.11.1")
-    implementation("commons-io:commons-io:2.5")
-    implementation("org.apache.commons:commons-compress:1.12")
+    implementation("io.github.frpboy.youtubedl-android:library:0.1.0-alpha.7-staging.3")
+    implementation("io.github.frpboy.youtubedl-android:ffmpeg:0.1.0-alpha.7-staging.3")
+    implementation("io.github.frpboy.youtubedl-android:common:0.1.0-alpha.7-staging.3")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.21.8")
+    implementation("com.fasterxml.jackson.core:jackson-annotations:2.21")
+    implementation("commons-io:commons-io:2.22.0")
+    implementation("org.apache.commons:commons-compress:1.28.0")
 
     implementation(project(":frpboy-mmkv"))
 
