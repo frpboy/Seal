@@ -2,8 +2,8 @@
 """Check the public producer source identity before local Maven qualification.
 SEALI_BASELINE_* pin the Seali commit X7 extracted the producer sources from (recorded in the producer's source-baseline-bindings.json); PRODUCER_* pin the producer candidate itself."""
 import argparse,hashlib,json,pathlib,subprocess
-PRODUCER='860532435b1e69ba6984d6e911e061748477eedd'
-PRODUCER_TREE='84ccdee190e82929bd3b4992cb75d17c50ba0646'
+PRODUCER='486a5462431c4ba81a1e80f30dcb01952ec43c4c'
+PRODUCER_TREE='f9aabe44de697c84644e35a0961d823726f4d181'
 SEALI_BASELINE_COMMIT='6e6c6e1a8f62f0d45d26cef386d726b145abf209'
 SEALI_BASELINE_TREE='d989b3482317cab099aefd015f367a53b8e118c4'
 def check(root,producer):

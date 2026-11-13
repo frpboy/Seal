@@ -17,13 +17,13 @@ internal object FunctionalEngine {
         check(root.isDirectory || root.mkdirs()) { "Cannot prepare engine directory" }
         check(root.canonicalFile == root.absoluteFile && root.canonicalPath.startsWith(owned.path + File.separator)) { "Unexpected engine child path" }
         val binary = File(root, "yt-dlp")
-        check(!binary.exists() || binary.canonicalFile == binary.absoluteFile) { "Engine must not be a symlink" }
+        check(!java.nio.file.Files.isSymbolicLink(binary.toPath()) && (!binary.exists() || binary.canonicalFile == binary.absoluteFile)) { "Engine must not be a symlink" }
         val state = File(owned, "seali-functional-engine-state")
         check(state.isDirectory || state.mkdirs()) { "Cannot prepare alpha engine state" }
         check(state.canonicalFile == state.absoluteFile) { "Unexpected engine state path" }
         val migration = File(state, "functional-alpha-engine-version")
         for (child in listOf(migration, File(state, "yt-dlp.pre-functional-alpha"), File(state, "yt-dlp.pre-functional-alpha.new"), File(root, "yt-dlp.alpha-new"))) {
-            check(child.canonicalFile == child.absoluteFile) { "Unexpected engine state child symlink" }
+            check(!java.nio.file.Files.isSymbolicLink(child.toPath()) && child.canonicalFile == child.absoluteFile) { "Unexpected engine state child symlink" }
         }
         fun digest(file: File) = file.inputStream().use { input ->
             val hash = MessageDigest.getInstance("SHA-256")

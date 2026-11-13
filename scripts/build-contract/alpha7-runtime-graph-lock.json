@@ -161,9 +161,9 @@
         "module:io.coil-kt:coil-compose-base:2.5.0",
         "module:io.coil-kt:coil-compose:2.5.0",
         "module:io.coil-kt:coil:2.5.0",
-        "module:io.github.frpboy.youtubedl-android:common:0.1.0-alpha.7-staging.3",
-        "module:io.github.frpboy.youtubedl-android:ffmpeg:0.1.0-alpha.7-staging.3",
-        "module:io.github.frpboy.youtubedl-android:library:0.1.0-alpha.7-staging.3",
+        "module:io.github.frpboy.youtubedl-android:common:0.1.0-alpha.7-staging.4",
+        "module:io.github.frpboy.youtubedl-android:ffmpeg:0.1.0-alpha.7-staging.4",
+        "module:io.github.frpboy.youtubedl-android:library:0.1.0-alpha.7-staging.4",
         "module:io.insert-koin:koin-android:4.0.0",
         "module:io.insert-koin:koin-androidx-compose:4.0.0",
         "module:io.insert-koin:koin-compose-jvm:4.0.0",
@@ -1188,26 +1188,26 @@
         {
             "group": "io.github.frpboy.youtubedl-android",
             "name": "common",
-            "version": "0.1.0-alpha.7-staging.3",
-            "file": "common-0.1.0-alpha.7-staging.3.aar",
-            "sha256": "f2d760b276a6367866f79b28d22d8196a601d7c22b6808890764c9c054cf6771",
+            "version": "0.1.0-alpha.7-staging.4",
+            "file": "common-0.1.0-alpha.7-staging.4.aar",
+            "sha256": "4e0fa79c380e818896483665a0df923176d51bfd8c4883ffb4cebd0d89db4191",
             "bytes": 7145
         },
         {
             "group": "io.github.frpboy.youtubedl-android",
             "name": "ffmpeg",
-            "version": "0.1.0-alpha.7-staging.3",
-            "file": "ffmpeg-0.1.0-alpha.7-staging.3.aar",
-            "sha256": "ae40a28b161db7bf3e923b67a1f23d1f9972da49c1d428985eebbbb5b7a35d5a",
+            "version": "0.1.0-alpha.7-staging.4",
+            "file": "ffmpeg-0.1.0-alpha.7-staging.4.aar",
+            "sha256": "6b0dacf677234c973b323aa348282d6ad3ca8ffbddbafb7b5cc14387707f4760",
             "bytes": 3500
         },
         {
             "group": "io.github.frpboy.youtubedl-android",
             "name": "library",
-            "version": "0.1.0-alpha.7-staging.3",
-            "file": "library-0.1.0-alpha.7-staging.3.aar",
-            "sha256": "8185130b4fe9ca1abdd897e4a2bbf3c3c7a58bfed169023e53d1c167820d7916",
-            "bytes": 2996791
+            "version": "0.1.0-alpha.7-staging.4",
+            "file": "library-0.1.0-alpha.7-staging.4.aar",
+            "sha256": "6187e54bf4ec98bff1ad1fb9bd3a4b5e2b4fb2217848fe3956be08eea3926b1c",
+            "bytes": 2996994
         },
         {
             "group": "io.insert-koin",

@@ -50,7 +50,7 @@ class OwnedNamespaceBoundaries(unittest.TestCase):
         self.assertNotIn('io.github.junkfood02.youtubedl-android',(ROOT/'gradle/libs.versions.toml').read_text())
         app=(ROOT/'app/build.gradle.kts').read_text()
         for module in ['common','library','ffmpeg']:
-            self.assertIn('implementation("io.github.frpboy.youtubedl-android:'+module+':0.1.0-alpha.7-staging.3")',app)
+            self.assertIn('implementation("io.github.frpboy.youtubedl-android:'+module+':0.1.0-alpha.7-staging.4")',app)
             self.assertNotIn('implementation(project(":frpboy-'+module+'"))',app)
         settings=(ROOT/'settings.gradle.kts').read_text()
         self.assertIn('content { includeGroup("io.github.frpboy.youtubedl-android") }',settings)

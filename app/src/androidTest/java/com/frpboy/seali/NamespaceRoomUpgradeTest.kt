@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import com.frpboy.seali.database.AppDatabase
 import org.json.JSONObject
 import org.junit.Assert.*
@@ -18,7 +19,7 @@ class NamespaceRoomUpgradeTest {
         val name="namespace-upgrade-fixture.db"
         context.deleteDatabase(name)
         try {
-            val schema=JSONObject(context.assets.open("migration/legacy-room-v5.json").bufferedReader().use { it.readText() }).getJSONObject("database")
+            val schema=JSONObject(InstrumentationRegistry.getInstrumentation().context.assets.open("migration/legacy-room-v5.json").bufferedReader().use { it.readText() }).getJSONObject("database")
             context.openOrCreateDatabase(name,Context.MODE_PRIVATE,null).use { old ->
                 val entities=schema.getJSONArray("entities")
                 for (i in 0 until entities.length()) {

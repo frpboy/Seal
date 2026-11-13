@@ -2,64 +2,64 @@
   "scope": "isolated local Maven consumer artifact qualification, not public artifact or Android/native/API26 runtime qualification",
   "base_commit": "6e6c6e1a8f62f0d45d26cef386d726b145abf209",
   "base_tree": "d989b3482317cab099aefd015f367a53b8e118c4",
-  "provenance_note": "base_commit/base_tree identify the committed Seali consumer base (ccab9212, PR60 lineage) this qualification worktree descends from. They are NOT the executed candidate tree: the candidate adds uncommitted modifications listed in the review packet's candidate manifest, whose candidate_tree is computed over the full worktree at pack time. Artifact hashes below are the verified staging.3 bytes and are unaffected by provenance edits.",
-  "staging_archive_sha256": "0dda1cb264754af3bbbeecd6f82ac46bc87f03fb854c7de0ef124d3e828c5a16",
+  "provenance_note": "base_commit/base_tree identify the committed Seali consumer base (ccab9212, PR60 lineage) this qualification worktree descends from. They are NOT the executed candidate tree: the candidate adds uncommitted modifications listed in the review packet's candidate manifest, whose candidate_tree is computed over the full worktree at pack time. Artifact hashes below are the verified staging.4 bytes from producer CI run 43468057911 (artifact 14057734843, sourceCommit 9c5d04b7da5fcc3a183edd323f87bf0872493cd6), 15/15 sha+size custody-verified against the CI manifest. The consumer source pin is 486a5462431c4ba81a1e80f30dcb01952ec43c4c (tree f9aabe44de697c84644e35a0961d823726f4d181), a bindings-only child of 9c5d04b7 refreshing source-baseline-bindings.json; its artifact inputs are identical to the CI transport source.",
+  "staging_archive_sha256": "c5536aeec5f9bb1bc04291313dfe24ec1182ed5737b133753b7692fd079a94f7",
   "group": "io.github.frpboy.youtubedl-android",
-  "version": "0.1.0-alpha.7-staging.3",
+  "version": "0.1.0-alpha.7-staging.4",
   "artifacts": [
     {
-      "coordinate": "io.github.frpboy.youtubedl-android:common:0.1.0-alpha.7-staging.3",
+      "coordinate": "io.github.frpboy.youtubedl-android:common:0.1.0-alpha.7-staging.4",
       "module": "common",
-      "aar": ".qualification/maven/io/github/frpboy/youtubedl-android/common/0.1.0-alpha.7-staging.3/common-0.1.0-alpha.7-staging.3.aar",
+      "aar": ".qualification/maven/io/github/frpboy/youtubedl-android/common/0.1.0-alpha.7-staging.4/common-0.1.0-alpha.7-staging.4.aar",
       "files": {
-        ".qualification/maven/io/github/frpboy/youtubedl-android/common/0.1.0-alpha.7-staging.3/common-0.1.0-alpha.7-staging.3.aar": {
-          "sha256": "f2d760b276a6367866f79b28d22d8196a601d7c22b6808890764c9c054cf6771",
+        ".qualification/maven/io/github/frpboy/youtubedl-android/common/0.1.0-alpha.7-staging.4/common-0.1.0-alpha.7-staging.4.aar": {
+          "sha256": "4e0fa79c380e818896483665a0df923176d51bfd8c4883ffb4cebd0d89db4191",
           "bytes": 7145
         },
-        ".qualification/maven/io/github/frpboy/youtubedl-android/common/0.1.0-alpha.7-staging.3/common-0.1.0-alpha.7-staging.3.pom": {
-          "sha256": "d3e33597dbecf76db71097b87e316fa0a3cbe77d62d7c4dc5d3fe3985cb78fd0",
+        ".qualification/maven/io/github/frpboy/youtubedl-android/common/0.1.0-alpha.7-staging.4/common-0.1.0-alpha.7-staging.4.pom": {
+          "sha256": "a26fe3ec53387d2da86f127e9f9c67ad48f0119ac339171f25932c10a3a6ccd2",
           "bytes": 2395
         },
-        ".qualification/maven/io/github/frpboy/youtubedl-android/common/0.1.0-alpha.7-staging.3/common-0.1.0-alpha.7-staging.3.module": {
-          "sha256": "57028198b12bf264007795a3a18c529f6ae9f80a6159d2a91663062ecb954734",
+        ".qualification/maven/io/github/frpboy/youtubedl-android/common/0.1.0-alpha.7-staging.4/common-0.1.0-alpha.7-staging.4.module": {
+          "sha256": "a3a8ab5fe90a75c71aa020e045e06e6c95b7f7e8dd94328e136df8e0a88478f3",
           "bytes": 3673
         }
       }
     },
     {
-      "coordinate": "io.github.frpboy.youtubedl-android:library:0.1.0-alpha.7-staging.3",
+      "coordinate": "io.github.frpboy.youtubedl-android:library:0.1.0-alpha.7-staging.4",
       "module": "library",
-      "aar": ".qualification/maven/io/github/frpboy/youtubedl-android/library/0.1.0-alpha.7-staging.3/library-0.1.0-alpha.7-staging.3.aar",
+      "aar": ".qualification/maven/io/github/frpboy/youtubedl-android/library/0.1.0-alpha.7-staging.4/library-0.1.0-alpha.7-staging.4.aar",
       "files": {
-        ".qualification/maven/io/github/frpboy/youtubedl-android/library/0.1.0-alpha.7-staging.3/library-0.1.0-alpha.7-staging.3.aar": {
-          "sha256": "8185130b4fe9ca1abdd897e4a2bbf3c3c7a58bfed169023e53d1c167820d7916",
-          "bytes": 2996791
+        ".qualification/maven/io/github/frpboy/youtubedl-android/library/0.1.0-alpha.7-staging.4/library-0.1.0-alpha.7-staging.4.aar": {
+          "sha256": "6187e54bf4ec98bff1ad1fb9bd3a4b5e2b4fb2217848fe3956be08eea3926b1c",
+          "bytes": 2996994
         },
-        ".qualification/maven/io/github/frpboy/youtubedl-android/library/0.1.0-alpha.7-staging.3/library-0.1.0-alpha.7-staging.3.pom": {
-          "sha256": "72251e92fd11c8d17dce2f0f6cc01694600ecb4ca6d076ede572c610dbfbee68",
+        ".qualification/maven/io/github/frpboy/youtubedl-android/library/0.1.0-alpha.7-staging.4/library-0.1.0-alpha.7-staging.4.pom": {
+          "sha256": "dbe16dd1ad4ff89f498a675c21704f04304692f857e9a93c47d92ac112c09f90",
           "bytes": 2813
         },
-        ".qualification/maven/io/github/frpboy/youtubedl-android/library/0.1.0-alpha.7-staging.3/library-0.1.0-alpha.7-staging.3.module": {
-          "sha256": "a4ee4c55f4b72c27226e98e58f18c22bcd6b3dc37f9b66a1226e9b7a274b9a43",
+        ".qualification/maven/io/github/frpboy/youtubedl-android/library/0.1.0-alpha.7-staging.4/library-0.1.0-alpha.7-staging.4.module": {
+          "sha256": "3c225e4a0fc3f2466cf40372170ac30f66d501a50a8e7f4dde3e25f662bc54e3",
           "bytes": 4067
         }
       }
     },
     {
-      "coordinate": "io.github.frpboy.youtubedl-android:ffmpeg:0.1.0-alpha.7-staging.3",
+      "coordinate": "io.github.frpboy.youtubedl-android:ffmpeg:0.1.0-alpha.7-staging.4",
       "module": "ffmpeg",
-      "aar": ".qualification/maven/io/github/frpboy/youtubedl-android/ffmpeg/0.1.0-alpha.7-staging.3/ffmpeg-0.1.0-alpha.7-staging.3.aar",
+      "aar": ".qualification/maven/io/github/frpboy/youtubedl-android/ffmpeg/0.1.0-alpha.7-staging.4/ffmpeg-0.1.0-alpha.7-staging.4.aar",
       "files": {
-        ".qualification/maven/io/github/frpboy/youtubedl-android/ffmpeg/0.1.0-alpha.7-staging.3/ffmpeg-0.1.0-alpha.7-staging.3.aar": {
-          "sha256": "ae40a28b161db7bf3e923b67a1f23d1f9972da49c1d428985eebbbb5b7a35d5a",
+        ".qualification/maven/io/github/frpboy/youtubedl-android/ffmpeg/0.1.0-alpha.7-staging.4/ffmpeg-0.1.0-alpha.7-staging.4.aar": {
+          "sha256": "6b0dacf677234c973b323aa348282d6ad3ca8ffbddbafb7b5cc14387707f4760",
           "bytes": 3500
         },
-        ".qualification/maven/io/github/frpboy/youtubedl-android/ffmpeg/0.1.0-alpha.7-staging.3/ffmpeg-0.1.0-alpha.7-staging.3.pom": {
-          "sha256": "dbf6dbca6caa9f03a6fb1bafbc2c25bf6e91e80e11e38df4937cbf005ca726bf",
+        ".qualification/maven/io/github/frpboy/youtubedl-android/ffmpeg/0.1.0-alpha.7-staging.4/ffmpeg-0.1.0-alpha.7-staging.4.pom": {
+          "sha256": "8dff0505f01c64fe2b3cffd358f26a36717eb5954dd69d542a55206b3c98c25b",
           "bytes": 2630
         },
-        ".qualification/maven/io/github/frpboy/youtubedl-android/ffmpeg/0.1.0-alpha.7-staging.3/ffmpeg-0.1.0-alpha.7-staging.3.module": {
-          "sha256": "461f7df9f124582b7b0eec85bc6750cb95fd00b1c008eb4be6cbcbe3d688bfab",
+        ".qualification/maven/io/github/frpboy/youtubedl-android/ffmpeg/0.1.0-alpha.7-staging.4/ffmpeg-0.1.0-alpha.7-staging.4.module": {
+          "sha256": "37f24d5b6c1fc5d2cf35919c8cce617257962021c84e8453aa30b2f0b7532410",
           "bytes": 3890
         }
       }
