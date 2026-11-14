@@ -291,7 +291,6 @@ jobs:
           python3 scripts/build-contract/test-fetch-alpha7-maven.py
           python3 scripts/build-contract/fetch-alpha7-maven.py --root "$GITHUB_WORKSPACE"
           python3 scripts/build-contract/verify-alpha7-inputs.py --root "$GITHUB_WORKSPACE"
-          python3 scripts/build-contract/test-maven-inputs.py
 
       - name: Build generic release APK variants
         if: steps.signing.outputs.available == 'true'

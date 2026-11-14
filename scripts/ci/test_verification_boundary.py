@@ -85,7 +85,10 @@ class VerificationBoundaryTest(unittest.TestCase):
 
     def test_upload_does_not_silently_enable_release(self):
         self.assertIn("inputs.publish_apk_artifacts == true && inputs.build_release != true", self.source)
-        self.assertEqual(self.source.count("inputs.publish_apk_artifacts == true\n        uses: actions/upload-artifact@v4"), 6)
+        # Alpha7 packages arm64-v8a only (reviewed ARM64 payload set; the app
+        # build contract rejects split/other-ABI packaging), so the public
+        # upload set is exactly the arm64 APK plus the checksum manifest.
+        self.assertEqual(self.source.count("inputs.publish_apk_artifacts == true\n        uses: actions/upload-artifact@v4"), 2)
         self.assertIn("name: seali-checksums", self.source)
         self.assertIn("sha256sum -- *.apk > SHA256SUMS", self.source)
 
