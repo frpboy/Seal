@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.frpboy.seali.App
+import com.frpboy.seali.util.FDROID_RUNTIME_AUTO_UPDATE_CONSENT
 import com.frpboy.seali.Downloader
 import com.frpboy.seali.util.PreferenceUtil
 import com.frpboy.seali.util.PreferenceUtil.getBoolean
@@ -25,7 +27,12 @@ fun YtdlpUpdater() {
     LaunchedEffect(Unit) {
         if (downloaderState !is Downloader.State.Idle) return@LaunchedEffect
 
-        if (!YT_DLP_AUTO_UPDATE.getBoolean() && YT_DLP_VERSION.getString().isNotEmpty())
+        // F-Droid consent is independent of legacy settings and the empty-version bootstrap.
+        if (App.isFDroidBuild() &&
+            (!FDROID_RUNTIME_AUTO_UPDATE_CONSENT.getBoolean() || !YT_DLP_AUTO_UPDATE.getBoolean()))
+            return@LaunchedEffect
+
+        if (!YT_DLP_AUTO_UPDATE.getBoolean())
             return@LaunchedEffect
 
         if (!PreferenceUtil.isNetworkAvailableForDownload()) {

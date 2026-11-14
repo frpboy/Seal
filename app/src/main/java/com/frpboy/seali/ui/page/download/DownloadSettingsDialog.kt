@@ -174,9 +174,9 @@ fun DownloadSettingDialog(
     val downloadTypes =
         remember(isQuickDownload) {
             if (isQuickDownload) {
-                DownloadType.entries - DownloadType.Playlist
+                DownloadType.entries - DownloadType.Playlist - DownloadType.Command
             } else {
-                DownloadType.entries
+                DownloadType.entries - DownloadType.Command
             }
         }
 
@@ -185,8 +185,8 @@ fun DownloadSettingDialog(
             mutableStateOf(
                 when (DOWNLOAD_TYPE_INITIALIZATION.getInt()) {
                     USE_PREVIOUS_SELECTION -> {
-                        if (CUSTOM_COMMAND.getBoolean()) {
-                            DownloadType.Command
+                        if (com.frpboy.seali.util.CandidateFeaturePolicy.customCommandsEnabled(CUSTOM_COMMAND.getBoolean())) {
+                            null // Preserved command preference requires a fresh supported selection.
                         } else if (EXTRACT_AUDIO.getBoolean()) {
                             DownloadType.Audio
                         } else {

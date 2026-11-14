@@ -117,7 +117,6 @@ fun TemplateListPage(onNavigateBack: () -> Unit, onNavigateToEditPage: (Int) -> 
 
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showShortcutsDialog by remember { mutableStateOf(false) }
-    var isCustomCommandEnabled by remember { mutableStateOf(CUSTOM_COMMAND.getBoolean()) }
 
     var selectedTemplateId by TEMPLATE_ID.intState
     val snackbarHostState = remember { SnackbarHostState() }
@@ -305,14 +304,8 @@ fun TemplateListPage(onNavigateBack: () -> Unit, onNavigateToEditPage: (Int) -> 
     ) {
         LazyColumn(modifier = Modifier, contentPadding = it) {
             item {
-                PreferenceSwitchWithContainer(
-                    title = stringResource(R.string.use_custom_command),
-                    icon = null,
-                    isChecked = isCustomCommandEnabled,
-                    onClick = {
-                        isCustomCommandEnabled = !isCustomCommandEnabled
-                        PreferenceUtil.updateValue(CUSTOM_COMMAND, isCustomCommandEnabled)
-                    },
+                com.frpboy.seali.ui.component.PreferenceInfo(
+                    text = stringResource(R.string.custom_commands_unavailable_candidate),
                 )
             }
             items(templates) { commandTemplate ->
@@ -397,7 +390,7 @@ fun TemplateListPage(onNavigateBack: () -> Unit, onNavigateToEditPage: (Int) -> 
     val uriHandler = LocalUriHandler.current
     if (showHelpDialog) {
         HelpDialog(
-            text = stringResource(id = R.string.custom_command_usage_msg),
+            text = stringResource(id = R.string.custom_commands_unavailable_candidate),
             onDismissRequest = { showHelpDialog = false },
             dismissButton = null,
         ) {

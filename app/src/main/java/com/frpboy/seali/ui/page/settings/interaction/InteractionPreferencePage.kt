@@ -1,6 +1,8 @@
 package com.frpboy.seali.ui.page.settings.interaction
 
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.Scaffold
@@ -46,6 +48,7 @@ fun InteractionPreferencePage(modifier: Modifier = Modifier, onBack: () -> Unit)
         },
     ) {
         LazyColumn(modifier = Modifier, contentPadding = it) {
+            item { InterfaceStylePreference() }
             item {
                 PreferenceSubtitle(text = stringResource(id = R.string.settings_before_download))
             }
@@ -53,6 +56,7 @@ fun InteractionPreferencePage(modifier: Modifier = Modifier, onBack: () -> Unit)
             item {
                 PreferenceItem(
                     title = stringResource(id = R.string.download_type),
+                    icon = Icons.Outlined.Download,
                     description =
                         when (initialType) {
                             USE_PREVIOUS_SELECTION ->

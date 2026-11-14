@@ -1,0 +1,175 @@
+name: Alpha7 integrated API26 runtime qualification
+
+# REVIEW DRAFT - manual qualification only. No signing, no APK publication, no
+# release, no public Maven effects. Static lane only: rebuilds the pinned
+# public producer into a run-local file Maven repository (same proven block as
+# the source-only consumer qualification, green in run 43142636200), enforces
+# every fail-closed static gate (producer pin, Maven byte lock, resolved-graph
+# lock, producer 38 units, app serialization units), then assembles the debug
+# app and instrumentation APKs and uploads them as the run artifact.
+#
+# On-device execution is deliberately NOT a CI job here. Verified platform
+# facts (2026-11-13): the owned native payloads exist only as reviewed ARM64
+# bytes (no x86_64 payload set exists; the base packaging gate refuses
+# split/other-ABI builds); GitHub-hosted ARM64 runners do not expose /dev/kvm
+# (maintainer statement, actions/runner-images#14062); Google's SDK repository
+# ships no linux-arm64 emulator build. So no free hosted emulator route can
+# execute these payloads. Any real-device qualification is a separate
+# proposal that needs its own effect/authority review; nothing about it is
+# approved or implied by this file.
+# Pins below bind the published Maven Central candidate: producer commit
+# 03deec54 (Central deployment d6355972-038b-499b-8682-2325a70532f2, PUBLISHED
+# 2026-11-14), coordinates 0.1.0-alpha.7, lock bound to the published bytes
+# (15/15 sha-verified from repo1.maven.org), rebuilt by CI from the pinned source.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'qualification/alpha7-maven-consumer-local-20261111'
+
+permissions:
+  contents: read
+
+jobs:
+  static-gates-and-build:
+    # Draft custody asset read and private retain need the push-level token,
+    # exposed solely to the two pinned custody steps below; gradle/build
+    # steps receive no token and checkout persists no credentials.
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Check out public producer at reviewed immutable source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: frpboy/youtubedl-android
+          ref: 03deec547243ebe120a537e38d667a3a1ffc588e
+          path: .qualification/producer
+          persist-credentials: false
+      - name: Verify producer source and self-contained policy tests
+        run: |
+          set -euo pipefail
+          python3 scripts/build-contract/check-pinned-producer.py --root . --producer .qualification/producer
+          python3 scripts/ci/test_verification_boundary.py
+          python3 scripts/release-qualification/test-compatible-alpha7-verifier.py
+          python3 scripts/test_safe_error_report_boundary.py
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407
+        with:
+          log-accepted-android-sdk-licenses: false
+          packages: platform-tools
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
+      - name: Install compile platform
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Build public producer locally and execute its 38 units
+        working-directory: .qualification/producer
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew --no-daemon :common:publishReleasePublicationToStagingRepository :library:publishReleasePublicationToStagingRepository :ffmpeg:publishReleasePublicationToStagingRepository :library:testReleaseUnitTest
+          python3 scripts/verify-publication.py --repository build/staging-deploy --group io.github.frpboy.youtubedl-android --version 0.1.0-alpha.7 --engine-sha256 "$(cat engine-sha256.txt)" --engine-checker-sha256 "$(cat engine-checker-sha256.txt)"
+      - name: Require exact reviewed artifact bytes without automatic lock regeneration
+        run: |
+          set -euo pipefail
+          test ! -e .qualification/maven
+          cp -R .qualification/producer/build/staging-deploy .qualification/maven
+          python3 scripts/build-contract/verify-alpha7-maven.py --root . --lock scripts/build-contract/alpha7-maven-lock.json
+          python3 scripts/build-contract/test-maven-inputs.py
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Capture actual resolved runtime graph and require reviewed baseline
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew --no-daemon --no-configuration-cache -I scripts/build-contract/resolved-graph.init.gradle -PfunctionalAlphaCandidate :app:writeGenericDebugRuntimeClasspathGraph
+          python3 scripts/build-contract/verify-runtime-graph.py --lock scripts/build-contract/alpha7-runtime-graph-lock.json --report app/build/reports/resolved-graph/genericDebugRuntimeClasspath.json
+      # Locked reviewed ARM64 custody inputs are never in git (.gitignore by
+      # design); a fresh checkout lacks all 9. Stage through the repo's own
+      # fail-closed chain (identical calls to alpha7-candidate.yml) before any
+      # packaging task can run.
+      - name: Stage locked unpublished ARM64 custody inputs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 scripts/build-contract/test-inputs.py
+          python3 scripts/build-contract/custody-inputs.py download --output "$RUNNER_TEMP/seali-alpha7-arm64-inputs.tar"
+          python3 scripts/build-contract/stage-alpha7-inputs.py --archive "$RUNNER_TEMP/seali-alpha7-arm64-inputs.tar" --root "$GITHUB_WORKSPACE" --lock scripts/build-contract/alpha7-input-lock.json
+          python3 scripts/build-contract/verify-alpha7-inputs.py --root "$GITHUB_WORKSPACE"
+      # App-level serialization units in the same JVM lane, after the byte
+      # lock and custody staging and before any packaging: the merge gate binding TaskBackupCodec and the
+      # Task.kt @SerialName pins together. Task name grounded in the
+      # publishChannel flavor config: generic (default) + debug =>
+      # :app:testGenericDebugUnitTest. JUnit XML counts are parsed and printed
+      # as the retained proof; the step fails closed on any failure, error,
+      # skip, missing result file, or count drift.
+      - name: Run app serialization units together with XML count proof
+        run: |
+          set -euo pipefail
+          ./gradlew --no-daemon :app:testGenericDebugUnitTest --tests 'com.frpboy.seali.util.TaskBackupMigrationTest' --tests 'com.frpboy.seali.download.TaskSerializationCompatibilityTest'
+          python3 - <<'PYEOF'
+          import glob, sys, xml.etree.ElementTree as ET
+          expected = {
+              "com.frpboy.seali.util.TaskBackupMigrationTest": 7,
+              "com.frpboy.seali.download.TaskSerializationCompatibilityTest": 1,
+          }
+          seen = {}
+          for cls, want in expected.items():
+              paths = glob.glob(f"app/build/test-results/testGenericDebugUnitTest/TEST-{cls}.xml")
+              if len(paths) != 1:
+                  sys.exit(f"::error::expected exactly one result XML for {cls}, found {len(paths)}")
+              root = ET.parse(paths[0]).getroot()
+              tests = int(root.get("tests", 0)); failures = int(root.get("failures", 0))
+              errors = int(root.get("errors", 0)); skipped = int(root.get("skipped", 0))
+              print(f"{cls}: tests={tests} failures={failures} errors={errors} skipped={skipped}")
+              if failures or errors or skipped or tests == 0:
+                  sys.exit(f"::error::{cls} not clean: tests={tests} failures={failures} errors={errors} skipped={skipped}")
+              seen[cls] = tests
+          if seen != expected:
+              sys.exit(f"::error::test-count drift: {seen} != {expected}")
+          print("app serialization units: 8/8 clean across both classes")
+          PYEOF
+      - name: Assemble ARM64 app and instrumentation APKs
+        run: |
+          set -euo pipefail
+          ./gradlew --no-daemon assembleGenericDebug assembleGenericDebugAndroidTest
+      - name: Require exactly one app APK and one androidTest APK with hash manifest
+        run: |
+          set -euo pipefail
+          mapfile -t app_apk < <(find app/build/outputs/apk/generic/debug -maxdepth 1 -name '*.apk' | sort)
+          mapfile -t test_apk < <(find app/build/outputs/apk/androidTest/generic/debug -maxdepth 1 -name '*.apk' | sort)
+          if [ "${#app_apk[@]}" -ne 1 ] || [ "${#test_apk[@]}" -ne 1 ]; then
+            echo "::error::Expected exactly one app APK and one androidTest APK, got ${#app_apk[@]} and ${#test_apk[@]}"
+            find app/build/outputs/apk -name '*.apk' -printf '%f\n'
+            exit 1
+          fi
+          sha256sum "${app_apk[0]}" "${test_apk[0]}" | tee apks.sha256
+      # APK bytes stay private: retained as new run-bound assets on the same
+      # pinned unpublished draft release. The retain script re-checks custody
+      # identity before every upload, binds both files to the count-guarded
+      # apks.sha256 manifest, verifies each APK's actual single signer is not
+      # the production certificate, refuses any existing name, and never
+      # deletes, retries or overwrites. Only hashes leave publicly.
+      - name: Retain debug APK pair in unpublished custody only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 scripts/build-contract/retain-debug-artifacts.py --manifest apks.sha256 --apksigner "$ANDROID_HOME/build-tools/36.0.0/apksigner" --receipt-out "$RUNNER_TEMP/retain-receipt.json"
+          cat "$RUNNER_TEMP/retain-receipt.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4 (verified tag target 2026-11-13)
+        with:
+          name: alpha7-api26-arm64-evidence
+          if-no-files-found: error
+          retention-days: 7
+          path: apks.sha256

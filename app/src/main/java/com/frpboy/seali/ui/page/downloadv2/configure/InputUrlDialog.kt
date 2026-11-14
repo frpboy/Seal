@@ -58,7 +58,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -68,6 +67,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.frpboy.seali.R
+import com.frpboy.seali.ui.component.PasteFromClipBoardButton
 import com.frpboy.seali.ui.component.ClearButton
 import com.frpboy.seali.ui.component.FilledButtonWithIcon
 import com.frpboy.seali.ui.component.OutlinedButtonWithIcon
@@ -81,25 +81,21 @@ import com.frpboy.seali.util.findURLsFromString
 fun InputUrlPage(
     modifier: Modifier = Modifier,
     config: Config,
+    explicitlyPastedText: String? = null,
     onConfigUpdate: (Config) -> Unit,
     onActionPost: (Action) -> Unit,
 ) {
-    val clipboardManager = LocalClipboardManager.current
-    val urlList = remember { mutableStateListOf<String>() }
-    val savedLinks = remember(config) { mutableStateListOf<String>() }
-
-    LaunchedEffect(Unit) {
-        clipboardManager.getText()?.let {
-            urlList.clear()
-            urlList.addAll(findURLsFromString(it.toString()).toSet())
-        }
+    val urlList = remember(explicitlyPastedText) {
+        findURLsFromString(explicitlyPastedText.orEmpty()).distinct()
     }
+    val savedLinks = remember(config) { mutableStateListOf<String>() }
 
     LaunchedEffect(config) { savedLinks.addAll(config.savedLinks) }
 
     InputUrlPageImpl(
         modifier = modifier,
         urlListFromClipboard = urlList,
+        initialPastedText = explicitlyPastedText,
         savedLinks = savedLinks,
         onSaveLink = { savedLinks.add(it) },
         onRemoveSavedLink = { savedLinks.remove(it) },
@@ -129,14 +125,18 @@ private fun InputUrlPreview() {
 private fun InputUrlPageImpl(
     modifier: Modifier = Modifier,
     urlListFromClipboard: List<String>,
+    initialPastedText: String? = null,
     savedLinks: List<String> = emptyList(),
     onSaveLink: (String) -> Unit = {},
     onRemoveSavedLink: (String) -> Unit = {},
     onActionPost: (Action) -> Unit,
 ) {
 
-    var url by remember { mutableStateOf("") }
-    var showPasteDialog by remember { mutableStateOf(false) }
+    var url by remember(initialPastedText) { mutableStateOf(
+        if (urlListFromClipboard.size > 1) "" else urlListFromClipboard.singleOrNull() ?: initialPastedText.orEmpty()
+    ) }
+    var showPasteDialog by remember(initialPastedText) { mutableStateOf(urlListFromClipboard.size > 1) }
+    var explicitlyPastedUrls by remember(initialPastedText) { mutableStateOf<List<String>?>(null) }
     var showSavedUrlDialog by remember { mutableStateOf(false) }
 
     Column(modifier = modifier) {
@@ -154,6 +154,16 @@ private fun InputUrlPageImpl(
             trailingIcon = {
                 if (url.isNotEmpty()) {
                     ClearButton { url = "" }
+                } else {
+                    PasteFromClipBoardButton { text ->
+                        val links = findURLsFromString(text).distinct()
+                        if (links.size > 1) {
+                            explicitlyPastedUrls = links
+                            showPasteDialog = true
+                        } else {
+                            url = links.singleOrNull() ?: text
+                        }
+                    }
                 }
             },
         )
@@ -184,7 +194,7 @@ private fun InputUrlPageImpl(
                 item(key = "paste multiple url") {
                     SuggestionChip(
                         modifier = Modifier.animateItem(),
-                        onClick = { showPasteDialog = true },
+                        onClick = { explicitlyPastedUrls = null; showPasteDialog = true },
                         label = {
                             Text(
                                 stringResource(
@@ -263,7 +273,7 @@ private fun InputUrlPageImpl(
     }
     if (showPasteDialog) {
         URLSelectionDialog(
-            urlListFromClipboard = urlListFromClipboard,
+            urlListFromClipboard = explicitlyPastedUrls ?: urlListFromClipboard,
             onDismissRequest = { showPasteDialog = false },
             onConfirm = { onActionPost(Action.ProceedWithURLs(it)) },
         )

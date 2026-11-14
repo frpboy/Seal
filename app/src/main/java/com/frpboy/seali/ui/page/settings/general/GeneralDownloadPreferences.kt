@@ -111,6 +111,7 @@ import kotlinx.coroutines.withContext
 fun GeneralDownloadPreferences(onNavigateBack: () -> Unit, navigateToTemplate: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val requestRuntimeConsent = rememberRuntimeUpdateConsent()
     val hapticFeedback = LocalHapticFeedback.current
 
     var showSponsorBlockDialog by remember { mutableStateOf(false) }
@@ -165,7 +166,7 @@ fun GeneralDownloadPreferences(onNavigateBack: () -> Unit, navigateToTemplate: (
             )
         },
         content = {
-            val isCustomCommandEnabled by remember { mutableStateOf(CUSTOM_COMMAND.getBoolean()) }
+            val isCustomCommandEnabled by remember { mutableStateOf(com.frpboy.seali.util.CandidateFeaturePolicy.customCommandsEnabled(CUSTOM_COMMAND.getBoolean())) }
             LazyColumn(modifier = Modifier, contentPadding = it) {
                 //                item {
                 //                    SettingTitle(text = stringResource(id =
@@ -203,8 +204,9 @@ fun GeneralDownloadPreferences(onNavigateBack: () -> Unit, navigateToTemplate: (
                         onClick = {
                             scope.launch {
                                 runCatching {
+                                        if (!requestRuntimeConsent(false)) return@launch
                                         isUpdating = true
-                                        UpdateUtil.updateYtDlp()
+                                        UpdateUtil.updateYtDlp(manualConsent = true)
                                         ytdlpVersion = YT_DLP_VERSION.getString()
                                     }
                                     .onFailure { th ->

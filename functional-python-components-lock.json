@@ -1,0 +1,54 @@
+{
+  "source_commit": "3ed2d096e833e91b3b073656e332f1c3399dd02f",
+  "arm64-v8a": {
+    "pruned_python_sha256": "454b3a89c50456c2c8e5d7bdf9d3e4193830f907e42f38755ed97ce9693552ab",
+    "remove_exact": {
+      "usr/lib/engines-3/": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "usr/lib/engines-3/loader_attic.so": "26ef7b9c7a35261a7b207c6efa4f4636a0938433fec38ea1fc5853a7b9389466",
+      "usr/lib/engines-3/capi.so": "511d05032be361dc6eefd56ff58e07897c7ae3e9cb858b100ce75d230ec02788",
+      "usr/lib/libexpat.so": "ed4eb5847861b4adc24d27ae499e3656d104b025d05e197735191b3f05a166c8",
+      "usr/lib/libssl.so": "765238cfff0078de21e4c2dc9d832e25171fa901959082e75346910ec84e2eef",
+      "usr/lib/ossl-modules/": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "usr/lib/ossl-modules/legacy.so": "d27c33fc6cbba61c094053f58e3af6e8eff0fde6f1dc871b54e225cbd2ed76d1",
+      "usr/lib/libexpat.so.1": "ed4eb5847861b4adc24d27ae499e3656d104b025d05e197735191b3f05a166c8",
+      "usr/lib/libssl.so.3": "402c0290e78cf09304bf2d24767e8bea7b36726f8d691aef530952336e1046d0",
+      "usr/lib/libcrypto.so": "5a8500343a9ea477898fb881a6c5bb97ba6774032b148ce6ea121b28cdcc04c2",
+      "usr/lib/libexpat.so.1.9.3": "2675a5c4418101d0a9f0a46e09080d5325cc5442bb894d42d001d8f9f369754b",
+      "usr/lib/libcrypto.so.3": "53f26d9c401ac226a4360c095bddc85c29492f3294174eb104c8c0fc9ebf24d3"
+    },
+    "new_libraries": {
+      "libssl.so.3": {
+        "physical_file": "usr/lib/libssl.so.3",
+        "sha256": "e85863c83e5fb1c757a8b9d6ceba147fa778f25dcc324533cc74b425b84cb963"
+      },
+      "libcrypto.so.3": {
+        "physical_file": "usr/lib/libcrypto.so.3",
+        "sha256": "d35941972579a925981fbd4bd9cc4d8113803ac9811da92e23226bfe782a4801"
+      },
+      "libexpat.so.1": {
+        "physical_file": "usr/lib/libexpat.so.1.13.1",
+        "sha256": "0da6c2b906e52fce778c0ee82780eb1b82279bf62f1c920348653aafcc1b09a7"
+      }
+    },
+    "build_run": "https://github.com/frpboy/Seali/actions/runs/42883512676"
+  },
+  "x86_64": {
+    "pruned_python_sha256": "7711438a5157080d1f491eae9a11e04f5810d954f8b3a3cb60f423cff99a5bfc",
+    "remove_exact": {
+      "usr/lib/engines-3/": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "usr/lib/engines-3/loader_attic.so": "a721fb22b8073f2357adb919c2c8e99310b3362453be6ac8d110b28438c25038",
+      "usr/lib/engines-3/capi.so": "e0330902359d5534a7b7fe6d00493be1dda18d0ef20d818fe98e7c2985ee8585",
+      "usr/lib/libexpat.so": "ed4eb5847861b4adc24d27ae499e3656d104b025d05e197735191b3f05a166c8",
+      "usr/lib/libssl.so": "765238cfff0078de21e4c2dc9d832e25171fa901959082e75346910ec84e2eef",
+      "usr/lib/ossl-modules/": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "usr/lib/ossl-modules/legacy.so": "3720efa650a6a388f9ad173f5ef5864bdccdc8bdab0f53656c5d4b9238421cfb",
+      "usr/lib/libexpat.so.1": "ed4eb5847861b4adc24d27ae499e3656d104b025d05e197735191b3f05a166c8",
+      "usr/lib/libssl.so.3": "cfe2922e4b5c8f730b93c82fde4e723cca5beb5d33981e64fa29c39f43559380",
+      "usr/lib/libcrypto.so": "5a8500343a9ea477898fb881a6c5bb97ba6774032b148ce6ea121b28cdcc04c2",
+      "usr/lib/libexpat.so.1.9.3": "167f8cb9ca1dd3a8794f8f4736666c4505c3c6c0fa5a3e0739c63913f8cc8428",
+      "usr/lib/libcrypto.so.3": "33fb397dda1292dc1e87cf9ce70b2fbc062d70f522b963a68b0d3c7ad22c3288"
+    },
+    "new_libraries": {},
+    "build_run": null
+  }
+}

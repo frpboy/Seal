@@ -24,7 +24,6 @@ import com.frpboy.seali.database.objects.DownloadedVideoInfo
 import com.frpboy.seali.ui.page.settings.network.Cookie
 import com.frpboy.seali.util.FileUtil.getArchiveFile
 import com.frpboy.seali.util.FileUtil.getConfigFile
-import com.frpboy.seali.util.FileUtil.getTaskConfigFile
 import com.frpboy.seali.util.FileUtil.getCookiesFile
 import com.frpboy.seali.util.FileUtil.getExternalTempDir
 import com.frpboy.seali.util.FileUtil.getFileName
@@ -118,7 +117,7 @@ object DownloadUtil {
                     }
                 }
             }
-            execute(request, playlistURL).out.run {
+            execute(request.enforceBundledJavascriptRuntime(context.applicationInfo.nativeLibraryDir).enforceNativeManifestDownloads(), playlistURL).out.run {
                 val playlistInfo = jsonFormat.decodeFromString<PlaylistResult>(this)
                 if (playlistInfo.type != "playlist") {
                     jsonFormat.decodeFromString<VideoInfo>(this)
@@ -133,7 +132,7 @@ object DownloadUtil {
     ): Result<VideoInfo> =
         request.runCatching {
             val response: YoutubeDLResponse =
-                YoutubeDL.getInstance().execute(request, taskKey, null)
+                YoutubeDL.getInstance().execute(request.enforceBundledJavascriptRuntime(context.applicationInfo.nativeLibraryDir).enforceNativeManifestDownloads(), taskKey, null)
             jsonFormat.decodeFromString(response.out)
         }
 
@@ -318,7 +317,7 @@ object DownloadUtil {
                     sponsorBlock = SPONSORBLOCK.getBoolean(),
                     sponsorBlockCategory = PreferenceUtil.getSponsorBlockCategories(),
                     cookies = COOKIES.getBoolean(),
-                    aria2c = ARIA2C.getBoolean(),
+                    aria2c = false, // No aria2 executable is bundled in this alpha.
                     useCustomAudioPreset = USE_CUSTOM_AUDIO_PRESET.getBoolean(),
                     audioFormat = AUDIO_FORMAT.getInt(),
                     audioQuality = AUDIO_QUALITY.getInt(),
@@ -431,8 +430,7 @@ object DownloadUtil {
     fun getCookiesContentFromDatabase(): Result<String> =
         getCookieListFromDatabase().mapCatching { it.toCookiesFileContent() }
 
-    private fun YoutubeDLRequest.enableAria2c(): YoutubeDLRequest =
-        this.addOption("--downloader", "libaria2c.so")
+    private fun YoutubeDLRequest.enableAria2c(): YoutubeDLRequest = this // Legacy preference is inert.
 
     private fun YoutubeDLRequest.addOptionsForVideoDownloads(
         downloadPreferences: DownloadPreferences
@@ -670,6 +668,12 @@ object DownloadUtil {
             return Result.failure(Throwable(context.getString(R.string.fetch_info_error_msg)))
 
         with(downloadPreferences) {
+            if (videoClips.isNotEmpty()) return Result.failure(
+                YoutubeDLException("Time-range downloads are unavailable in this alpha because its FFmpeg handles local files only.")
+            )
+            if (videoInfo.liveStatus in setOf("is_live", "is_upcoming", "post_live")) return Result.failure(
+                YoutubeDLException("Live stream downloads are unavailable in this alpha.")
+            )
             val url =
                 playlistUrl.ifEmpty {
                     videoInfo.originalUrl
@@ -799,7 +803,7 @@ object DownloadUtil {
                 }
                 .runCatching {
                     YoutubeDL.getInstance()
-                        .execute(request = this, processId = taskId, callback = progressCallback)
+                        .execute(request = enforceBundledJavascriptRuntime(context.applicationInfo.nativeLibraryDir).enforceNativeManifestDownloads(), processId = taskId, callback = progressCallback)
                 }
                 .onFailure { th ->
                     return if (
@@ -880,121 +884,16 @@ object DownloadUtil {
         template: CommandTemplate,
         preferences: DownloadPreferences,
         progressCallback: ((Float, Long, String) -> Unit),
-    ): Result<YoutubeDLResponse> {
-        val urlList = urlString.split(Regex("[\n ]")).filter { it.isNotBlank() }
-        val configFile = context.getTaskConfigFile(taskId)
-
-        return try {
-            val request =
-                with(preferences) {
-                    YoutubeDLRequest(urlList).apply {
-                        commandDirectory.takeIf { it.isNotEmpty() }?.let { addOption("-P", it) }
-                        addOption("--newline")
-                        if (aria2c) {
-                            enableAria2c()
-                        }
-                        if (useDownloadArchive) {
-                            useDownloadArchive()
-                        }
-                        if (restrictFilenames) {
-                            addOption("--restrict-filenames")
-                        }
-                        addOption(
-                            "--config-locations",
-                            FileUtil.writeContentToFile(template.template, configFile)
-                                .absolutePath,
-                        )
-                        if (cookies) {
-                            enableCookies(userAgentString)
-                        }
-                    }
-                }
-
-            runCatching {
-                YoutubeDL.getInstance()
-                    .execute(request = request, processId = taskId, callback = progressCallback)
-            }
-        } finally {
-            configFile.delete()
-        }
-    }
+    ): Result<YoutubeDLResponse> = Result.failure(
+        YoutubeDLException("Custom commands are unavailable in this alpha; use the normal download flow.")
+    )
 
     suspend fun executeCommandInBackground(
         url: String,
         template: CommandTemplate = PreferenceUtil.getTemplate(),
         downloadPreferences: DownloadPreferences = DownloadPreferences.createFromPreferences(),
     ) {
-        downloadPreferences.run {
-            val taskId = Downloader.makeKey(url = url, templateName = template.name)
-            val notificationId = taskId.toNotificationId()
-            val urlList = url.split(Regex("[\n ]")).filter { it.isNotBlank() }
-            val configFile = context.getTaskConfigFile(taskId)
-
-            var processStarted = false
-            try {
-                ToastUtil.makeToastSuspend(context.getString(R.string.start_execute))
-                val request =
-                    YoutubeDLRequest(urlList).apply {
-                    commandDirectory.takeIf { it.isNotEmpty() }?.let { addOption("-P", it) }
-                    addOption("--newline")
-                    if (aria2c) {
-                        enableAria2c()
-                    }
-                    if (useDownloadArchive) {
-                        useDownloadArchive()
-                    }
-                    if (restrictFilenames) {
-                        addOption("--restrict-filenames")
-                    }
-                    addOption(
-                        "--config-locations",
-                        FileUtil.writeContentToFile(template.template, configFile)
-                            .absolutePath,
-                    )
-                    if (cookies) {
-                        enableCookies(userAgentString)
-                    }
-                }
-
-                onProcessStarted()
-                processStarted = true
-                withContext(Dispatchers.Main) { onTaskStarted(template, url) }
-                runCatching {
-                    val response =
-                        YoutubeDL.getInstance().execute(request = request, processId = taskId) {
-                            progress,
-                            _,
-                            text ->
-                            NotificationUtil.makeNotificationForCustomCommand(
-                                notificationId = notificationId,
-                                taskId = taskId,
-                                progress = progress.toInt(),
-                                templateName = template.name,
-                                taskUrl = url,
-                                text = text,
-                            )
-                            Downloader.updateTaskOutput(
-                                template = template,
-                                url = url,
-                                line = text,
-                                progress = progress,
-                            )
-                        }
-                    onTaskEnded(template, url, response.out + "\n" + response.err)
-                }
-                .onFailure {
-                    it.printStackTrace()
-                    if (it is YoutubeDL.CanceledException) return@onFailure
-                    it.message.run {
-                        if (isNullOrEmpty()) onTaskEnded(template, url)
-                        else onTaskError(this, template, url)
-                    }
-                }
-            } finally {
-                configFile.delete()
-                if (processStarted) onProcessEnded()
-            }
-        }
+        ToastUtil.makeToastSuspend("Custom commands are unavailable in this alpha; use the normal download flow.")
     }
 
     private fun checkIfAv1HardwareAccelerated(): Boolean {

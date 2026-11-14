@@ -10,6 +10,7 @@ import com.frpboy.seali.App
 import com.frpboy.seali.App.Companion.context
 import com.frpboy.seali.R
 import com.frpboy.seali.util.FileUtil.getFileProvider
+import com.frpboy.seali.util.PreferenceUtil.getBoolean
 import com.frpboy.seali.util.PreferenceUtil.getInt
 import com.frpboy.seali.util.PreferenceUtil.updateLong
 import com.yausername.youtubedl_android.YoutubeDL
@@ -32,7 +33,7 @@ import okhttp3.ResponseBody
 object UpdateUtil {
 
     private const val OWNER = "frpboy"
-    private const val REPO = "Seal"
+    private const val REPO = "Seali"
     private const val ARM64 = "arm64-v8a"
     private const val ARM32 = "armeabi-v7a"
     private const val X86 = "x86"
@@ -53,13 +54,19 @@ object UpdateUtil {
 
     private val jsonFormat = Json { ignoreUnknownKeys = true }
 
-    suspend fun updateYtDlp(): YoutubeDL.UpdateStatus? =
+    suspend fun updateYtDlp(manualConsent: Boolean = false): YoutubeDL.UpdateStatus? =
         withContext(Dispatchers.IO) {
             // Google Play builds ship yt-dlp updates with app updates instead of
             // downloading executable code at runtime.
-            if (App.isPlayBuild()) return@withContext null
+            if (!RuntimeUpdatePolicy.mayDownload(
+                    isPlay = App.isPlayBuild(),
+                    isFDroid = App.isFDroidBuild(),
+                    automaticEnabled = YT_DLP_AUTO_UPDATE.getBoolean(),
+                    automaticConsent = FDROID_RUNTIME_AUTO_UPDATE_CONSENT.getBoolean(),
+                    manualConsent = manualConsent,
+                )) return@withContext null
             val channel =
-                when (YT_DLP_UPDATE_CHANNEL.getInt()) {
+                when (PreferenceUtil.effectiveYtdlpUpdateChannel()) {
                     YT_DLP_NIGHTLY -> YoutubeDL.UpdateChannel.NIGHTLY
                     else -> YoutubeDL.UpdateChannel.STABLE
                 }
@@ -89,6 +96,7 @@ object UpdateUtil {
         }
 
     fun checkForUpdate(context: Context = App.context): Release? {
+        CandidateFeaturePolicy.requireAppUpdatesAvailable()
         val currentVersion = context.getCurrentVersion()
         val latestRelease = getLatestRelease()
         val latestVersion = latestRelease.name.toVersion()
@@ -111,6 +119,7 @@ object UpdateUtil {
         context.run {
             kotlin
                 .runCatching {
+                    CandidateFeaturePolicy.requireAppUpdatesAvailable()
                     val contentUri =
                         FileProvider.getUriForFile(this, getFileProvider(), getLatestApk())
                     val intent =
@@ -147,6 +156,7 @@ object UpdateUtil {
         release: Release,
     ): Flow<DownloadStatus> =
         withContext(Dispatchers.IO) {
+            CandidateFeaturePolicy.requireAppUpdatesAvailable()
             val apkVersion =
                 context.packageManager
                     .getPackageArchiveInfo(context.getLatestApk().absolutePath, 0)

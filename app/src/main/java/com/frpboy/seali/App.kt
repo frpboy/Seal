@@ -26,6 +26,7 @@ import com.frpboy.seali.util.AUDIO_DIRECTORY
 import com.frpboy.seali.util.COMMAND_DIRECTORY
 import com.frpboy.seali.util.DownloadUtil
 import com.frpboy.seali.util.FileUtil
+import com.frpboy.seali.util.FunctionalEngine
 import com.frpboy.seali.util.FileUtil.createEmptyFile
 import com.frpboy.seali.util.FileUtil.getCookiesFile
 import com.frpboy.seali.util.FileUtil.getExternalDownloadDirectory
@@ -39,7 +40,6 @@ import com.frpboy.seali.util.UpdateUtil
 import com.frpboy.seali.util.VIDEO_DIRECTORY
 import com.frpboy.seali.util.YT_DLP_VERSION
 import com.tencent.mmkv.MMKV
-import com.yausername.aria2c.Aria2c
 import com.yausername.ffmpeg.FFmpeg
 import com.yausername.youtubedl_android.YoutubeDL
 import java.io.File
@@ -95,9 +95,10 @@ class App : Application() {
         runCatching { File(filesDir, SEALI_INIT_STATUS_FILE).delete() }
         applicationScope.launch((Dispatchers.IO)) {
             try {
+                FunctionalEngine.install(this@App)
                 YoutubeDL.init(this@App)
+                FunctionalEngine.verifyRecoveredEngine(this@App)
                 FFmpeg.init(this@App)
-                Aria2c.init(this@App)
                 DownloadUtil.getCookiesContentFromDatabase().getOrNull()?.let {
                     FileUtil.writeContentToFile(it, getCookiesFile())
                 }

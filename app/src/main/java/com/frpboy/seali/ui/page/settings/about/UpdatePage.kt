@@ -59,129 +59,18 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UpdatePage(onNavigateBack: () -> Unit) {
-    val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-            rememberTopAppBarState(),
-            canScroll = { true },
-        )
-    var autoUpdate by remember { mutableStateOf(PreferenceUtil.isAutoUpdateEnabled()) }
-    var updateChannel by UPDATE_CHANNEL.intState
-    val scope = rememberCoroutineScope()
-    val context = LocalContext.current
-
-    var release by remember { mutableStateOf(UpdateUtil.Release()) }
-    var showUpdateDialog by remember { mutableStateOf(false) }
-    var showUnavailableDialog by remember { mutableStateOf(App.isFDroidBuild()) }
-
     Scaffold(
-        modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
-                title = {
-                    Text(modifier = Modifier, text = stringResource(id = R.string.auto_update))
-                },
+                title = { Text(stringResource(R.string.auto_update)) },
                 navigationIcon = { BackButton { onNavigateBack() } },
-                scrollBehavior = scrollBehavior,
             )
         },
-        content = { paddings ->
-            LazyColumn(modifier = Modifier.padding(paddings)) {
-                item {
-                    PreferenceSwitchWithContainer(
-                        title = stringResource(id = R.string.enable_auto_update),
-                        icon = null,
-                        isChecked = autoUpdate,
-                    ) {
-                        autoUpdate = !autoUpdate
-                        AUTO_UPDATE.updateBoolean(autoUpdate)
-                    }
-                }
-                item {
-                    PreferenceSubtitle(
-                        modifier = Modifier.padding(horizontal = 4.dp),
-                        text = stringResource(id = R.string.update_channel),
-                    )
-                }
-                item {
-                    PreferenceSingleChoiceItem(
-                        text = stringResource(id = R.string.stable_channel),
-                        selected = updateChannel == STABLE,
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
-                    ) {
-                        updateChannel = STABLE
-                        UPDATE_CHANNEL.updateInt(updateChannel)
-                    }
-                }
-
-                item {
-                    PreferenceSingleChoiceItem(
-                        text = stringResource(id = R.string.pre_release_channel),
-                        selected = updateChannel == PRE_RELEASE,
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
-                    ) {
-                        updateChannel = PRE_RELEASE
-                        UPDATE_CHANNEL.updateInt(updateChannel)
-                    }
-                }
-                item {
-                    var isLoading by remember { mutableStateOf(false) }
-                    Row(
-                        horizontalArrangement = Arrangement.End,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        ProgressIndicatorButton(
-                            modifier =
-                                Modifier.padding(horizontal = 24.dp)
-                                    .padding(top = 6.dp)
-                                    .padding(bottom = 12.dp),
-                            text = stringResource(id = R.string.check_for_updates),
-                            icon = Icons.Outlined.Update,
-                            isLoading = isLoading,
-                        ) {
-                            if (!isLoading)
-                                scope.launch {
-                                    runCatching {
-                                            isLoading = true
-                                            withContext(Dispatchers.IO) {
-                                                UpdateUtil.checkForUpdate()?.let {
-                                                    release = it
-                                                    showUpdateDialog = true
-                                                }
-                                                    ?: ToastUtil.makeToastSuspend(
-                                                        context.getString(R.string.app_up_to_date)
-                                                    )
-                                            }
-                                            isLoading = false
-                                        }
-                                        .onFailure {
-                                            it.printStackTrace()
-                                            ToastUtil.makeToastSuspend(
-                                                context.getString(R.string.app_update_failed)
-                                            )
-                                            isLoading = false
-                                        }
-                                }
-                        }
-                    }
-                    androidx.compose.material3.HorizontalDivider()
-                }
-                item {
-                    PreferenceInfo(
-                        modifier = Modifier.padding(horizontal = 4.dp),
-                        text = stringResource(id = R.string.update_channel_desc),
-                    )
-                }
-            }
-        },
-    )
-    if (showUpdateDialog)
-        UpdateDialog(onDismissRequest = { showUpdateDialog = false }, release = release)
-
-    if (showUnavailableDialog) {
-        AutoUpdateUnavailableDialog {
-            showUnavailableDialog = false
-            onNavigateBack()
-        }
+    ) { paddings ->
+        PreferenceInfo(
+            modifier = Modifier.padding(paddings),
+            text = stringResource(R.string.app_updates_unavailable_candidate),
+        )
     }
 }
 

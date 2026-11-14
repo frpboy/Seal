@@ -91,6 +91,7 @@ import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.frpboy.seali.App
+import com.frpboy.seali.util.SafeErrorReport
 import com.frpboy.seali.Downloader
 import com.frpboy.seali.R
 import com.frpboy.seali.download.DownloaderV2
@@ -118,7 +119,6 @@ import com.frpboy.seali.util.NOTIFICATION
 import com.frpboy.seali.util.PreferenceUtil
 import com.frpboy.seali.util.PreferenceUtil.getBoolean
 import com.frpboy.seali.util.PreferenceUtil.updateBoolean
-import com.frpboy.seali.util.SafeErrorReport
 import com.frpboy.seali.util.ToastUtil
 import com.frpboy.seali.util.matchUrlFromClipboard
 import kotlinx.coroutines.launch
@@ -272,7 +272,7 @@ fun DownloadPage(
             pasteCallback = {
                 matchUrlFromClipboard(
                         string = clipboardManager.getText().toString(),
-                        isMatchingMultiLink = CUSTOM_COMMAND.getBoolean(),
+                        isMatchingMultiLink = com.frpboy.seali.util.CandidateFeaturePolicy.customCommandsEnabled(CUSTOM_COMMAND.getBoolean()),
                     )
                     .let { homePageViewModel.updateUrl(it) }
             },

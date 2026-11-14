@@ -133,7 +133,7 @@
     <string name="permission_issue_desc">Directories outside Download/ and Documents/ are not supported</string>
     <string name="battery_configuration">Battery configuration</string>
     <string name="battery_configuration_desc">Ignore battery optimization for this app to download in the background</string>
-    <string name="service_title">Seal is downloading…</string>
+    <string name="service_title">Seali is downloading…</string>
     <string name="unknown_error">Unknown error</string>
     <string name="translate">Translate</string>
     <string name="translate_desc">Help translate this app on Hosted Weblate</string>
@@ -232,7 +232,7 @@
     <string name="custom_command_enabled_hint">Some options are unavailable when using custom command</string>
     <string name="how_does_it_work">How does it work?</string>
     <string name="cookies_usage_msg">Downloading from some sites requires account authentication information. Click \"Generate new cookies\", enter the URL of the website and then log in with your account in the browser page, the app will generate it for you.</string>
-    <string name="custom_command_usage_msg">yt-dlp is a powerful command-line tool for downloading videos. Seal makes it easier to use yt-dlp by providing an intuitive GUI, presets for common commands, and other additional features.\n\nFor advanced usage of yt-dlp, Seal allows you to create, save and execute custom command templates directly, just like in a terminal.\n\nWhen using custom commands, most of the GUI options and features would be disabled.</string>
+    <string name="custom_command_usage_msg">yt-dlp is a powerful command-line tool for downloading videos. Seali makes it easier to use yt-dlp by providing an intuitive GUI, presets for common commands, and other additional features.\n\nFor advanced usage of yt-dlp, Seali allows you to create, save and execute custom command templates directly, just like in a terminal.\n\nWhen using custom commands, most of the GUI options and features would be disabled.</string>
     <string name="sdcard_directory">SD card folder</string>
     <string name="auto_subtitle">Automatic captions</string>
     <string name="auto_subtitle_desc">Download auto-generated captions</string>
@@ -298,7 +298,7 @@
     <string name="clip_video_desc">Make video clips in the format selection page</string>
     <string name="embed_thumbnail" translatable="false">Embed thumbnail</string>
     <string name="embed_thumbnail_desc" translatable="false">Embed thumbnails into videos</string>
-    <string name="auto_update_disabled_msg">Auto-update is not available for %1$s builds. If you don\'t have %1$s installed on your device, or would like to preview upcoming new features in Seal, please consider %2$s.</string>
+    <string name="auto_update_disabled_msg">Auto-update is not available for %1$s builds. If you don\'t have %1$s installed on your device, or would like to preview upcoming new features in Seali, please consider %2$s.</string>
     <string name="switch_to_github_builds">switching to GitHub builds</string>
     <string name="okay">Okay</string>
     <string name="got_it">Got it</string>
@@ -447,4 +447,55 @@
         <item quantity="one">%d audio</item>
         <item quantity="other">%d audios</item>
     </plurals>
+    <string name="seali_support_and_donate">Support &amp; Donate</string>
+    <string name="seali_paste_link">Paste a link</string>
+    <string name="seali_add_link">Add a link</string>
+    <string name="seali_empty_active">No downloads running</string>
+    <string name="seali_empty_active_hint">Your active downloads will appear here.</string>
+    <string name="seali_empty_canceled">No canceled or failed downloads</string>
+    <string name="seali_empty_canceled_hint">Downloads that stop or need attention appear here.</string>
+    <string name="seali_empty_finished">No completed downloads yet</string>
+    <string name="seali_empty_finished_hint">Completed downloads will appear here.</string>
+    <string name="seali_empty_action_hint">Add a link, or share a video link to Seali from your browser.</string>
+    <string name="queue_filter_count">%1$s: %2$s</string>
+    <string name="queue_show_list">Show download list</string>
+    <string name="queue_show_grid">Show download cards</string>
+    <plurals name="queue_task_count">
+        <item quantity="one">%d task</item>
+        <item quantity="other">%d tasks</item>
+    </plurals>
+    <string name="queue_no_finished_this_session">No finished downloads in this session</string>
+    <string name="queue_saved_history_hint">Saved downloads remain in Downloads. Open Downloads from the navigation menu to view your history.</string>
+    <string name="queue_progress_percent">%1$d%%</string>
+    <string name="queue_progress_eta">Estimated remaining: %1$s</string>
+    <string name="seali_fetching_options_hint">Checking available formats and download options. Dismissing the sheet requests cancellation.</string>
+    <string name="queue_restore_failed_preserved">The saved queue could not be restored. Its original backup is kept, and download history is unchanged. New queue changes will not be saved until restore succeeds.</string>
+    <string name="queue_failed_or_canceled">Failed / Canceled</string>
+    <string name="queue_chip_count">%1$s (%2$d)</string>
+    <string name="queue_metadata_unavailable">Metadata unavailable</string>
+    <string name="queue_retry">Retry</string>
+    <string name="seali_quick_settings">Quick settings</string>
+    <string name="format_requires_audio_hint">Turn on Save as audio to convert audio, embed metadata or crop artwork.</string>
+    <string name="artwork_requires_metadata_hint">Turn on Embed metadata to crop audio artwork.</string>
+    <string name="video_requires_video_hint">Turn off Save as audio to change video format, video quality or the MKV container.</string>
+    <string name="video_uses_sorting_hint">Format sorting chooses the video format and quality. Turn it off to choose them manually.</string>
+    <string name="advanced_requires_selection_hint">Turn on Format selection to use video clips or merge audio streams.</string>
+    <string name="seali_package_name">Package name</string>
+    <string name="seali_issue_tracker">Seali Issue Tracker</string>
+    <string name="seali_issue_tracker_desc">Search or report Seali-specific issues. Do not post private links, cookies or credentials.</string>
+    <string name="seali_upstream_known_issues">Seal upstream known issues</string>
+    <string name="seali_ytdlp_known_issues">yt-dlp known issues and FAQ</string>
+    <string name="seali_interaction_summary">Interface mode and initial download type</string>
+    <string name="seali_interface_location_hint">Choose Classic or v2 in Interface &amp; interaction</string>
+    <string name="seali_selected_streams">Selected streams: %1$d</string>
+    <string name="seali_stream_size_estimate">Input stream estimate: %1$s. Final file size may differ.</string>
+    <string name="seali_stream_size_unknown">Input stream size unknown. Clipping, chapters and post-processing can change the final file size.</string>
+    <string name="custom_commands_unavailable_candidate" translatable="false">Custom command execution is unavailable in this source-limited alpha candidate. Use the normal download flow. Saved templates are kept.</string>
+    <string name="app_updates_unavailable_candidate" translatable="false">App self-update is unavailable in this source-built alpha candidate. Release selection, package, signing certificate and version-code compatibility are not qualified. Update preferences are kept.</string>
+    <string name="runtime_channel_pending_hint">Changes apply when you confirm. Cancel keeps your saved settings. Stable is the default; Nightly needs your permission.</string>
+    <string name="runtime_nightly_warning_title">Allow Nightly updates?</string>
+    <string name="runtime_nightly_warning_body">Nightly builds are experimental. They may break downloads or require switching back to Stable. A new engine is installed only if its integrity and required offline capabilities pass checks. This is not a guarantee that every website will work.</string>
+    <string name="runtime_nightly_dont_show_again">Don\'t show again</string>
+    <string name="runtime_nightly_save_hint">Allow selects Nightly for now. Confirm in Update settings to save your choice and this checkbox. Cancel here keeps Stable selected.</string>
+    <string name="runtime_nightly_allow">Allow</string>
 </resources>

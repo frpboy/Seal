@@ -33,27 +33,19 @@ open class NotificationActionReceiver : BroadcastReceiver(), KoinComponent {
 
     override fun onReceive(context: Context?, intent: Intent?) {
         if (intent == null) return
-        val notificationId =
-            intent.getIntExtra(
-                NOTIFICATION_ID_KEY,
-                intent.getIntExtra(LEGACY_PACKAGE_NAME_PREFIX + "notificationId", 0),
-            )
-        val action =
-            intent.getIntExtra(
-                ACTION_KEY,
-                intent.getIntExtra(LEGACY_PACKAGE_NAME_PREFIX + "action", ACTION_CANCEL_TASK),
-            )
+        // PendingIntents created before the namespace move keep their original extra keys.
+        val prefix = if (intent.hasExtra(ACTION_KEY)) PACKAGE_NAME_PREFIX else LEGACY_PACKAGE_NAME_PREFIX
+        val notificationId = intent.getIntExtra(prefix + "notificationId", 0)
+        val action = intent.getIntExtra(prefix + "action", ACTION_CANCEL_TASK)
         Log.d(TAG, "onReceive: $action")
         when (action) {
             ACTION_CANCEL_TASK -> {
-                val taskId = intent.getStringExtra(TASK_ID_KEY) ?: intent.getStringExtra(LEGACY_PACKAGE_NAME_PREFIX + "taskId")
+                val taskId = intent.getStringExtra(prefix + "taskId")
                 cancelTask(taskId, notificationId)
             }
 
             ACTION_ERROR_REPORT -> {
-                val errorReport =
-                    intent.getStringExtra(ERROR_REPORT_KEY)
-                        ?: intent.getStringExtra(LEGACY_PACKAGE_NAME_PREFIX + "error_report")
+                val errorReport = intent.getStringExtra(prefix + "error_report")
                 if (!errorReport.isNullOrEmpty()) copyErrorReport(errorReport, notificationId)
             }
         }

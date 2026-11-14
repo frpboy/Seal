@@ -49,7 +49,7 @@ class HomePageViewModel : ViewModel() {
     fun startDownloadVideo() {
         val url = viewStateFlow.value.url
         Downloader.clearErrorState()
-        if (CUSTOM_COMMAND.getBoolean()) {
+        if (com.frpboy.seali.util.CandidateFeaturePolicy.customCommandsEnabled(CUSTOM_COMMAND.getBoolean())) {
             applicationScope.launch(Dispatchers.IO) { DownloadUtil.executeCommandInBackground(url) }
             return
         }

@@ -5,12 +5,13 @@ import android.content.res.Configuration
 import androidx.compose.animation.core.AnimationState
 import androidx.compose.animation.core.animateTo
 import androidx.compose.animation.rememberSplineBasedDecay
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.LocalOverscrollFactory
+import androidx.compose.foundation.border
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -68,7 +69,6 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
@@ -86,7 +86,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.frpboy.seali.R
 import com.frpboy.seali.download.DownloaderV2
@@ -113,9 +112,10 @@ import com.frpboy.seali.ui.page.downloadv2.configure.DownloadDialogViewModel.Act
 import com.frpboy.seali.ui.page.downloadv2.configure.FormatPage
 import com.frpboy.seali.ui.page.downloadv2.configure.PlaylistSelectionPage
 import com.frpboy.seali.ui.page.downloadv2.configure.PreferencesMock
-import com.frpboy.seali.ui.svg.DynamicColorImageVectors
-import com.frpboy.seali.ui.svg.drawablevectors.download
 import com.frpboy.seali.ui.theme.SealTheme
+import com.frpboy.seali.util.QUEUE_GRID_VIEW
+import com.frpboy.seali.util.PreferenceUtil.getBoolean
+import com.frpboy.seali.util.PreferenceUtil.updateBoolean
 import com.frpboy.seali.util.DownloadUtil
 import com.frpboy.seali.util.FileUtil
 import com.frpboy.seali.util.FileUtil.getFileSize
@@ -143,13 +143,14 @@ enum class Filter {
         when (this) {
             All -> stringResource(R.string.all)
             Downloading -> stringResource(R.string.status_downloading)
-            Canceled -> stringResource(R.string.status_canceled)
+            Canceled -> stringResource(R.string.queue_failed_or_canceled)
             Finished -> stringResource(R.string.status_completed)
         }
 
-    fun predict(entry: Pair<Task, Task.State>): Boolean {
+    fun predict(entry: Pair<Task, Task.State>): Boolean = matches(entry.second.downloadState)
+
+    internal fun matches(state: Task.DownloadState): Boolean {
         if (this == All) return true
-        val state = entry.second.downloadState
         return when (this) {
             Downloading -> {
                 when (state) {
@@ -213,6 +214,12 @@ fun DownloadPageV2(
         downloadCallback = {
             view.slightHapticFeedback()
             dialogViewModel.postAction(Action.ShowSheet())
+        },
+        pasteCallback = {
+            view.slightHapticFeedback()
+            // Explicit tap only. Opening Add link does not inspect clipboard.
+            val text = clipboardManager.getText()?.toString().orEmpty()
+            dialogViewModel.postAction(Action.ShowSheet(explicitlyPastedText = text))
         },
         onMenuOpen = onMenuOpen,
     ) { task, action ->
@@ -317,6 +324,7 @@ fun DownloadPageImplV2(
     modifier: Modifier = Modifier,
     taskDownloadStateMap: SnapshotStateMap<Task, Task.State>,
     downloadCallback: () -> Unit = {},
+    pasteCallback: () -> Unit = {},
     onMenuOpen: (() -> Unit) = {},
     onActionPost: (Task, UiAction) -> Unit,
 ) {
@@ -326,7 +334,6 @@ fun DownloadPageImplV2(
             derivedStateOf { taskDownloadStateMap.filter { activeFilter.predict(it.toPair()) } }
         }
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var selectedTask by remember { mutableStateOf<Task?>(null) }
@@ -350,7 +357,10 @@ fun DownloadPageImplV2(
     Scaffold(
         modifier = modifier.fillMaxSize().statusBarsPadding(),
         containerColor = MaterialTheme.colorScheme.surface,
-        floatingActionButton = { FABs(modifier = Modifier, downloadCallback = downloadCallback) },
+        floatingActionButton = {
+            FABs(modifier = Modifier, downloadCallback = downloadCallback,
+                expandForEmptyQueue = taskDownloadStateMap.isEmpty())
+        },
     ) { windowInsetsPadding ->
         val lazyListState = rememberLazyGridState()
         val windowWidthSizeClass = LocalWindowWidthState.current
@@ -360,7 +370,9 @@ fun DownloadPageImplV2(
                 else HeaderSpacingDp.dp.toPx()
             }
         var headerOffset by remember { mutableFloatStateOf(spacerHeight) }
-        var isGridView by rememberSaveable { mutableStateOf(true) }
+        var isGridView by rememberSaveable {
+            mutableStateOf(QUEUE_GRID_VIEW.getBoolean(default = windowWidthSizeClass != WindowWidthSizeClass.Compact))
+        }
 
         Column(
             modifier =
@@ -414,17 +426,35 @@ fun DownloadPageImplV2(
                                     }
                                 },
                             ) {
-                                Text(filter.label())
+                                Text(stringResource(R.string.queue_chip_count, filter.label(),
+                                    taskDownloadStateMap.count { filter.predict(it.toPair()) }))
                             }
                         }
                     }
+                    SubHeader(
+                        modifier = Modifier.padding(horizontal = 20.dp),
+                        filterLabel = activeFilter.label(),
+                        taskCount = filteredMap.size,
+                        isGridView = isGridView,
+                        onToggleView = {
+                            isGridView = !isGridView
+                            QUEUE_GRID_VIEW.updateBoolean(isGridView)
+                        },
+                    )
                     Spacer(Modifier.height(8.dp))
                     if (headerOffset <= 0.1f && spacerHeight > 0f) {
                         HorizontalDivider(thickness = Dp.Hairline)
                     }
                 }
 
-                LazyVerticalGrid(
+                if (filteredMap.isEmpty()) {
+                    QueueEmptyState(
+                        filter = activeFilter,
+                        onAddLink = downloadCallback,
+                        onPasteLink = pasteCallback,
+                        modifier = Modifier.fillMaxSize().padding(bottom = 96.dp),
+                    )
+                } else LazyVerticalGrid(
                     modifier = Modifier,
                     state = lazyListState,
                     columns = GridCells.Adaptive(240.dp),
@@ -433,21 +463,6 @@ fun DownloadPageImplV2(
                             PaddingValues(start = 20.dp, end = 20.dp, bottom = 80.dp),
                     horizontalArrangement = Arrangement.spacedBy(24.dp),
                 ) {
-                    if (filteredMap.isNotEmpty()) {
-                        item(span = { GridItemSpan(maxLineSpan) }) {
-                            val videoCount = filteredMap.count { it.value.isVideoTask() }
-                            val audioCount = filteredMap.count { it.value.isAudioTask() }
-                            SubHeader(
-                                modifier = Modifier,
-                                videoCount = videoCount,
-                                audioCount = audioCount,
-                                isGridView = isGridView,
-                                onToggleView = { isGridView = !isGridView },
-                                onShowMenu = { context.makeToast("Not implemented yet!") },
-                            )
-                        }
-                    }
-
                     if (isGridView) {
                         items(
                             items =
@@ -457,9 +472,14 @@ fun DownloadPageImplV2(
                             val displayViewState =
                                 state.rememberActualFileSize()
                             with(displayViewState) {
-                                VideoCardV2(
-                                    modifier = Modifier.padding(bottom = 20.dp).padding(),
-                                    viewState = this,
+                                Column(Modifier.padding(bottom = 20.dp).queueActiveEmphasis(state.downloadState is Running)) {
+                                val error = state.downloadState as? Error
+                                if (error != null && thumbnailUrl.isNullOrBlank()) {
+                                    CompactQueueErrorCard(task, displayViewState, error,
+                                        onActionPost = onActionPost, onShowActions = { showActionSheet(task) })
+                                } else VideoCardV2(
+                                    modifier = Modifier,
+                                    viewState = displayViewState,
                                     actionButton = {
                                         ActionButton(
                                             modifier = Modifier,
@@ -476,6 +496,8 @@ fun DownloadPageImplV2(
                                     },
                                     onButtonClick = { showActionSheet(task) },
                                 )
+                                (state.downloadState as? Running)?.let { QueueRunningProgress(it) }
+                                }
                             }
                         }
                     } else {
@@ -487,28 +509,28 @@ fun DownloadPageImplV2(
                         ) { (task, state) ->
                             val displayViewState =
                                 state.rememberActualFileSize()
-                            VideoListItem(
-                                modifier = Modifier.padding(bottom = 16.dp),
+                            val error = state.downloadState as? Error
+                            if (error != null && displayViewState.thumbnailUrl.isNullOrBlank()) {
+                                CompactQueueErrorCard(task, displayViewState, error,
+                                    modifier = Modifier.padding(bottom = 16.dp),
+                                    onActionPost = onActionPost, onShowActions = { showActionSheet(task) })
+                            } else VideoListItem(
+                                modifier = Modifier.padding(bottom = 16.dp).queueActiveEmphasis(state.downloadState is Running),
                                 viewState = displayViewState,
                                 stateIndicator = {
-                                    ListItemStateText(
-                                        modifier = Modifier.padding(top = 3.dp),
-                                        downloadState = state.downloadState,
-                                    )
+                                    Column {
+                                        ListItemStateText(
+                                            modifier = Modifier.padding(top = 3.dp),
+                                            downloadState = state.downloadState,
+                                        )
+                                        (state.downloadState as? Running)?.let { QueueRunningProgress(it) }
+                                    }
                                 },
                                 onButtonClick = { showActionSheet(task) },
                             )
                         }
                     }
                 }
-            }
-        }
-        if (filteredMap.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                DownloadQueuePlaceholder(
-                    modifier =
-                        Modifier.fillMaxHeight(0.4f).widthIn(max = 360.dp).align(Alignment.Center)
-                )
             }
         }
     }
@@ -586,8 +608,12 @@ private fun HeaderExpanded(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun FABs(modifier: Modifier = Modifier, downloadCallback: () -> Unit = {}) {
-    val expanded = LocalWindowWidthState.current != WindowWidthSizeClass.Compact
+fun FABs(
+    modifier: Modifier = Modifier,
+    downloadCallback: () -> Unit = {},
+    expandForEmptyQueue: Boolean = false,
+) {
+    val expanded = expandForEmptyQueue || LocalWindowWidthState.current != WindowWidthSizeClass.Compact
     Column(modifier = modifier.padding(6.dp), horizontalAlignment = Alignment.End) {
         FloatingActionButton(
             onClick = downloadCallback,
@@ -614,115 +640,45 @@ fun FABs(modifier: Modifier = Modifier, downloadCallback: () -> Unit = {}) {
 }
 
 @Composable
-@Preview
-private fun DownloadQueuePlaceholder(modifier: Modifier = Modifier) {
-    BoxWithConstraints(modifier = modifier) {
-        ConstraintLayout {
-            val (image, text) = createRefs()
-            val showImage =
-                with(LocalDensity.current) {
-                    this@BoxWithConstraints.constraints.maxHeight >= 240.dp.toPx()
-                }
-            if (showImage) {
-                Image(
-                    painter = rememberVectorPainter(image = DynamicColorImageVectors.download()),
-                    contentDescription = null,
-                    modifier =
-                        Modifier.fillMaxHeight(0.5f).widthIn(max = 240.dp).constrainAs(image) {
-                            top.linkTo(parent.top)
-                            bottom.linkTo(parent.bottom)
-                            start.linkTo(parent.start)
-                            end.linkTo(parent.end)
-                        },
-                )
-            } else {
-                Spacer(Modifier.height(72.dp).constrainAs(image) { top.linkTo(parent.top) })
-            }
-            Column(
-                modifier = Modifier.constrainAs(text) { top.linkTo(image.bottom, margin = 36.dp) },
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    text = stringResource(R.string.you_ll_find_your_downloads_here),
-                    modifier = Modifier.padding(horizontal = 24.dp),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Text(
-                    text = stringResource(R.string.download_hint),
-                    modifier = Modifier.padding(top = 4.dp).padding(horizontal = 24.dp),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                )
-            }
-        }
-    }
-}
-
-@Composable
 fun SubHeader(
     modifier: Modifier = Modifier,
     containerColor: Color =
         MaterialTheme.colorScheme.run {
             if (LocalDarkTheme.current.isDarkTheme()) surfaceContainer else surfaceContainerLowest
         },
-    videoCount: Int = 0,
-    audioCount: Int = 0,
+    filterLabel: String,
+    taskCount: Int,
     isGridView: Boolean = true,
     onToggleView: () -> Unit,
-    onShowMenu: () -> Unit,
 ) {
-    val text = buildString {
-        if (videoCount > 0) {
-            append(pluralStringResource(R.plurals.video_count, videoCount).format(videoCount))
-            if (audioCount > 0) {
-                append(", ")
-            }
-        }
-        if (audioCount > 0) {
-            append(pluralStringResource(R.plurals.audio_count, audioCount).format(audioCount))
-        }
-    }
+    val countText = pluralStringResource(R.plurals.queue_task_count, taskCount, taskCount)
+    val text = stringResource(R.string.queue_filter_count, filterLabel, countText)
 
     Row(
         modifier = modifier.padding(top = 12.dp, bottom = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
-            modifier = Modifier.padding(start = 8.dp),
+            modifier = Modifier.weight(1f).padding(start = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(text = text, style = MaterialTheme.typography.labelLarge)
             Spacer(Modifier.width(4.dp))
         }
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.width(8.dp))
 
         FilledIconButton(
             onClick = onToggleView,
-            modifier = Modifier.clearAndSetSemantics {}.size(32.dp),
+            modifier = Modifier.size(48.dp),
             colors = IconButtonDefaults.filledIconButtonColors(containerColor = containerColor),
         ) {
             Icon(
                 imageVector =
                     if (isGridView) Icons.AutoMirrored.Outlined.List else Icons.Outlined.GridView,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-            )
-        }
-
-        Spacer(Modifier.width(4.dp))
-
-        FilledIconButton(
-            onClick = onShowMenu,
-            modifier = Modifier.clearAndSetSemantics {}.size(32.dp),
-            colors = IconButtonDefaults.filledIconButtonColors(containerColor = containerColor),
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.MoreVert,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
+                contentDescription = stringResource(
+                    if (isGridView) R.string.queue_show_list else R.string.queue_show_grid),
+                modifier = Modifier.size(20.dp),
             )
         }
     }
@@ -863,3 +819,11 @@ private fun Task.State.rememberActualFileSize(): Task.ViewState {
         display
     }
 }
+
+/** Emphasis only, never changes queue ordering or state/action semantics. */
+@Composable
+private fun Modifier.queueActiveEmphasis(running: Boolean): Modifier =
+    if (!running) this else this
+        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.22f), RoundedCornerShape(16.dp))
+        .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.32f), RoundedCornerShape(16.dp))
+        .padding(8.dp)

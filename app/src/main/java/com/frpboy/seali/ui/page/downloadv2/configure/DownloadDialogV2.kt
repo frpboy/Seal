@@ -46,13 +46,12 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.FileDownload
-import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.NewLabel
 import androidx.compose.material.icons.outlined.SettingsSuggest
 import androidx.compose.material.icons.outlined.VideoFile
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
@@ -160,12 +159,9 @@ private fun DownloadType.label(): String =
 val PreferencesMock = DownloadUtil.DownloadPreferences.EMPTY
 
 data class Config(
-    val downloadType: DownloadType? = PreferenceUtil.getDownloadType(),
+    val downloadType: DownloadType? = PreferenceUtil.getDownloadType()?.takeUnless { it == Command },
     val typeEntries: List<DownloadType> =
-        when (CUSTOM_COMMAND.getBoolean()) {
-            true -> DownloadType.entries
-            false -> DownloadType.entries - Command
-        },
+        DownloadType.entries - Command,
     val useFormatSelection: Boolean = FORMAT_SELECTION.getBoolean(),
     val savedLinks: Set<String> = PreferenceUtil.getSavedLinks(),
 ) {
@@ -194,7 +190,7 @@ fun DownloadDialog(
     sheetState: SheetState,
     preferences: DownloadUtil.DownloadPreferences,
     onPreferencesUpdate: (DownloadUtil.DownloadPreferences) -> Unit,
-    state: DownloadDialogViewModel.SheetState = InputUrl,
+    state: DownloadDialogViewModel.SheetState = InputUrl(),
     onActionPost: (Action) -> Unit = {},
 ) {
     var showVideoPresetDialog by remember { mutableStateOf(false) }
@@ -359,12 +355,12 @@ private fun DownloadDialogContent(
                         onConfigSave = {
                             Config.updatePreferences(newValue = it, oldValue = config)
                         },
-                        settingChips = {
+                        settingChips = { selectedType ->
                             AdditionalSettings(
                                 modifier = Modifier.padding(horizontal = 16.dp),
                                 isQuickDownload = false,
                                 preference = preferences,
-                                selectedType = config.downloadType,
+                                selectedType = selectedType,
                                 onPreferenceUpdate = {
                                     onPreferencesUpdate(
                                         DownloadUtil.DownloadPreferences.createFromPreferences()
@@ -397,15 +393,30 @@ private fun DownloadDialogContent(
             }
 
             is Loading -> {
-                Column(modifier = Modifier.fillMaxWidth().padding(vertical = 120.dp)) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 48.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(20.dp),
+                ) {
+                    Icon(
+                        painter = androidx.compose.ui.res.painterResource(R.drawable.ic_launcher_foreground),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(72.dp),
+                    )
+                    Text(stringResource(R.string.fetching_info), style = MaterialTheme.typography.titleMedium)
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    Text(
+                        stringResource(R.string.seali_fetching_options_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
 
-            InputUrl -> {
+            is InputUrl -> {
                 InputUrlPage(
+                    explicitlyPastedText = state.explicitlyPastedText,
                     config = config,
                     onConfigUpdate = { Config.updatePreferences(newValue = it, oldValue = config) },
                     onActionPost = onActionPost,
@@ -514,7 +525,7 @@ private fun ConfigurePage(
     url: String = "",
     config: Config,
     preferences: DownloadUtil.DownloadPreferences,
-    settingChips: @Composable () -> Unit,
+    settingChips: @Composable (DownloadType?) -> Unit,
     onPresetEdit: (DownloadType?) -> Unit = {},
     onConfigSave: (Config) -> Unit,
     onActionPost: (Action) -> Unit,
@@ -567,6 +578,10 @@ private fun ConfigurePage(
                         onEdit = { onPresetEdit(selectedType) },
                     )
                     Custom(
+                        summary = buildList {
+                            if (preferences.downloadSubtitle) add(stringResource(R.string.download_subtitles))
+                            if (preferences.createThumbnail) add(stringResource(R.string.create_thumbnail))
+                        }.takeIf { it.isNotEmpty() }?.joinToString(" · "),
                         selected = useFormatSelection,
                         enabled = selectedType != Playlist,
                         onClick = { useFormatSelection = true },
@@ -617,8 +632,13 @@ private fun ConfigurePage(
                 }
             }
         }
-        var expanded by remember { mutableStateOf(false) }
-        ExpandableTitle(expanded = expanded, onClick = { expanded = true }) { settingChips() }
+        if (selectedType != Command) {
+            DrawerSheetSubtitle(
+                text = stringResource(R.string.additional_settings),
+                modifier = Modifier.padding(horizontal = 20.dp),
+            )
+            settingChips(selectedType)
+        }
 
         ActionButtons(
             modifier = Modifier.padding(horizontal = 20.dp),
@@ -714,18 +734,19 @@ fun ConfigurePagePlaylistVariant(
                 onEdit = { onPresetEdit(selectedType) },
             )
         }
-        var expanded by remember { mutableStateOf(false) }
-        ExpandableTitle(expanded = expanded, onClick = { expanded = true }) {
-            AdditionalSettings(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                isQuickDownload = false,
-                preference = preferences,
-                selectedType = Audio,
-                onPreferenceUpdate = {
-                    onPreferencesUpdate(DownloadUtil.DownloadPreferences.createFromPreferences())
-                },
-            )
-        }
+        DrawerSheetSubtitle(
+            text = stringResource(R.string.additional_settings),
+            modifier = Modifier.padding(horizontal = 20.dp),
+        )
+        AdditionalSettings(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            isQuickDownload = false,
+            preference = preferences,
+            selectedType = selectedType,
+            onPreferenceUpdate = {
+                onPreferencesUpdate(DownloadUtil.DownloadPreferences.createFromPreferences())
+            },
+        )
 
         ActionButtons(
             modifier = Modifier.padding(horizontal = 20.dp),
@@ -734,8 +755,7 @@ fun ConfigurePagePlaylistVariant(
             useFormatSelection = false,
             onCancel = onDismissRequest,
             onDownload = {
-                onDownload(initialDownloadType)
-                onDismissRequest()
+                submitPlaylistSelection(selectedType, onDownload, onDismissRequest)
             },
             onFetchInfo = { throw IllegalStateException() },
             onTaskStart = { throw IllegalStateException() },
@@ -863,6 +883,7 @@ private fun SingleChoiceItem(
     title: String,
     desc: String,
     selected: Boolean,
+    descriptionMaxLines: Int = 2,
     icon: (@Composable () -> Unit)? = null,
     action: (@Composable () -> Unit)? = null,
     enabled: Boolean = true,
@@ -907,7 +928,7 @@ private fun SingleChoiceItem(
                     text = desc,
                     style = MaterialTheme.typography.bodySmall,
                     minLines = 2,
-                    maxLines = 2,
+                    maxLines = descriptionMaxLines,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(start = 32.dp),
                 )
@@ -1020,7 +1041,7 @@ private fun Preset(
             Crossfade(showEditIcon, animationSpec = spring(stiffness = Spring.StiffnessMedium)) {
                 if (it) {
                     Icon(
-                        imageVector = Icons.Outlined.MoreVert,
+                        imageVector = Icons.Outlined.Edit,
                         contentDescription = stringResource(R.string.edit),
                         modifier = Modifier.size(20.dp),
                     )
@@ -1040,6 +1061,7 @@ private fun Preset(
 @Composable
 private fun Custom(
     modifier: Modifier = Modifier,
+    summary: String? = null,
     selected: Boolean,
     enabled: Boolean = true,
     onClick: () -> Unit,
@@ -1047,7 +1069,10 @@ private fun Custom(
     SingleChoiceItem(
         modifier = modifier,
         title = stringResource(R.string.custom),
-        desc = stringResource(R.string.custom_format_selection_desc),
+        desc = summary?.let {
+            stringResource(R.string.custom_format_selection_desc) + "\n" + it
+        } ?: stringResource(R.string.custom_format_selection_desc),
+        descriptionMaxLines = if (summary == null) 2 else 4,
         icon = {
             Crossfade(selected, animationSpec = spring(stiffness = Spring.StiffnessMedium)) {
                 if (it) {

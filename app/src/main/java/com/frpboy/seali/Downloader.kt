@@ -13,6 +13,7 @@ import com.frpboy.seali.App.Companion.context
 import com.frpboy.seali.App.Companion.startService
 import com.frpboy.seali.App.Companion.stopService
 import com.frpboy.seali.database.objects.CommandTemplate
+import com.frpboy.seali.util.SafeErrorReport
 import com.frpboy.seali.util.COMMAND_DIRECTORY
 import com.frpboy.seali.util.DownloadUtil
 import com.frpboy.seali.util.FileUtil
@@ -20,7 +21,6 @@ import com.frpboy.seali.util.NotificationUtil
 import com.frpboy.seali.util.PlaylistEntry
 import com.frpboy.seali.util.PlaylistResult
 import com.frpboy.seali.util.PreferenceUtil.getString
-import com.frpboy.seali.util.SafeErrorReport
 import com.frpboy.seali.util.ToastUtil
 import com.frpboy.seali.util.VideoInfo
 import com.frpboy.seali.util.toHttpsUrl

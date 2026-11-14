@@ -1,0 +1,56 @@
+// Capture the actual resolved runtime graph for fail-closed comparison against
+// the reviewed baseline lock. Module artifacts carry identity + sha256 + bytes
+// (untransformed files, component-filtered view); every resolved component
+// (including project: deps and platform/BOM components with no files) carries
+// its identity so version/selection changes cannot slip through. Run with
+// --no-configuration-cache: this diagnostic task intentionally resolves at
+// execution time.
+import java.security.MessageDigest
+
+allprojects { p ->
+    if (p.path != ':app') return
+    p.afterEvaluate {
+        p.tasks.register('writeGenericDebugRuntimeClasspathGraph') {
+            def outFile = p.layout.buildDirectory.file('reports/resolved-graph/genericDebugRuntimeClasspath.json')
+            outputs.file(outFile)
+            doLast {
+                def conf = p.configurations.getByName('genericDebugRuntimeClasspath')
+                def moduleArtifacts = conf.incoming.artifactView { view ->
+                    view.componentFilter { it instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier }
+                }.artifacts.artifacts.collect { a ->
+                    def id = a.id.componentIdentifier
+                    def f = a.file
+                    def digest = MessageDigest.getInstance('SHA-256')
+                    f.withInputStream { s ->
+                        byte[] buf = new byte[1 << 16]; int n
+                        while ((n = s.read(buf)) > 0) digest.update(buf, 0, n)
+                    }
+                    [group: id.group, name: id.module, version: id.version, file: f.name,
+                     sha256: digest.digest().encodeHex().toString(), bytes: f.length()]
+                }.sort { "${it.group}:${it.name}:${it.version}:${it.file}" }
+                // The view can yield the same module file twice (multi-variant selection); dedupe, requiring byte-consistency.
+                def seen = [:]
+                moduleArtifacts = moduleArtifacts.findAll { a ->
+                    def key = "${a.group}:${a.name}:${a.version}:${a.file}"
+                    def prior = seen.put(key, a.sha256)
+                    if (prior != null && prior != a.sha256) throw new GradleException('same artifact identity with different bytes: ' + key)
+                    prior == null
+                }
+                def components = conf.incoming.resolutionResult.allComponents.collect { c ->
+                    def id = c.id
+                    if (id instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier) {
+                        "module:${id.group}:${id.module}:${id.version}"
+                    } else if (id instanceof org.gradle.api.artifacts.component.ProjectComponentIdentifier) {
+                        "project:${id.projectPath}"
+                    } else {
+                        id.toString()
+                    }
+                }.unique().sort()
+                def out = outFile.get().asFile
+                out.parentFile.mkdirs()
+                out.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(
+                    [configuration: 'genericDebugRuntimeClasspath', components: components, artifacts: moduleArtifacts])) + '\n'
+            }
+        }
+    }
+}

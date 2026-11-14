@@ -1,0 +1,72 @@
+{
+  "scope": "published Maven Central consumer artifact binding, not public APK/native/API26 runtime qualification",
+  "base_commit": "79fc7c3daef7a971c4686c9ed86c9cc7ab2cc53e",
+  "base_tree": "beef66d5a9c92b32a90c169bffd4d1d26c8f6eac",
+  "provenance_note": "Artifact hashes below are the PUBLISHED Maven Central bytes of io.github.frpboy.youtubedl-android 0.1.0-alpha.7, Central deployment d6355972-038b-499b-8682-2325a70532f2 (PUBLISHED 2026-11-14 20:58 IST), built by producer CI run 43538095848 from source 03deec547243ebe120a537e38d667a3a1ffc588e. All 15 payload files were downloaded from repo1.maven.org and sha256-verified against the producer receipt with zero mismatches (consumer agent, 2026-11-14 20:59 IST); the .asc signatures are served by Central. AAR payloads are byte-identical to the previously custody-verified 0.1.0-alpha.7-staging.4 AARs (reproducible entries); only POM/Gradle-module metadata differs by the version string. A local rebuild of 03deec54 (JDK17) reproduces all 9 locked files byte-exactly; javadoc jars differ only in zip entry ordering and are not consumed or locked. Consumer source pin updated from 486a5462431c4ba81a1e80f30dcb01952ec43c4c to 03deec547243ebe120a537e38d667a3a1ffc588e.",
+  "central_deployment_id": "d6355972-038b-499b-8682-2325a70532f2",
+  "producer_ci_run": 43538095848,
+  "producer_source": "03deec547243ebe120a537e38d667a3a1ffc588e",
+  "group": "io.github.frpboy.youtubedl-android",
+  "version": "0.1.0-alpha.7",
+  "artifacts": [
+    {
+      "coordinate": "io.github.frpboy.youtubedl-android:common:0.1.0-alpha.7",
+      "module": "common",
+      "aar": ".qualification/maven/io/github/frpboy/youtubedl-android/common/0.1.0-alpha.7/common-0.1.0-alpha.7.aar",
+      "files": {
+        ".qualification/maven/io/github/frpboy/youtubedl-android/common/0.1.0-alpha.7/common-0.1.0-alpha.7.aar": {
+          "sha256": "4e0fa79c380e818896483665a0df923176d51bfd8c4883ffb4cebd0d89db4191",
+          "bytes": 7145
+        },
+        ".qualification/maven/io/github/frpboy/youtubedl-android/common/0.1.0-alpha.7/common-0.1.0-alpha.7.pom": {
+          "sha256": "3b2b5f641c07b70d1b531e7661e555d029de5ac95516ddf22f60e9bfd82ce32a",
+          "bytes": 2379
+        },
+        ".qualification/maven/io/github/frpboy/youtubedl-android/common/0.1.0-alpha.7/common-0.1.0-alpha.7.module": {
+          "sha256": "64e9ac6e241d747484edb288352b3a6bd397bc4cb0e0fc4df657bbdd69e7feba",
+          "bytes": 3603
+        }
+      }
+    },
+    {
+      "coordinate": "io.github.frpboy.youtubedl-android:library:0.1.0-alpha.7",
+      "module": "library",
+      "aar": ".qualification/maven/io/github/frpboy/youtubedl-android/library/0.1.0-alpha.7/library-0.1.0-alpha.7.aar",
+      "files": {
+        ".qualification/maven/io/github/frpboy/youtubedl-android/library/0.1.0-alpha.7/library-0.1.0-alpha.7.aar": {
+          "sha256": "6187e54bf4ec98bff1ad1fb9bd3a4b5e2b4fb2217848fe3956be08eea3926b1c",
+          "bytes": 2996994
+        },
+        ".qualification/maven/io/github/frpboy/youtubedl-android/library/0.1.0-alpha.7/library-0.1.0-alpha.7.pom": {
+          "sha256": "12805a669f7c24ee2889df91507f4fed6afb9113283a77d98b79d0f6feae075b",
+          "bytes": 2865
+        },
+        ".qualification/maven/io/github/frpboy/youtubedl-android/library/0.1.0-alpha.7/library-0.1.0-alpha.7.module": {
+          "sha256": "a6881f637196480c455d70ed4392099f8e330724a2a35d5457582c8325dc7ffd",
+          "bytes": 3987
+        }
+      }
+    },
+    {
+      "coordinate": "io.github.frpboy.youtubedl-android:ffmpeg:0.1.0-alpha.7",
+      "module": "ffmpeg",
+      "aar": ".qualification/maven/io/github/frpboy/youtubedl-android/ffmpeg/0.1.0-alpha.7/ffmpeg-0.1.0-alpha.7.aar",
+      "files": {
+        ".qualification/maven/io/github/frpboy/youtubedl-android/ffmpeg/0.1.0-alpha.7/ffmpeg-0.1.0-alpha.7.aar": {
+          "sha256": "6b0dacf677234c973b323aa348282d6ad3ca8ffbddbafb7b5cc14387707f4760",
+          "bytes": 3500
+        },
+        ".qualification/maven/io/github/frpboy/youtubedl-android/ffmpeg/0.1.0-alpha.7/ffmpeg-0.1.0-alpha.7.pom": {
+          "sha256": "186e713f6d5aca9807118ba04746cfe823c554ea087ecb52f0413fbfcf239c0d",
+          "bytes": 2594
+        },
+        ".qualification/maven/io/github/frpboy/youtubedl-android/ffmpeg/0.1.0-alpha.7/ffmpeg-0.1.0-alpha.7.module": {
+          "sha256": "e5f243cefa3fc43975aa39affcbbde4cafcaf61f87b45b80dd69ec1417647475",
+          "bytes": 3800
+        }
+      }
+    }
+  ],
+  "engine_sha256": "e51e69e89489f199530f13d32a4342da3ddb2cf34842f364603a066db05afbf3",
+  "checker_sha256": "6379544c47a876ec6a20e36bf67e1d263fbe6b891d2ec7ec6e82bdd18c65449c"
+}

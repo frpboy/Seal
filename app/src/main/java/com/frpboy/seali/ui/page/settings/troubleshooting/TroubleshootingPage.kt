@@ -36,6 +36,7 @@ import com.frpboy.seali.ui.component.PreferenceItem
 import com.frpboy.seali.ui.component.PreferenceSubtitle
 import com.frpboy.seali.ui.component.PreferenceSwitch
 import com.frpboy.seali.ui.page.settings.BasePreferencePage
+import com.frpboy.seali.ui.page.settings.general.rememberRuntimeUpdateConsent
 import com.frpboy.seali.ui.page.settings.general.YtdlpUpdateChannelDialog
 import com.frpboy.seali.util.PreferenceUtil.getString
 import com.frpboy.seali.util.PreferenceUtil.updateBoolean
@@ -57,6 +58,7 @@ fun TroubleShootingPage(
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val requestRuntimeConsent = rememberRuntimeUpdateConsent()
 
     BasePreferencePage(
         modifier = modifier,
@@ -70,17 +72,24 @@ fun TroubleShootingPage(
                         modifier = Modifier,
                         text = stringResource(R.string.issue_tracker_hint),
                     )
-                    val knownIssueUrlSeali = "https://github.com/frpboy/Seali/issues"
                     PreferenceItem(
-                        title = "Seali Issue Tracker",
+                        title = stringResource(R.string.seali_issue_tracker),
+                        description = stringResource(R.string.seali_issue_tracker_desc),
+                        icon = Icons.AutoMirrored.Outlined.OpenInNew,
+                        onClick = { uriHandler.openUri("https://github.com/frpboy/Seali/issues") },
+                    )
+
+                    val knownIssueUrlSeal = "https://github.com/JunkFood02/Seal/issues/1399"
+                    PreferenceItem(
+                        title = stringResource(R.string.seali_upstream_known_issues),
                         description = null,
                         icon = Icons.AutoMirrored.Outlined.OpenInNew,
-                        onClick = { uriHandler.openUri(knownIssueUrlSeali) },
+                        onClick = { uriHandler.openUri(knownIssueUrlSeal) },
                     )
 
                     val knownIssueUrlYtdlp = "https://github.com/yt-dlp/yt-dlp/issues/3766"
                     PreferenceItem(
-                        title = "yt-dlp Issue Tracker",
+                        title = stringResource(R.string.seali_ytdlp_known_issues),
                         description = null,
                         icon = Icons.AutoMirrored.Outlined.OpenInNew,
                         onClick = { uriHandler.openUri(knownIssueUrlYtdlp) },
@@ -124,8 +133,9 @@ fun TroubleShootingPage(
                     onClick = {
                         scope.launch(Dispatchers.IO) {
                             runCatching {
+                                    if (!requestRuntimeConsent(false)) return@launch
                                     isUpdating = true
-                                    UpdateUtil.updateYtDlp()
+                                    UpdateUtil.updateYtDlp(manualConsent = true)
                                     ytdlpVersion = YT_DLP_VERSION.getString()
                                 }
                                 .onFailure { th ->

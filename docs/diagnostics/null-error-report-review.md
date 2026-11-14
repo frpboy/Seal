@@ -9,3 +9,5 @@ Copy report uses a separate bounded privacy formatter: exception/cause types and
 Legacy download-screen Copy report now sanitizes its stored raw local report separately, preserving that screen's local display while withholding media IDs and private text from the clipboard.
 
 Scope:10files, no dependency/native/workflow/signing/package/version/storage/schema changes. Pure helper tests and source checks are supplemental; actual composed Android compile and unit results must be recorded separately. No runtime/error-dialog screenshot or download fix is claimed. This is not the full alpha7 namespace/native merge.
+
+The compact queue error card and action sheet keep the candidate `reason(Throwable)` API: it returns the first recognized allowlisted category within at most six unique causes, never raw process output. This compact presentation is separate from `localDescription`, which preserves original detail in the existing full local error screens, and from copied reports.

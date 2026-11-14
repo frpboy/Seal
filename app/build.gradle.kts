@@ -43,7 +43,9 @@ if (hasAnySigningValue && !signingConfigured) {
     )
 }
 
-val splitApks = !project.hasProperty("noSplits")
+// Alpha7 ships only the reviewed source-built ARM64 payload set. Source compilation
+// and unit tests are payload-free; APK packaging verifies staged input custody.
+val splitApks = project.hasProperty("splitApks")
 
 val abiFilterList = (properties["ABI_FILTERS"] as String).split(';')
 
@@ -51,6 +53,33 @@ val abiCodes = mapOf("armeabi-v7a" to 1, "arm64-v8a" to 2, "x86" to 3, "x86_64" 
 
 val baseVersionName = currentVersion.name
 val currentVersionCode = currentVersion.code.toInt()
+
+val verifyAlpha7Inputs = tasks.register<Exec>("verifyAlpha7BuildInputs") {
+    workingDir(rootProject.projectDir)
+    // Native payloads are intentionally untracked. Always rehash before packaging.
+    outputs.upToDateWhen { false }
+}
+gradle.projectsEvaluated {
+    val nativeRoots = rootProject.allprojects.flatMap { owner ->
+        owner.extensions.findByType(com.android.build.gradle.BaseExtension::class.java)
+            ?.sourceSets?.flatMap { it.jniLibs.srcDirs } ?: emptyList()
+    }.distinct().sortedBy { it.absolutePath }
+    val args = nativeRoots.flatMap { listOf("--native-root", it.absolutePath) }
+    val command = listOf("python3", "scripts/build-contract/verify-alpha7-inputs.py", "--root", rootProject.projectDir.absolutePath) + args
+    verifyAlpha7Inputs.configure { commandLine(command) }
+}
+tasks.configureEach {
+    if ((name.startsWith("merge") && (name.endsWith("NativeLibs") || name.endsWith("JniLibFolders") || name.endsWith("Assets"))) ||
+        (name.startsWith("compress") && name.endsWith("Assets"))) {
+        dependsOn(verifyAlpha7Inputs)
+        val supportedAlpha7Abi = !splitApks && abiFilterList == listOf("arm64-v8a")
+        doFirst {
+            check(supportedAlpha7Abi) {
+                "Alpha7 packaging supports the reviewed ARM64 payload set only; split/other ABI builds are not qualified."
+            }
+        }
+    }
+}
 
 android {
     compileSdk = 36
@@ -71,9 +100,9 @@ android {
 
     defaultConfig {
         applicationId = "com.frpboy.seali"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
-        versionCode = 200_000_160
+        versionCode = 200_000_170
         check(versionCode == currentVersionCode)
 
         versionName = baseVersionName
@@ -177,6 +206,7 @@ android {
     packaging {
         resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" }
         jniLibs.useLegacyPackaging = true
+        jniLibs.keepDebugSymbols += "**/*.so" // Do not mutate independently reviewed payload bytes.
     }
     androidResources { generateLocaleConfig = true }
 
@@ -238,9 +268,15 @@ dependencies {
 
     implementation(libs.okhttp)
 
-    implementation(libs.bundles.youtubedlAndroid)
+    implementation("io.github.frpboy.youtubedl-android:library:0.1.0-alpha.7")
+    implementation("io.github.frpboy.youtubedl-android:ffmpeg:0.1.0-alpha.7")
+    implementation("io.github.frpboy.youtubedl-android:common:0.1.0-alpha.7")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.21.8")
+    implementation("com.fasterxml.jackson.core:jackson-annotations:2.21")
+    implementation("commons-io:commons-io:2.22.0")
+    implementation("org.apache.commons:commons-compress:1.28.0")
 
-    implementation(libs.mmkv)
+    implementation(project(":frpboy-mmkv"))
 
     testImplementation(libs.junit4)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -249,4 +285,33 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.espresso.core)
     implementation(libs.androidx.compose.ui.tooling)
+}
+
+// Local isolated Maven qualification. Actual per-variant selected AAR bytes gate packaging.
+androidComponents {
+    onVariants { variant ->
+        val upperName = variant.name.replaceFirstChar { it.uppercaseChar() }
+        val ownedAars = configurations.getByName("${variant.name}RuntimeClasspath").incoming.artifactView {
+            componentFilter {
+                it is org.gradle.api.artifacts.component.ModuleComponentIdentifier &&
+                    it.group == "io.github.frpboy.youtubedl-android"
+            }
+            attributes {
+                attribute(org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "aar")
+            }
+        }.files
+        val verifyOwned = tasks.register<VerifyAlpha7MavenTask>("verify${upperName}ReviewedMaven") {
+            selectedAars.from(ownedAars)
+            artifactLock.set(rootProject.layout.projectDirectory.file("scripts/build-contract/alpha7-maven-lock.json"))
+            verifierScript.set(rootProject.layout.projectDirectory.file("scripts/build-contract/verify-alpha7-maven.py"))
+            repositoryRoot.set(rootProject.layout.projectDirectory)
+        }
+        tasks.configureEach {
+            if ((name.startsWith("merge${upperName}") &&
+                    (name.endsWith("Assets") || name.endsWith("NativeLibs") || name.endsWith("JniLibFolders"))) ||
+                name == "compress${upperName}Assets") {
+                dependsOn(verifyOwned)
+            }
+        }
+    }
 }

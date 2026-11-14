@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
@@ -33,7 +34,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -41,7 +41,6 @@ import com.frpboy.seali.R
 import com.frpboy.seali.ui.common.AsyncImageImpl
 import com.frpboy.seali.util.toFileSizeText
 
-private const val AUDIO_REGEX = "\\.(mp3|aac|opus|m4a|flac|wav)"
 
 @Composable
 @Preview
@@ -74,11 +73,12 @@ fun MediaListItem(
     onLongClick: () -> Unit = {},
     onShowContextMenu: () -> Unit = {},
 ) {
-    val isAudio = videoPath.contains(Regex(AUDIO_REGEX))
     val haptic = LocalHapticFeedback.current
     val context = LocalContext.current
     val isFileAvailable = videoFileSize != 0L
     val fileSizeText = videoFileSize.toFileSizeText()
+    val extension = historyFileExtension(videoPath)
+    val availableFileSummary = listOfNotNull(fileSizeText, extension).joinToString(" · ")
 
     Box(
         modifier =
@@ -109,9 +109,14 @@ fun MediaListItem(
                     onCheckedChange = null,
                 )
             }
-            MediaImage(modifier = Modifier, imageModel = thumbnailUrl, isAudio = isAudio)
+            AsyncImageImpl(
+                modifier = Modifier.width(96.dp).aspectRatio(16f / 9f).clip(MaterialTheme.shapes.extraSmall),
+                model = thumbnailUrl,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+            )
             Column(
-                modifier = Modifier.padding(horizontal = 12.dp).fillMaxWidth(),
+                modifier = Modifier.padding(horizontal = 12.dp).weight(1f),
                 verticalArrangement = Arrangement.Top,
             ) {
                 Text(
@@ -133,7 +138,7 @@ fun MediaListItem(
                 Text(
                     modifier = Modifier.padding(top = 3.dp),
                     text =
-                        if (isFileAvailable) fileSizeText else stringResource(R.string.unavailable),
+                        if (isFileAvailable) availableFileSummary else stringResource(R.string.unavailable),
                     style = MaterialTheme.typography.labelSmall,
                     color =
                         with(MaterialTheme.colorScheme) {
@@ -142,19 +147,19 @@ fun MediaListItem(
                     maxLines = 1,
                 )
             }
-        }
-        AnimatedVisibility(
-            modifier = Modifier.align(Alignment.BottomEnd),
-            visible = !isSelectEnabled(),
-            enter = fadeIn(tween(100)),
-            exit = fadeOut(tween(100)),
-        ) {
-            IconButton(modifier = Modifier.clearAndSetSemantics {}, onClick = onShowContextMenu) {
+            AnimatedVisibility(
+                modifier = Modifier.align(Alignment.CenterVertically),
+                visible = !isSelectEnabled(),
+                enter = fadeIn(tween(100)),
+                exit = fadeOut(tween(100)),
+            ) {
+            IconButton(onClick = onShowContextMenu) {
                 Icon(
                     modifier = Modifier.size(18.dp),
                     imageVector = Icons.Outlined.MoreVert,
                     contentDescription = stringResource(id = R.string.show_more_actions),
                 )
+            }
             }
         }
     }

@@ -45,14 +45,14 @@
             android:name=".CrashReportActivity"
             android:exported="false"
             android:label="CrashReportActivity"
-            android:theme="@style/Theme.Seal" />
+            android:theme="@style/Theme.Seali" />
         <activity
             android:name=".QuickDownloadActivity"
             android:excludeFromRecents="true"
             android:exported="true"
             android:label="@string/title_activity_share"
             android:launchMode="singleInstance"
-            android:theme="@style/Theme.Seal.Dialog">
+            android:theme="@style/Theme.Seali.Dialog">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
 
@@ -85,7 +85,7 @@
             android:exported="true"
             android:launchMode="singleTask"
             android:screenOrientation="unspecified"
-            android:theme="@style/Theme.Seal">
+            android:theme="@style/Theme.Seali">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -130,10 +130,18 @@
                 android:resource="@xml/provider_paths" />
         </provider>
 
-        <receiver android:name=".NotificationActionReceiver" />
-        <receiver
-            android:name="com.junkfood.seal.NotificationActionReceiver"
-            android:exported="false" />
+        <receiver android:name=".NotificationActionReceiver" android:exported="false" />
+        <!-- Android has no receiver-alias: retain a real, non-exported bridge class for old PendingIntents. -->
+        <receiver android:name="com.junkfood.seal.NotificationActionReceiver" android:exported="false" />
+        <!-- Old explicit launch/service-notification intents keep resolving after the code move. -->
+        <activity-alias
+            android:name="com.junkfood.seal.MainActivity"
+            android:targetActivity=".MainActivity"
+            android:exported="true" />
+        <activity-alias
+            android:name="com.junkfood.seal.QuickDownloadActivity"
+            android:targetActivity=".QuickDownloadActivity"
+            android:exported="true" />
     </application>
 
 </manifest>

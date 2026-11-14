@@ -1,0 +1,21 @@
+[
+  {
+    "source": "Tencent/MMKV v1.3.17 source project :frpboy-mmkv",
+    "source_commit": "8bf97e7816dbfe016273cc2b8f5c3f1b36f9621c",
+    "entry": "jni/arm64-v8a/libmmkv.so",
+    "apk_entry": "lib/arm64-v8a/libmmkv.so",
+    "bytes": 610544,
+    "sha256": "6544cd777e2b7bfdc450dcfbb22e1145062e9077296700f1251abcd03724fae0",
+    "source_archive_sha256": "1593761a62bd7ffe5eaa90a1530dc2c9e587110081da00f230557cc0c3fb3179",
+    "ndk": "r28c, differs from upstream r28.1",
+    "runtime_tested": false
+  },
+  {
+    "aar": "graphics-path-1.0.1.aar",
+    "aar_sha256": "8ca4032b6d79b351f0b59ad4b580eddbb9423e1652f7c958830687f1eee2ec03",
+    "entry": "jni/arm64-v8a/libandroidx.graphics.path.so",
+    "apk_entry": "lib/arm64-v8a/libandroidx.graphics.path.so",
+    "bytes": 10096,
+    "sha256": "41e9a793c43a0f4fddb19e33f346bace464f30f888ba7b9eaf96294ea115bfb6"
+  }
+]

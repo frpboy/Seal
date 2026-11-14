@@ -3,6 +3,11 @@ package com.frpboy.seali.ui.page.settings.appearance
 import android.app.Activity
 import android.widget.Toast
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.FilterChip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -148,7 +153,7 @@ fun AppearancePreferences(onNavigateBack: () -> Unit, onNavigateTo: (String) -> 
                 val pagerState =
                     rememberPagerState(
                         initialPage =
-                            if (LocalPaletteStyleIndex.current == STYLE_MONOCHROME) pageCount
+                            if (LocalPaletteStyleIndex.current == STYLE_MONOCHROME) pageCount - 1
                             else
                                 ColorList.indexOf(Color(LocalSeedColor.current)).run {
                                     if (this == -1) 0 else this
@@ -207,6 +212,15 @@ fun AppearancePreferences(onNavigateBack: () -> Unit, onNavigateTo: (String) -> 
                     indicatorHeight = 6.dp,
                     indicatorWidth = 6.dp,
                 )
+                Text(
+                    text = stringResource(R.string.seali_accents),
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+                )
+                Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
+                    CuratedAccent(Color(0xFF007F86), stringResource(R.string.seali_accent_teal))
+                    CuratedAccent(Color(0xFF3867D6), stringResource(R.string.seali_accent_blue))
+                }
                 if (DynamicColors.isDynamicColorAvailable()) {
                     PreferenceSwitch(
                         title = stringResource(id = R.string.dynamic_color),
@@ -234,45 +248,11 @@ fun AppearancePreferences(onNavigateBack: () -> Unit, onNavigateTo: (String) -> 
                 ) {
                     onNavigateTo(Route.LANGUAGES)
                 }
-                val context = LocalContext.current
-                val downloader: DownloaderV2 = koinInject()
-                var showInterfaceDialog by rememberSaveable { mutableStateOf(false) }
-                val currentUiStyle = remember { PreferenceUtil.getUiStyle() }
                 PreferenceItem(
                     title = stringResource(R.string.interface_style),
                     icon = Icons.Outlined.ViewQuilt,
-                    description =
-                        stringResource(
-                            if (currentUiStyle == UI_STYLE_CLASSIC) R.string.interface_classic
-                            else R.string.interface_v2
-                        ),
-                ) {
-                    showInterfaceDialog = true
-                }
-                if (showInterfaceDialog) {
-                    InterfaceStyleDialog(
-                        current = currentUiStyle,
-                        onDismiss = { showInterfaceDialog = false },
-                        onSelect = { selected ->
-                            val active =
-                                InterfaceSwitchGuard.hasActiveDownloads(
-                                    downloader.getTaskStateMap().values.map { it.downloadState }
-                                )
-                            if (active) {
-                                Toast.makeText(
-                                        context,
-                                        R.string.interface_switch_active,
-                                        Toast.LENGTH_LONG,
-                                    )
-                                    .show()
-                            } else if (selected != currentUiStyle) {
-                                PreferenceUtil.updateUiStyle(selected)
-                                (context as? Activity)?.recreate()
-                            }
-                            showInterfaceDialog = false
-                        },
-                    )
-                }
+                    description = stringResource(R.string.seali_interface_location_hint),
+                ) { onNavigateTo(Route.INTERACTION) }
             }
         },
     )
@@ -369,45 +349,17 @@ fun RowScope.ColorButtonImpl(
 }
 
 @Composable
-private fun InterfaceStyleDialog(
-    current: Int,
-    onDismiss: () -> Unit,
-    onSelect: (Int) -> Unit,
-) {
-    var selected by rememberSaveable(current) { mutableIntStateOf(current) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.interface_style)) },
-        text = {
-            Column {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(
-                        selected = selected == UI_STYLE_V2,
-                        onClick = { selected = UI_STYLE_V2 }
-                    )
-                    Text(stringResource(R.string.interface_v2))
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(
-                        selected = selected == UI_STYLE_CLASSIC,
-                        onClick = { selected = UI_STYLE_CLASSIC },
-                    )
-                    Text(stringResource(R.string.interface_classic_description))
-                }
-                Text(
-                    text = stringResource(R.string.interface_switch_explanation),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+private fun CuratedAccent(seed: Color, label: String) {
+    FilterChip(
+        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+        selected = !LocalDynamicColorSwitch.current &&
+            LocalSeedColor.current == seed.toArgb() &&
+            LocalPaletteStyleIndex.current == STYLE_TONAL_SPOT,
+        onClick = {
+            PreferenceUtil.switchDynamicColor(enabled = false)
+            PreferenceUtil.modifyThemeSeedColor(seed.toArgb(), STYLE_TONAL_SPOT)
         },
-        confirmButton = {
-            TextButton(onClick = { onSelect(selected) }) {
-                Text(stringResource(R.string.interface_switch))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
-        },
+        label = { Text(label) },
+        leadingIcon = { Box(Modifier.size(18.dp).clip(CircleShape).background(seed)) },
     )
 }

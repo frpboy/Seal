@@ -173,7 +173,7 @@ fun DownloadDirectoryPreferences(onNavigateBack: () -> Unit) {
 
     var editingDirectory by remember { mutableStateOf(Directory.VIDEO) }
 
-    val isCustomCommandEnabled by remember { mutableStateOf(CUSTOM_COMMAND.getBoolean()) }
+    val isCustomCommandEnabled by remember { mutableStateOf(com.frpboy.seali.util.CandidateFeaturePolicy.customCommandsEnabled(CUSTOM_COMMAND.getBoolean())) }
 
     var showOutputTemplateDialog by remember { mutableStateOf(false) }
 
@@ -184,7 +184,7 @@ fun DownloadDirectoryPreferences(onNavigateBack: () -> Unit) {
             !Environment.isExternalStorageManager() &&
             (!audioDirectoryText.isValidDirectory() ||
                 !videoDirectoryText.isValidDirectory() ||
-                !customCommandDirectory.isValidDirectory())
+                (isCustomCommandEnabled && !customCommandDirectory.isValidDirectory()))
 
     val launcher =
         rememberLauncherForActivityResult(

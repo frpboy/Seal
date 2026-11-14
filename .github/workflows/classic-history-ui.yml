@@ -1,55 +1,178 @@
-name: Classic history UI qualification
+name: Private compatible alpha7 qualification
 on:
   workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: Exact reviewed candidate source SHA
+        required: true
+        type: string
 permissions:
   contents: read
 jobs:
-  history-ui:
-    runs-on: ubuntu-latest
-    timeout-minutes: 35
+  private-arm64-app:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 220
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        timeout-minutes: 2
         with:
           persist-credentials: false
-      - uses: actions/setup-java@v4
+      - name: Bind reviewed source and native recipe
+        env:
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          test "$(sha256sum scripts/native-mincut/build-minimal-ffmpeg.sh | cut -d ' ' -f1)" = fe8ae3f8edca38cf7d2fa2668e4316baf896e0d836b657ebf4630e44d02b4396
+          test "$(sha256sum scripts/python-components/build-two-components.sh | cut -d ' ' -f1)" = 9632284f2de3eb788eca75533903068743d68857780aa8b1ee59114e094732a5
+          test "$(sha256sum scripts/quickjs-source-preparation/build-ejs-only-android.sh | cut -d ' ' -f1)" = f5ca8a586b2a798b338b45ae1bdf2bedbb44fd932ceffd90bf757099a0e6cf57
+          test ! -e keystore.properties
+          test ! -d app/src/main/jniLibs
+          test ! -d app/libs/functional-alpha
+          echo "SOURCE_SHA=$EXPECTED_SHA" >> "$GITHUB_ENV"
+      - name: Prepare exact native inputs
+        id: prepare
+        run: timeout --signal=TERM --kill-after=30s 600 python3 scripts/native-mincut/prepare-native-job.py
+      - name: Rebuild native inputs within unchanged native bounds
+        id: native
+        run: timeout --signal=TERM --kill-after=30s 3600 bash scripts/native-mincut/build-minimal-ffmpeg.sh
+      - name: Capture native evidence
+        timeout-minutes: 2
+        run: bash scripts/native-mincut/postbuild-evidence.sh
+      - name: Save original native custody routing
+        id: routing
+        run: |
+          echo "FFMPEG_CUSTODY_ROOT=$CUSTODY_ROOT" >> "$GITHUB_ENV"
+          echo "FFMPEG_BUILD_ROOT=$BUILD_ROOT" >> "$GITHUB_ENV"
+          echo "FFMPEG_NDK_HOME=$ANDROID_NDK_HOME" >> "$GITHUB_ENV"
+      - name: Prepare pinned ARM Python component sources and host
+        id: component_prepare
+        env:
+          TARGET_ABI: arm64-v8a
+        run: timeout --signal=TERM --kill-after=30s 600 python3 scripts/python-components/prepare.py
+      - name: Build reviewed ARM shared component source recipe
+        id: component_build
+        env:
+          TARGET_ABI: arm64-v8a
+        run: timeout --signal=TERM --kill-after=30s 3600 bash scripts/python-components/build-two-components.sh
+      - name: Verify actual ARM component macros SONAME and consumer exports
+        id: component_verify
+        env:
+          TARGET_ABI: arm64-v8a
+        run: timeout --signal=TERM --kill-after=30s 300 python3 scripts/python-components/postbuild.py
+      - name: Restore original native custody routing
+        if: always() && steps.routing.outcome == 'success'
+        run: |
+          echo "CUSTODY_ROOT=$FFMPEG_CUSTODY_ROOT" >> "$GITHUB_ENV"
+          echo "BUILD_ROOT=$FFMPEG_BUILD_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=$FFMPEG_NDK_HOME" >> "$GITHUB_ENV"
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        timeout-minutes: 3
         with:
           distribution: temurin
           java-version: '21'
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407
+        timeout-minutes: 5
         with:
           packages: platform-tools platforms;android-36 build-tools;36.0.0
-      - uses: gradle/actions/setup-gradle@v3
-      # Fail closed rather than changing host device permissions.
-      - name: Check KVM availability
+      - name: Derive private app inputs solely from pinned public inputs
+        timeout-minutes: 8
+        id: payload
         run: |
           set -euo pipefail
-          if [ ! -c /dev/kvm ] || [ ! -r /dev/kvm ] || [ ! -w /dev/kvm ]; then
-            echo "::error::This qualification requires runner-provided readable/writable /dev/kvm. The workflow will not change host device permissions."
-            exit 1
-          fi
-          ls -l /dev/kvm
-      - uses: reactivecircus/android-emulator-runner@v2
+          timeout --signal=TERM --kill-after=30s 300 python3 scripts/fetch-functional-inputs.py
+          python3 scripts/stage-owned-engine.py --input "$CUSTODY_ROOT/app-inputs/yt-dlp" --root .
+          python3 scripts/prune-functional-python.py --library-aar "$CUSTODY_ROOT/app-inputs/library-0.17.3.aar" --out "$CUSTODY_ROOT/python-pruned" > "$CUSTODY_ROOT/evidence/python-prune.stdout.json"
+          python3 scripts/replace-functional-python-components.py --root "$CUSTODY_ROOT/python-pruned" --stage "$RUNNER_TEMP/seali-python-components-job/build/stage" --abi arm64-v8a --lock functional-python-components-lock.json --readelf "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf"
+          python3 scripts/verify-functional-python-closure.py --root "$CUSTODY_ROOT/python-pruned" --ndk "$ANDROID_NDK_HOME"
+          python3 scripts/test-functional-engine-filter.py --source "$CUSTODY_ROOT/app-inputs/yt-dlp.tar.gz" --out "$CUSTODY_ROOT/evidence/engine-filter.json"
+          python3 scripts/prepare-functional-payload.py --stage "$BUILD_ROOT/stage" --python-pruned "$CUSTODY_ROOT/python-pruned" --root .
+      # Restricted reviewed core-only recipe. No target execution or public APK upload.
+      # Entire QuickJS inputs/source/objects/out/static evidence stay under existing custody
+      # allowlisted inputs/ and build/ roots. No opaque prebuilt fallback; no runtime lane.
+      - name: Prepare exact EJS-only runtime inputs
+        timeout-minutes: 3
+        run: |
+          set -euo pipefail
+          mkdir -p "$CUSTODY_ROOT/inputs/quickjs"
+          curl --fail --location --max-time 120 --output "$CUSTODY_ROOT/inputs/quickjs/original.tar.xz" https://bellard.org/quickjs/quickjs-2026-06-04.tar.xz
+          python3 scripts/quickjs-source-preparation/stage-reviewed-inputs.py --archive "$CUSTODY_ROOT/inputs/quickjs/original.tar.xz" --patch scripts/quickjs-source-preparation/quickjs-june-maintenance.patch --driver scripts/quickjs-source-preparation/seali-ejs-runner.c --out "$CUSTODY_ROOT/inputs/quickjs/staged"
+      - name: Build only the restricted EJS driver
+        id: qjs
+        timeout-minutes: 11
+        env:
+          NDK: ${{ env.ANDROID_NDK_HOME }}
+          SOURCE_ARCHIVE: ${{ env.CUSTODY_ROOT }}/inputs/quickjs/staged/quickjs-2026-06-04.tar.xz
+          BACKPORT_PATCH: ${{ env.CUSTODY_ROOT }}/inputs/quickjs/staged/quickjs-june-maintenance.patch
+          RUNNER_SOURCE: ${{ env.CUSTODY_ROOT }}/inputs/quickjs/staged/seali-ejs-runner.c
+          WORK: ${{ env.CUSTODY_ROOT }}/build/quickjs-ejs-only
+          ABI: arm64-v8a
+        run: timeout --signal=TERM --kill-after=30s 600 bash scripts/quickjs-source-preparation/build-ejs-only-android.sh
+      - name: Static target check and exact ARM payload extension
+        timeout-minutes: 3
+        run: |
+          set -euo pipefail
+          python3 scripts/quickjs-source-preparation/verify-quickjs-target.py --elf "$CUSTODY_ROOT/build/quickjs-ejs-only/out/libqjs.so" --ndk "$ANDROID_NDK_HOME" --abi arm64-v8a --out "$CUSTODY_ROOT/build/quickjs-ejs-only/static-evidence"
+          python3 scripts/quickjs-source-preparation/stage-verified-payload.py --elf "$CUSTODY_ROOT/build/quickjs-ejs-only/out/libqjs.so" --receipt "$CUSTODY_ROOT/build/quickjs-ejs-only/static-evidence/static-target-check.json" --root .
+      # Consumer contract CI staging awaits a source-bound producer artifact route.
+      # The 38 owned-library producer units moved to youtubedl-android fork CI.
+      - name: Private debug APK, unit tests and instrumentation compilation only
+        id: app
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          timeout --signal=TERM --kill-after=30s 1500 ./gradlew --no-daemon --max-workers=2 -Dorg.gradle.jvmargs=-Xmx3072m -Pkotlin.compiler.execution.strategy=in-process -PfunctionalAlphaCandidate -PnoSplits -PABI_FILTERS=arm64-v8a :app:testGenericDebugUnitTest :app:assembleGenericDebug :app:assembleGenericDebugAndroidTest
+      - name: Build compatible alpha7 using existing production identity
+        id: release_app
+        timeout-minutes: 26
+        env:
+          KEYSTORE_BASE64: ${{ secrets.SEALI_UPLOAD_KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.SEALI_UPLOAD_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.SEALI_UPLOAD_KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.SEALI_UPLOAD_STORE_PASSWORD }}
+        run: bash scripts/release-qualification/build-compatible-alpha7.sh
+      - name: Verify compatible alpha7 static identity and payload only
+        timeout-minutes: 2
+        run: python3 scripts/release-qualification/verify-compatible-alpha7.py
+      - name: Collect private build evidence, not runtime claims
+        timeout-minutes: 3
+        if: always() && steps.prepare.outcome == 'success'
+        env:
+          NATIVE_OUTCOME: ${{ steps.native.outcome }}
+          COMPONENT_OUTCOME: ${{ steps.component_build.outcome }}
+          COMPONENT_VERIFY_OUTCOME: ${{ steps.component_verify.outcome }}
+          APP_OUTCOME: ${{ steps.release_app.outcome }}
+        run: python3 scripts/collect-functional-app-custody.py
+      - name: Encrypt complete native component and app custody into two bounded volumes
+        id: encrypt
+        if: always() && steps.prepare.outcome == 'success' && steps.component_prepare.outcome == 'success'
+        env:
+          BUILD_OUTCOME: ${{ steps.native.outcome }}
+          APP_BUILD_OUTCOME: ${{ steps.release_app.outcome }}
+          COMPONENT_BUILD_OUTCOME: ${{ steps.component_build.outcome }}
+        run: timeout --signal=TERM --kill-after=30s 300 python3 scripts/native-mincut/encrypt-joint-custody.py
+      - name: Retain separate bounded component ciphertext only
+        timeout-minutes: 3
+        if: always() && steps.encrypt.outcome == 'success'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          api-level: 35
-          arch: x86_64
-          profile: pixel_2
-          disable-animations: true
-          script: |
-            chmod +x gradlew
-            ./gradlew assembleGenericDebug assembleGenericDebugAndroidTest
-            find app/build/outputs/apk/generic/debug -name '*x86_64*.apk' -print -quit | xargs adb install -r
-            find app/build/outputs/apk/androidTest/generic/debug -name '*.apk' -print -quit | xargs adb install -r
-            adb shell am instrument -w -r -e class com.frpboy.seali.ClassicHomeHistoryTest com.frpboy.seali.debug.test/androidx.test.runner.AndroidJUnitRunner | tee instrumentation-result.txt
-            grep -F 'OK (2 tests)' instrumentation-result.txt
-            ! grep -E 'FAILURES|INSTRUMENTATION_FAILED|shortMsg=' instrumentation-result.txt
-            adb exec-out run-as com.frpboy.seali.debug cat files/classic-history.png > classic-history.png
-            test -s classic-history.png
-      - uses: actions/upload-artifact@v4
+          name: private-functional-arm64-components-encrypted
+          path: ${{ runner.temp }}/components-build.cms
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+      - name: Retain bounded ciphertext only
+        timeout-minutes: 3
+        if: always() && steps.encrypt.outcome == 'success'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: private-functional-arm64-app-encrypted
+          path: ${{ runner.temp }}/native-build.cms
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+      - name: Remove transient app and native data
         if: always()
-        with:
-          name: classic-history-ui-evidence
-          path: |
-            classic-history.png
-            instrumentation-result.txt
-            app/build/reports/androidTests/connected/
-            app/build/outputs/androidTest-results/connected/
+        run: rm -rf "$RUNNER_TEMP/seali-native-job" "$RUNNER_TEMP/seali-native-build.tar.gz" "$RUNNER_TEMP/native-build.cms" "$RUNNER_TEMP/native-build.cms.tmp" app/build app/libs/functional-alpha app/src/main/jniLibs app/src/main/assets/functional-engine "$RUNNER_TEMP/seali-python-components-job" "$RUNNER_TEMP/seali-components-build.tar.gz" "$RUNNER_TEMP/components-build.cms" "$RUNNER_TEMP/components-build.cms.tmp" "$RUNNER_TEMP/seali-joint-build.tar.gz" "$RUNNER_TEMP/volume-1.part" "$RUNNER_TEMP/volume-2.part" "$RUNNER_TEMP/joint-custody-manifest.json"
