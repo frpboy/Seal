@@ -450,7 +450,7 @@ jobs:
           aab_name="Seali-${ref_slug}-arm64-play.aab"
           cp "${bundles[0]}" "release-assets/$aab_name"
           # Extend the checksum manifest to cover the AAB (the previous step
-          # asserted exactly 5 APK lines; require exactly 6 now).
+          # asserted exactly 1 APK line; require exactly 2 now).
           (cd release-assets && sha256sum -- "$aab_name" >> SHA256SUMS)
           test "$(wc -l < release-assets/SHA256SUMS)" -eq 2
 
@@ -515,7 +515,8 @@ jobs:
       # Play builds are validated but never distributed as GitHub artifacts.
       # Upload to Google Play only through its separately approved process.
 
-      # Keep each ABI downloadable on its own from the Actions run.
+      # The arm64-v8a APK is the only ABI build alpha7 packages; keep it
+      # downloadable on its own from the Actions run.
       - name: Upload ARM64 APK
         if: steps.signing.outputs.available == 'true' && (github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call') && inputs.publish_apk_artifacts == true
         uses: actions/upload-artifact@v4
