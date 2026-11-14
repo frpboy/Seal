@@ -32,17 +32,24 @@ class TaskBackupMigrationTest {
         assertEquals(0.25f,running.progress)
         assertEquals("[download] 25% at 1MiB/s ETA 00:15",running.progressText)
     }
-    @Test fun newRoundTripUsesOnlyCurrentTypeIdsAndPreservesData() {
+    @Test fun restoresBackupWrittenByRenamedNamespaceBuild() {
+        val renamed=fixture().replace("\"type\":\"com.junkfood.seal.download.Task.","\"type\":\"com.frpboy.seali.download.Task.")
+        val result=TaskBackupCodec.decode(renamed)
+        assertEquals(TaskBackupCodec.decode(fixture()),result)
+        assertEquals(TaskBackupCodec.encode(TaskBackupCodec.decode(fixture())),TaskBackupCodec.encode(result))
+    }
+    @Test fun roundTripUsesStableLegacyTypeIdsAndPreservesData() {
         val current=TaskBackupCodec.encode(TaskBackupCodec.decode(fixture()))
-        assertTrue(types(Json.parseToJsonElement(current)).all { it.startsWith("com.frpboy.seali.download.Task.") })
+        assertTrue(types(Json.parseToJsonElement(current)).all { it.startsWith("com.junkfood.seal.download.Task.") })
         assertEquals(current,TaskBackupCodec.encode(TaskBackupCodec.decode(current)))
     }
     @Test fun mappingIsOnlyKnownDiscriminatorsNotArbitraryContentOrUnknownTypes() {
-        val raw=Json.parseToJsonElement("""{"type":"com.junkfood.seal.download.Task.DownloadState.Idle","url":"com.junkfood.seal.download.Task.DownloadState.Idle","nested":{"type":"com.junkfood.seal.Unrelated"}}""")
-        val migrated=migrateLegacyTaskTypeIds(raw) as JsonObject
-        assertEquals("com.frpboy.seali.download.Task.DownloadState.Idle",(migrated["type"] as JsonPrimitive).content)
-        assertEquals("com.junkfood.seal.download.Task.DownloadState.Idle",(migrated["url"] as JsonPrimitive).content)
+        val raw=Json.parseToJsonElement("""{"type":"com.frpboy.seali.download.Task.DownloadState.Idle","url":"com.frpboy.seali.download.Task.DownloadState.Idle","nested":{"type":"com.junkfood.seal.Unrelated"},"legacy":{"type":"com.junkfood.seal.download.Task.DownloadState.Idle"}}""")
+        val migrated=normalizePersistedTaskTypeIds(raw) as JsonObject
+        assertEquals("com.junkfood.seal.download.Task.DownloadState.Idle",(migrated["type"] as JsonPrimitive).content)
+        assertEquals("com.frpboy.seali.download.Task.DownloadState.Idle",(migrated["url"] as JsonPrimitive).content)
         assertEquals((raw as JsonObject)["nested"],migrated["nested"])
+        assertEquals((raw as JsonObject)["legacy"],migrated["legacy"])
     }
     @Test fun failedRestoreBlocksEmptySnapshotWriteAndKeepsOriginalBytes() {
         val original=fixture().replace("com.junkfood.seal.download.Task.DownloadState.Idle","com.junkfood.seal.download.Task.DownloadState.Unknown")
