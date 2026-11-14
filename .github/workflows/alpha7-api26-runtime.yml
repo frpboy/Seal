@@ -5,8 +5,8 @@ name: Alpha7 integrated API26 runtime qualification
 # public producer into a run-local file Maven repository (same proven block as
 # the source-only consumer qualification, green in run 43142636200), enforces
 # every fail-closed static gate (producer pin, Maven byte lock, resolved-graph
-# lock, producer 38 units), then assembles the debug app and instrumentation
-# APKs and uploads them as the run artifact.
+# lock, producer 38 units, app serialization units), then assembles the debug
+# app and instrumentation APKs and uploads them as the run artifact.
 #
 # On-device execution is deliberately NOT a CI job here. Verified platform
 # facts (2026-11-13): the owned native payloads exist only as reviewed ARM64
@@ -57,6 +57,7 @@ jobs:
           python3 scripts/build-contract/check-pinned-producer.py --root . --producer .qualification/producer
           python3 scripts/ci/test_verification_boundary.py
           python3 scripts/release-qualification/test-compatible-alpha7-verifier.py
+          python3 scripts/test_safe_error_report_boundary.py
       - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
         with:
           distribution: temurin
@@ -105,6 +106,39 @@ jobs:
           python3 scripts/build-contract/custody-inputs.py download --output "$RUNNER_TEMP/seali-alpha7-arm64-inputs.tar"
           python3 scripts/build-contract/stage-alpha7-inputs.py --archive "$RUNNER_TEMP/seali-alpha7-arm64-inputs.tar" --root "$GITHUB_WORKSPACE" --lock scripts/build-contract/alpha7-input-lock.json
           python3 scripts/build-contract/verify-alpha7-inputs.py --root "$GITHUB_WORKSPACE"
+      # App-level serialization units in the same JVM lane, after the byte
+      # lock and custody staging and before any packaging: the merge gate binding TaskBackupCodec and the
+      # Task.kt @SerialName pins together. Task name grounded in the
+      # publishChannel flavor config: generic (default) + debug =>
+      # :app:testGenericDebugUnitTest. JUnit XML counts are parsed and printed
+      # as the retained proof; the step fails closed on any failure, error,
+      # skip, missing result file, or count drift.
+      - name: Run app serialization units together with XML count proof
+        run: |
+          set -euo pipefail
+          ./gradlew --no-daemon :app:testGenericDebugUnitTest --tests 'com.frpboy.seali.util.TaskBackupMigrationTest' --tests 'com.frpboy.seali.download.TaskSerializationCompatibilityTest'
+          python3 - <<'PYEOF'
+          import glob, sys, xml.etree.ElementTree as ET
+          expected = {
+              "com.frpboy.seali.util.TaskBackupMigrationTest": 7,
+              "com.frpboy.seali.download.TaskSerializationCompatibilityTest": 1,
+          }
+          seen = {}
+          for cls, want in expected.items():
+              paths = glob.glob(f"app/build/test-results/testGenericDebugUnitTest/TEST-{cls}.xml")
+              if len(paths) != 1:
+                  sys.exit(f"::error::expected exactly one result XML for {cls}, found {len(paths)}")
+              root = ET.parse(paths[0]).getroot()
+              tests = int(root.get("tests", 0)); failures = int(root.get("failures", 0))
+              errors = int(root.get("errors", 0)); skipped = int(root.get("skipped", 0))
+              print(f"{cls}: tests={tests} failures={failures} errors={errors} skipped={skipped}")
+              if failures or errors or skipped or tests == 0:
+                  sys.exit(f"::error::{cls} not clean: tests={tests} failures={failures} errors={errors} skipped={skipped}")
+              seen[cls] = tests
+          if seen != expected:
+              sys.exit(f"::error::test-count drift: {seen} != {expected}")
+          print("app serialization units: 8/8 clean across both classes")
+          PYEOF
       - name: Assemble ARM64 app and instrumentation APKs
         run: |
           set -euo pipefail
