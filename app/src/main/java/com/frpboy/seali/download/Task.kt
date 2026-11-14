@@ -8,6 +8,7 @@ import com.frpboy.seali.util.Format
 import com.frpboy.seali.util.VideoInfo
 import com.frpboy.seali.util.toHttpsUrl
 import kotlinx.coroutines.Job
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlin.math.roundToInt
@@ -38,13 +39,20 @@ data class Task(
     }
 
     @Serializable
+    @SerialName("com.junkfood.seal.download.Task.TypeInfo")
     sealed interface TypeInfo {
 
-        @Serializable data class Playlist(val index: Int = 0) : TypeInfo
+        @Serializable
+        @SerialName("com.junkfood.seal.download.Task.TypeInfo.Playlist")
+        data class Playlist(val index: Int = 0) : TypeInfo
 
-        @Serializable data class CustomCommand(val template: CommandTemplate) : TypeInfo
+        @Serializable
+        @SerialName("com.junkfood.seal.download.Task.TypeInfo.CustomCommand")
+        data class CustomCommand(val template: CommandTemplate) : TypeInfo
 
-        @Serializable data object URL : TypeInfo
+        @Serializable
+        @SerialName("com.junkfood.seal.download.Task.TypeInfo.URL")
+        data object URL : TypeInfo
     }
 
     @Serializable
@@ -55,6 +63,7 @@ data class Task(
     )
 
     @Serializable
+    @SerialName("com.junkfood.seal.download.Task.DownloadState")
     sealed interface DownloadState : Comparable<DownloadState> {
 
         interface Cancelable {
@@ -67,9 +76,12 @@ data class Task(
             val action: RestartableAction
         }
 
-        @Serializable data object Idle : DownloadState
+        @Serializable
+        @SerialName("com.junkfood.seal.download.Task.DownloadState.Idle")
+        data object Idle : DownloadState
 
         @Serializable
+        @SerialName("com.junkfood.seal.download.Task.DownloadState.FetchingInfo")
         data class FetchingInfo(
             @Transient override val job: Job = Job(),
             override val taskId: String,
@@ -77,9 +89,12 @@ data class Task(
             override val action: RestartableAction = RestartableAction.FetchInfo
         }
 
-        @Serializable data object ReadyWithInfo : DownloadState
+        @Serializable
+        @SerialName("com.junkfood.seal.download.Task.DownloadState.ReadyWithInfo")
+        data object ReadyWithInfo : DownloadState
 
         @Serializable
+        @SerialName("com.junkfood.seal.download.Task.DownloadState.Running")
         data class Running(
             @Transient override val job: Job = Job(),
             override val taskId: String,
@@ -90,16 +105,20 @@ data class Task(
         }
 
         @Serializable
+        @SerialName("com.junkfood.seal.download.Task.DownloadState.Canceled")
         data class Canceled(override val action: RestartableAction, val progress: Float? = null) :
             DownloadState, Restartable
 
         @Serializable
+        @SerialName("com.junkfood.seal.download.Task.DownloadState.Error")
         data class Error(
             @Transient val throwable: Throwable = Throwable(),
             override val action: RestartableAction,
         ) : DownloadState, Restartable
 
-        @Serializable data class Completed(val filePath: String?) : DownloadState
+        @Serializable
+        @SerialName("com.junkfood.seal.download.Task.DownloadState.Completed")
+        data class Completed(val filePath: String?) : DownloadState
 
         override fun compareTo(other: DownloadState): Int {
             return ordinal - other.ordinal
@@ -119,10 +138,15 @@ data class Task(
     }
 
     @Serializable
+    @SerialName("com.junkfood.seal.download.Task.RestartableAction")
     sealed interface RestartableAction {
-        @Serializable data object FetchInfo : RestartableAction
+        @Serializable
+        @SerialName("com.junkfood.seal.download.Task.RestartableAction.FetchInfo")
+        data object FetchInfo : RestartableAction
 
-        @Serializable data object Download : RestartableAction
+        @Serializable
+        @SerialName("com.junkfood.seal.download.Task.RestartableAction.Download")
+        data object Download : RestartableAction
     }
 
     @Serializable
