@@ -272,6 +272,26 @@ jobs:
           validation_succeeded=true
           echo "Upload keystore validated successfully (format: $store_type; private key and passwords verified)."
       
+      # Locked reviewed ARM64 custody inputs and the published reviewed Maven
+      # bytes are never in git (.gitignore by design); a fresh runner lacks all
+      # of them and the packaging gates fail closed without them. Stage through
+      # the repo's own fail-closed chain (identical calls to the runtime
+      # qualification lane) plus the pinned Central fetcher; every byte is
+      # hash-verified against the reviewed locks before any packaging task runs.
+      # Token is exposed to this step only; checkout persists no credentials.
+      - name: Stage locked ARM64 custody inputs and reviewed Maven bytes
+        if: (github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call') && inputs.build_release == true && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          python3 scripts/build-contract/test-inputs.py
+          python3 scripts/build-contract/custody-inputs.py download --output "$RUNNER_TEMP/seali-alpha7-arm64-inputs.tar"
+          python3 scripts/build-contract/stage-alpha7-inputs.py --archive "$RUNNER_TEMP/seali-alpha7-arm64-inputs.tar" --root "$GITHUB_WORKSPACE" --lock scripts/build-contract/alpha7-input-lock.json
+          python3 scripts/build-contract/test-fetch-alpha7-maven.py
+          python3 scripts/build-contract/fetch-alpha7-maven.py --root "$GITHUB_WORKSPACE"
+          python3 scripts/build-contract/verify-alpha7-inputs.py --root "$GITHUB_WORKSPACE"
+
       - name: Build generic release APK variants
         if: steps.signing.outputs.available == 'true'
         env:
@@ -319,8 +339,8 @@ jobs:
           )"
 
           mapfile -t apks < <(find "$apk_dir" -maxdepth 1 -type f -name '*.apk' | sort)
-          if [[ "${#apks[@]}" -ne 5 ]]; then
-            echo "::error::Expected five ABI/universal APKs, found ${#apks[@]}."
+          if [[ "${#apks[@]}" -ne 1 ]]; then
+            echo "::error::Expected exactly one arm64-v8a release APK, found ${#apks[@]}."
             exit 1
           fi
 
@@ -358,7 +378,7 @@ jobs:
             exit 1
           fi
 
-          echo "Verified all five APKs and the Google Play AAB against the configured upload certificate."
+          echo "Verified the arm64-v8a APK and the Google Play AAB against the configured upload certificate."
 
       - name: Prepare individually named release APKs
         if: steps.signing.outputs.available == 'true'
@@ -370,30 +390,21 @@ jobs:
           mkdir -p "$output_dir"
           ref_slug="${GITHUB_REF_NAME//\//-}"
 
-          find_one() {
-            local label="$1"
-            local pattern="$2"
-            mapfile -t matches < <(find "$source_dir" -maxdepth 1 -type f -name "$pattern" | sort)
-            if [ "${#matches[@]}" -ne 1 ]; then
-              echo "::error::Expected exactly one $label APK matching $pattern; found ${#matches[@]}"
-              find "$source_dir" -maxdepth 1 -type f -name '*.apk' -printf '%f\n'
-              exit 1
-            fi
-            cp "${matches[0]}" "$output_dir/Seali-${ref_slug}-$label.apk"
-          }
-
-          find_one arm64-v8a '*-arm64-v8a-release.apk'
-          find_one armeabi-v7a '*-armeabi-v7a-release.apk'
-          find_one x86_64 '*-x86_64-release.apk'
-          find_one x86 '*-x86-release.apk'
-
-          mapfile -t universal < <(find "$source_dir" -maxdepth 1 -type f -name '*.apk' ! -name '*-arm64-v8a-release.apk' ! -name '*-armeabi-v7a-release.apk' ! -name '*-x86-release.apk' ! -name '*-x86_64-release.apk' | sort)
-          if [ "${#universal[@]}" -ne 1 ]; then
-            echo "::error::Expected exactly one universal APK; found ${#universal[@]}"
+          # Alpha7 packages the reviewed ARM64 payload set only: the build
+          # produces exactly one arm64-v8a APK (ABI_FILTERS=arm64-v8a, splits
+          # off; the app build contract rejects split/other-ABI packaging).
+          mapfile -t apks < <(find "$source_dir" -maxdepth 1 -type f -name '*.apk' | sort)
+          if [ "${#apks[@]}" -ne 1 ]; then
+            echo "::error::Expected exactly one arm64-v8a release APK; found ${#apks[@]}"
             find "$source_dir" -maxdepth 1 -type f -name '*.apk' -printf '%f\n'
             exit 1
           fi
-          cp "${universal[0]}" "$output_dir/Seali-${ref_slug}-universal.apk"
+          if unzip -l "${apks[0]}" | awk '{print $4}' | grep '^lib/' | grep -v '^lib/arm64-v8a/' | grep -q .; then
+            echo "::error::Release APK carries non-arm64-v8a native entries"
+            unzip -l "${apks[0]}" | grep 'lib/'
+            exit 1
+          fi
+          cp "${apks[0]}" "$output_dir/Seali-${ref_slug}-arm64-v8a.apk"
           ls -lh "$output_dir"
 
       - name: Generate release APK SHA-256 checksums
@@ -402,8 +413,8 @@ jobs:
         run: |
           set -euo pipefail
           (cd release-assets && sha256sum -- *.apk > SHA256SUMS)
-          test "$(wc -l < release-assets/SHA256SUMS)" -eq 5
-          echo "Generated SHA-256 checksums for all five signed APK variants."
+          test "$(wc -l < release-assets/SHA256SUMS)" -eq 1
+          echo "Generated the SHA-256 checksum for the signed arm64-v8a APK."
 
       # Private qualification retention: keep the signed APK set and the Play
       # AAB as assets on a DRAFT release. Draft releases and their assets are
@@ -418,7 +429,7 @@ jobs:
       # tag and draft state. Draft releases create no git refs, so tag
       # uniqueness is NOT enforced by git: run_id + run_attempt keeps each
       # attempt distinct, and the post-upload check requires the exact
-      # seven-asset set. The AAB is retained privately for the separately
+      # three-asset set (arm64-v8a APK, Play AAB, SHA256SUMS). The AAB is retained privately for the separately
       # authorized Play closed-testing process; nothing is uploaded to Play.
       - name: Stage private draft release assets
         if: steps.signing.outputs.available == 'true' && (github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call') && inputs.build_release == true && github.ref == 'refs/heads/main'
@@ -435,12 +446,12 @@ jobs:
             echo "::error::Expected exactly one Play AAB in $bundle_dir; found ${#bundles[@]}"
             exit 1
           fi
-          aab_name="Seali-${ref_slug}-play.aab"
+          aab_name="Seali-${ref_slug}-arm64-play.aab"
           cp "${bundles[0]}" "release-assets/$aab_name"
           # Extend the checksum manifest to cover the AAB (the previous step
-          # asserted exactly 5 APK lines; require exactly 6 now).
+          # asserted exactly 1 APK line; require exactly 2 now).
           (cd release-assets && sha256sum -- "$aab_name" >> SHA256SUMS)
-          test "$(wc -l < release-assets/SHA256SUMS)" -eq 6
+          test "$(wc -l < release-assets/SHA256SUMS)" -eq 2
 
           short_sha="${GITHUB_SHA:0:8}"
           tag="release-qualification/run-${{ github.run_id }}-${{ github.run_attempt }}"
@@ -492,60 +503,25 @@ jobs:
           # Require the exact expected asset set; a partial draft is not ready.
           mapfile -t expected < <(cd release-assets && ls -- *.apk *.aab SHA256SUMS | sort)
           mapfile -t actual < <(gh api "repos/$repo/releases/$release_id" --jq '.assets[].name' | sort)
-          if [ "${#expected[@]}" -ne 7 ] || ! diff <(printf '%s\n' "${expected[@]}") <(printf '%s\n' "${actual[@]}") >/dev/null; then
+          if [ "${#expected[@]}" -ne 3 ] || ! diff <(printf '%s\n' "${expected[@]}") <(printf '%s\n' "${actual[@]}") >/dev/null; then
             echo "::error::Draft asset mismatch for $tag (id $release_id). Expected:"; printf '%s\n' "${expected[@]}"
             echo "::error::Uploaded:"; printf '%s\n' "${actual[@]}"
             exit 1
           fi
-          echo "Private draft release $tag (id $release_id) staged with exactly 7 verified assets."
+          echo "Private draft release $tag (id $release_id) staged with exactly 3 verified assets."
           trap - EXIT
 
       # Play builds are validated but never distributed as GitHub artifacts.
       # Upload to Google Play only through its separately approved process.
 
-      # Keep each ABI downloadable on its own from the Actions run.
+      # The arm64-v8a APK is the only ABI build alpha7 packages; keep it
+      # downloadable on its own from the Actions run.
       - name: Upload ARM64 APK
         if: steps.signing.outputs.available == 'true' && (github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call') && inputs.publish_apk_artifacts == true
         uses: actions/upload-artifact@v4
         with:
           name: seali-arm64-v8a
           path: release-assets/*-arm64-v8a.apk
-          if-no-files-found: error
-          retention-days: 14
-
-      - name: Upload ARMv7 APK
-        if: steps.signing.outputs.available == 'true' && (github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call') && inputs.publish_apk_artifacts == true
-        uses: actions/upload-artifact@v4
-        with:
-          name: seali-armeabi-v7a
-          path: release-assets/*-armeabi-v7a.apk
-          if-no-files-found: error
-          retention-days: 14
-
-      - name: Upload x86 APK
-        if: steps.signing.outputs.available == 'true' && (github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call') && inputs.publish_apk_artifacts == true
-        uses: actions/upload-artifact@v4
-        with:
-          name: seali-x86
-          path: release-assets/*-x86.apk
-          if-no-files-found: error
-          retention-days: 14
-
-      - name: Upload x86_64 APK
-        if: steps.signing.outputs.available == 'true' && (github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call') && inputs.publish_apk_artifacts == true
-        uses: actions/upload-artifact@v4
-        with:
-          name: seali-x86_64
-          path: release-assets/*-x86_64.apk
-          if-no-files-found: error
-          retention-days: 14
-
-      - name: Upload universal APK
-        if: steps.signing.outputs.available == 'true' && (github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call') && inputs.publish_apk_artifacts == true
-        uses: actions/upload-artifact@v4
-        with:
-          name: seali-universal
-          path: release-assets/*-universal.apk
           if-no-files-found: error
           retention-days: 14
 
