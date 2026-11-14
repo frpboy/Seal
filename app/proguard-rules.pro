@@ -27,6 +27,17 @@
 -keep class com.yausername.** { *; }
 -keep class org.apache.commons.compress.archivers.zip.** { *; }
 
+# R8 missing-class check: commons-compress 1.28.0's optional zstd/xz codec
+# streams reference exactly these four absent classes (the complete set R8
+# reported in owner run 43626082073, which enumerates all missing classes). The app extracts only its two
+# owned deflated zips via ZipUtils and never calls the optional codec streams;
+# commons-compress guards codec absence with cached NoClassDefFoundError
+# probes and registers no services.
+-dontwarn com.github.luben.zstd.ZstdInputStream
+-dontwarn org.tukaani.xz.MemoryLimitException
+-dontwarn org.tukaani.xz.SingleXZInputStream
+-dontwarn org.tukaani.xz.XZInputStream
+
 # Keep `Companion` object fields of serializable classes.
 # This avoids serializer lookup through `getDeclaredClasses` as done for named companion objects.
 -if @kotlinx.serialization.Serializable class **
