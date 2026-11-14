@@ -268,9 +268,9 @@ dependencies {
 
     implementation(libs.okhttp)
 
-    implementation("io.github.frpboy.youtubedl-android:library:0.1.0-alpha.7-staging.4")
-    implementation("io.github.frpboy.youtubedl-android:ffmpeg:0.1.0-alpha.7-staging.4")
-    implementation("io.github.frpboy.youtubedl-android:common:0.1.0-alpha.7-staging.4")
+    implementation("io.github.frpboy.youtubedl-android:library:0.1.0-alpha.7")
+    implementation("io.github.frpboy.youtubedl-android:ffmpeg:0.1.0-alpha.7")
+    implementation("io.github.frpboy.youtubedl-android:common:0.1.0-alpha.7")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.21.8")
     implementation("com.fasterxml.jackson.core:jackson-annotations:2.21")
     implementation("commons-io:commons-io:2.22.0")

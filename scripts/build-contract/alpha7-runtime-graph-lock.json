@@ -161,9 +161,9 @@
         "module:io.coil-kt:coil-compose-base:2.5.0",
         "module:io.coil-kt:coil-compose:2.5.0",
         "module:io.coil-kt:coil:2.5.0",
-        "module:io.github.frpboy.youtubedl-android:common:0.1.0-alpha.7-staging.4",
-        "module:io.github.frpboy.youtubedl-android:ffmpeg:0.1.0-alpha.7-staging.4",
-        "module:io.github.frpboy.youtubedl-android:library:0.1.0-alpha.7-staging.4",
+        "module:io.github.frpboy.youtubedl-android:common:0.1.0-alpha.7",
+        "module:io.github.frpboy.youtubedl-android:ffmpeg:0.1.0-alpha.7",
+        "module:io.github.frpboy.youtubedl-android:library:0.1.0-alpha.7",
         "module:io.insert-koin:koin-android:4.0.0",
         "module:io.insert-koin:koin-androidx-compose:4.0.0",
         "module:io.insert-koin:koin-compose-jvm:4.0.0",
@@ -1188,24 +1188,24 @@
         {
             "group": "io.github.frpboy.youtubedl-android",
             "name": "common",
-            "version": "0.1.0-alpha.7-staging.4",
-            "file": "common-0.1.0-alpha.7-staging.4.aar",
+            "version": "0.1.0-alpha.7",
+            "file": "common-0.1.0-alpha.7.aar",
             "sha256": "4e0fa79c380e818896483665a0df923176d51bfd8c4883ffb4cebd0d89db4191",
             "bytes": 7145
         },
         {
             "group": "io.github.frpboy.youtubedl-android",
             "name": "ffmpeg",
-            "version": "0.1.0-alpha.7-staging.4",
-            "file": "ffmpeg-0.1.0-alpha.7-staging.4.aar",
+            "version": "0.1.0-alpha.7",
+            "file": "ffmpeg-0.1.0-alpha.7.aar",
             "sha256": "6b0dacf677234c973b323aa348282d6ad3ca8ffbddbafb7b5cc14387707f4760",
             "bytes": 3500
         },
         {
             "group": "io.github.frpboy.youtubedl-android",
             "name": "library",
-            "version": "0.1.0-alpha.7-staging.4",
-            "file": "library-0.1.0-alpha.7-staging.4.aar",
+            "version": "0.1.0-alpha.7",
+            "file": "library-0.1.0-alpha.7.aar",
             "sha256": "6187e54bf4ec98bff1ad1fb9bd3a4b5e2b4fb2217848fe3956be08eea3926b1c",
             "bytes": 2996994
         },
