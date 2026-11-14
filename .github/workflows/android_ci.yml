@@ -58,6 +58,12 @@ jobs:
     if: github.event_name != 'workflow_dispatch' || inputs.qualify_maven_consumer != true
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    # GITHUB_TOKEN needs contents:write solely for "Stage private draft release
+    # assets" (draft-release creation). Per-step permissions do not exist, and a
+    # separate retention job would have to move signed bytes through public
+    # Actions artifacts, so this job is the least-privileged place.
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -387,6 +393,37 @@ jobs:
           (cd release-assets && sha256sum -- *.apk > SHA256SUMS)
           test "$(wc -l < release-assets/SHA256SUMS)" -eq 5
           echo "Generated SHA-256 checksums for all five signed APK variants."
+
+      # Private qualification retention: keep the signed APK set and the Play
+      # AAB as assets on a DRAFT release. Draft releases and their assets are
+      # visible to repository collaborators only (verified live: custody draft
+      # 441954416 returns 404 unauthenticated), so this is retention, not
+      # distribution, and stays fully separate from the publish_apk_artifacts
+      # public route below. One immutable draft per run: the run-id tag makes
+      # gh release create fail rather than overwrite any earlier run. The AAB
+      # is retained privately for the separately authorized Play closed-testing
+      # process; nothing is uploaded to Play here.
+      - name: Stage private draft release assets
+        if: steps.signing.outputs.available == 'true' && (github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call') && inputs.build_release == true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ref_slug="${GITHUB_REF_NAME//\//-}"
+          bundle_dir="app/build/outputs/bundle/playRelease"
+          mapfile -t bundles < <(find "$bundle_dir" -maxdepth 1 -type f -name '*.aab' | sort)
+          if [ "${#bundles[@]}" -ne 1 ]; then
+            echo "::error::Expected exactly one Play AAB in $bundle_dir; found ${#bundles[@]}"
+            exit 1
+          fi
+          cp "${bundles[0]}" "release-assets/Seali-${ref_slug}-play.aab"
+          tag="release-qualification/run-${{ github.run_id }}"
+          gh release create "$tag" \
+            --draft \
+            --title "Seali alpha7 release qualification run ${{ github.run_id }}" \
+            --notes "Private release-qualification assets for commit ${{ github.sha }} (${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}). build_release=${{ inputs.build_release }}, publish_apk_artifacts=${{ inputs.publish_apk_artifacts }}. Draft release: collaborators only, not a public release. Play upload remains a separately approved process." \
+            release-assets/*.apk release-assets/*.aab release-assets/SHA256SUMS
 
       # Play builds are validated but never distributed as GitHub artifacts.
       # Upload to Google Play only through its separately approved process.
