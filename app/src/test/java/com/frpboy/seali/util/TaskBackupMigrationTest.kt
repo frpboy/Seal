@@ -35,7 +35,12 @@ class TaskBackupMigrationTest {
     @Test fun restoresBackupWrittenByRenamedNamespaceBuild() {
         val renamed=fixture().replace("\"type\":\"com.junkfood.seal.download.Task.","\"type\":\"com.frpboy.seali.download.Task.")
         val result=TaskBackupCodec.decode(renamed)
-        assertEquals(TaskBackupCodec.decode(fixture()),result)
+        // Whole-map equality is unusable here: each decode mints fresh referential
+        // defaults that data-class equals still compares - the @Transient Throwable in
+        // DownloadState.Error and the @Transient Job defaults in FetchingInfo/Running.
+        // Persisted-form equality is the property that matters for backup fidelity.
+        assertEquals(7,result.size)
+        assertEquals(TaskBackupCodec.decode(fixture()).keys.map { it.id }.toSet(),result.keys.map { it.id }.toSet())
         assertEquals(TaskBackupCodec.encode(TaskBackupCodec.decode(fixture())),TaskBackupCodec.encode(result))
     }
     @Test fun roundTripUsesStableLegacyTypeIdsAndPreservesData() {
