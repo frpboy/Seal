@@ -61,7 +61,10 @@ jobs:
     # GITHUB_TOKEN needs contents:write solely for "Stage private draft release
     # assets" (draft-release creation). Per-step permissions do not exist, and a
     # separate retention job would have to move signed bytes through public
-    # Actions artifacts, so this job is the least-privileged place.
+    # Actions artifacts, so this job is the least-privileged place. Under
+    # workflow_call the token can only narrow caller-granted permissions, so the
+    # android.yml caller grants contents:write as well; a caller without it
+    # fails loudly at startup instead of falling back to any public route.
     permissions:
       contents: write
 
@@ -399,12 +402,16 @@ jobs:
       # visible to repository collaborators only (verified live: custody draft
       # 441954416 returns 404 unauthenticated), so this is retention, not
       # distribution, and stays fully separate from the publish_apk_artifacts
-      # public route below. One immutable draft per run: the run-id tag makes
-      # gh release create fail rather than overwrite any earlier run. The AAB
-      # is retained privately for the separately authorized Play closed-testing
-      # process; nothing is uploaded to Play here.
+      # public route below. Main branch only. The draft targets the exact
+      # checked-out commit. Draft releases create no git refs, so tag
+      # uniqueness is NOT enforced by git: run_id + run_attempt keeps each
+      # attempt distinct, and the post-upload check below requires the exact
+      # seven-asset set - a partial or duplicate draft is deleted and the run
+      # fails rather than treating it as ready. The AAB is retained privately
+      # for the separately authorized Play closed-testing process; nothing is
+      # uploaded to Play here.
       - name: Stage private draft release assets
-        if: steps.signing.outputs.available == 'true' && (github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call') && inputs.build_release == true
+        if: steps.signing.outputs.available == 'true' && (github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call') && inputs.build_release == true && github.ref_name == 'main'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
@@ -417,13 +424,32 @@ jobs:
             echo "::error::Expected exactly one Play AAB in $bundle_dir; found ${#bundles[@]}"
             exit 1
           fi
-          cp "${bundles[0]}" "release-assets/Seali-${ref_slug}-play.aab"
-          tag="release-qualification/run-${{ github.run_id }}"
+          aab_name="Seali-${ref_slug}-play.aab"
+          cp "${bundles[0]}" "release-assets/$aab_name"
+          # Extend the checksum manifest to cover the AAB (the previous step
+          # asserted exactly 5 APK lines; require exactly 6 now).
+          (cd release-assets && sha256sum -- "$aab_name" >> SHA256SUMS)
+          test "$(wc -l < release-assets/SHA256SUMS)" -eq 6
+
+          short_sha="${GITHUB_SHA:0:8}"
+          tag="release-qualification/run-${{ github.run_id }}-${{ github.run_attempt }}"
           gh release create "$tag" \
             --draft \
-            --title "Seali alpha7 release qualification run ${{ github.run_id }}" \
-            --notes "Private release-qualification assets for commit ${{ github.sha }} (${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}). build_release=${{ inputs.build_release }}, publish_apk_artifacts=${{ inputs.publish_apk_artifacts }}. Draft release: collaborators only, not a public release. Play upload remains a separately approved process." \
+            --target "$GITHUB_SHA" \
+            --title "Seali alpha7 release qualification run ${{ github.run_id }} (${short_sha})" \
+            --notes "Private release-qualification assets for commit $GITHUB_SHA (${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}). build_release=${{ inputs.build_release }}, publish_apk_artifacts=${{ inputs.publish_apk_artifacts }}. Draft release: collaborators only, not a public release. Play upload remains a separately approved process." \
             release-assets/*.apk release-assets/*.aab release-assets/SHA256SUMS
+
+          # Require the exact expected asset set; a partial draft is not ready.
+          mapfile -t expected < <(cd release-assets && ls -- *.apk *.aab SHA256SUMS | sort)
+          mapfile -t actual < <(gh release view "$tag" --json assets --jq '.assets[].name' | sort)
+          if [ "${#expected[@]}" -ne 7 ] || ! diff <(printf '%s\n' "${expected[@]}") <(printf '%s\n' "${actual[@]}") >/dev/null; then
+            echo "::error::Draft asset mismatch for $tag. Expected:"; printf '%s\n' "${expected[@]}"
+            echo "::error::Uploaded:"; printf '%s\n' "${actual[@]}"
+            gh release delete "$tag" --yes || true
+            exit 1
+          fi
+          echo "Private draft release $tag staged with exactly 7 verified assets."
 
       # Play builds are validated but never distributed as GitHub artifacts.
       # Upload to Google Play only through its separately approved process.

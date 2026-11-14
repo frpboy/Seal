@@ -12,8 +12,12 @@ on:
         required: false
         default: false
 
+# contents:write is required so the called android_ci.yml build job can stage
+# the signed outputs on a private draft release (collaborator-only retention,
+# not distribution). Public artifact upload stays separately gated on the
+# publish_apk_artifacts input, which defaults to false.
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   release:
